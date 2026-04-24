@@ -1,0 +1,91 @@
+)
+
+bullFVGNow = useImbalances and low > high[2] and (low - high[2]) >= atr * imbalanceMinAtr
+bearFVGNow = useImbalances and high < low[2] and (low[2] - high) >= atr * imbalanceMinAtr
+
+var box[] bullFvgBoxes = array.new_box()
+var label[] bullFvgLabels = array.new_label()
+var float[] bullFvgTops = array.new_float()
+var float[] bullFvgBots = array.new_float()
+var box[] bearFvgBoxes = array.new_box()
+var label[] bearFvgLabels = array.new_label()
+var float[] bearFvgTops = array.new_float()
+var float[] bearFvgBots = array.new_float()
+var box[] bullIfvgBoxes = array.new_box()
+var label[] bullIfvgLabels = array.new_label()
+var float[] bullIfvgTops = array.new_float()
+var float[] bullIfvgBots = array.new_float()
+var line[] bullIfvgMidLines = array.new_line()
+var box[] bearIfvgBoxes = array.new_box()
+var label[] bearIfvgLabels = array.new_label()
+var float[] bearIfvgTops = array.new_float()
+var float[] bearIfvgBots = array.new_float()
+var line[] bearIfvgMidLines = array.new_line()
+
+if bullFVGNow and showFVGBoxes and showBullFVGBoxes
+    f_pushBox(bullFvgBoxes, bullFvgLabels, bullFvgTops, bullFvgBots, bar_index - 2, low, high[2], "BULL FVG", colBullFvg, colBullFvg, imbalanceExtendBars, showImbalanceLabels and showExtraVisuals, maxFvgBoxes, fvgBoxOpacity, imbalanceBorderWidth)
+
+if bearFVGNow and showFVGBoxes and showBearFVGBoxes
+    f_pushBox(bearFvgBoxes, bearFvgLabels, bearFvgTops, bearFvgBots, bar_index - 2, low[2], high, "BEAR FVG", colBearFvg, colBearFvg, imbalanceExtendBars, showImbalanceLabels and showExtraVisuals, maxFvgBoxes, fvgBoxOpacity, imbalanceBorderWidth)
+
+if array.size(bullFvgBoxes) > 0
+    for i = array.size(bullFvgBoxes) - 1 to 0
+        _top = array.get(bullFvgTops, i)
+        _bot = array.get(bullFvgBots, i)
+        _flip = close < _bot
+        _fill = fvgFillMode == "Wick" ? low <= _bot : close <= _bot
+        if _flip
+            if showIFVGBoxes and showBearIFVGBoxes
+                f_pushBox(bearIfvgBoxes, bearIfvgLabels, bearIfvgTops, bearIfvgBots, bar_index, _top, _bot, "BEAR IFVG", colBearIfvg, colBearIfvg, imbalanceExtendBars, showImbalanceLabels and showExtraVisuals, maxIfvgBoxes, ifvgBoxOpacity, imbalanceBorderWidth)
+                if showIFVGMidline
+                    array.push(bearIfvgMidLines, line.new(bar_index, (_top + _bot) * 0.5, bar_index + imbalanceExtendBars, (_top + _bot) * 0.5, extend=extend.right, color=color.new(color.white, 45), width=1, style=line.style_dashed))
+                    f_trimLineArray(bearIfvgMidLines, maxIfvgBoxes)
+            f_deleteBoxAt(bullFvgBoxes, bullFvgLabels, bullFvgTops, bullFvgBots, i)
+        else if _fill and deleteFilledFVG
+            f_deleteBoxAt(bullFvgBoxes, bullFvgLabels, bullFvgTops, bullFvgBots, i)
+
+if array.size(bearFvgBoxes) > 0
+    for i = array.size(bearFvgBoxes) - 1 to 0
+        _top = array.get(bearFvgTops, i)
+        _bot = array.get(bearFvgBots, i)
+        _flip = close > _top
+        _fill = fvgFillMode == "Wick" ? high >= _top : close >= _top
+        if _flip
+            if showIFVGBoxes and showBullIFVGBoxes
+                f_pushBox(bullIfvgBoxes, bullIfvgLabels, bullIfvgTops, bullIfvgBots, bar_index, _top, _bot, "BULL IFVG", colBullIfvg, colBullIfvg, imbalanceExtendBars, showImbalanceLabels and showExtraVisuals, maxIfvgBoxes, ifvgBoxOpacity, imbalanceBorderWidth)
+                if showIFVGMidline
+                    array.push(bullIfvgMidLines, line.new(bar_index, (_top + _bot) * 0.5, bar_index + imbalanceExtendBars, (_top + _bot) * 0.5, extend=extend.right, color=color.new(color.white, 45), width=1, style=line.style_dashed))
+                    f_trimLineArray(bullIfvgMidLines, maxIfvgBoxes)
+            f_deleteBoxAt(bearFvgBoxes, bearFvgLabels, bearFvgTops, bearFvgBots, i)
+        else if _fill and deleteFilledFVG
+            f_deleteBoxAt(bearFvgBoxes, bearFvgLabels, bearFvgTops, bearFvgBots, i)
+
+if array.size(bullIfvgBoxes) > 0
+    for i = array.size(bullIfvgBoxes) - 1 to 0
+        _bot = array.get(bullIfvgBots, i)
+        if close < _bot
+            f_deleteBoxAt(bullIfvgBoxes, bullIfvgLabels, bullIfvgTops, bullIfvgBots, i)
+            if array.size(bullIfvgMidLines) > i
+                f_deleteLineAt(bullIfvgMidLines, i)
+
+if array.size(bearIfvgBoxes) > 0
+    for i = array.size(bearIfvgBoxes) - 1 to 0
+        _top = array.get(bearIfvgTops, i)
+        if close > _top
+            f_deleteBoxAt(bearIfvgBoxes, bearIfvgLabels, bearIfvgTops, bearIfvgBots, i)
+            if array.size(bearIfvgMidLines) > i
+                f_deleteLineAt(bearIfvgMidLines, i)
+
+bullFvgActive = array.size(bullFvgBoxes) > 0
+bearFvgActive = array.size(bearFvgBoxes) > 0
+bullIfvgActive = array.size(bullIfvgBoxes) > 0
+bearIfvgActive = array.size(bearIfvgBoxes) > 0
+
+bullIfvgSignal = false
+bearIfvgSignal = false
+bullBreakRef = f_signalBreakRef(ifvgSignalPreference, true)
+bearBreakRef = f_signalBreakRef(ifvgSignalPreference, false)
+
+if showIFVGSignals and array.size(bullIfvgBoxes) > 0
+    for i = array.size(bullIfvgBoxes) - 1 to 0
+        _top = arra

@@ -1,0 +1,104 @@
+abels, float[] _levels, int[] _types, int[] _starts, int _x1, float _y, string _txt, int _type, color _col, int _max) =>
+    _line = line.new(_x1, _y, bar_index + baseExtendBars, _y, extend=extend.right, color=color.new(_col, 28), width=1, style=f_lineStyle(liquidityLevelStyleInput))
+    label _label = na
+    if showLiquidityLevelLabels
+        _label := label.new(_x1, _y, _txt, style=label.style_none, textcolor=color.new(_col, 0), size=f_size(tagSizeInput))
+    array.push(_lines, _line)
+    array.push(_labels, _label)
+    array.push(_levels, _y)
+    array.push(_types, _type)
+    array.push(_starts, _x1)
+    f_trimLiquidityLevels(_lines, _labels, _levels, _types, _starts, _max)
+
+f_pushBox(box[] _boxes, label[] _labels, float[] _tops, float[] _bots, int _left, float _top, float _bot, string _txt, color _bg, color _border, int _extend, bool _showLabel, int _max, int _fillOpacity, int _borderWidth) =>
+    _box = box.new(_left, _top, bar_index + _extend, _bot, bgcolor=color.new(_bg, _fillOpacity), border_color=color.new(_border, 10), border_width=_borderWidth)
+    array.push(_boxes, _box)
+    array.push(_tops, _top)
+    array.push(_bots, _bot)
+    label _label = na
+    if _showLabel
+        _label := label.new(bar_index + _extend, (_top + _bot) * 0.5, _txt, style=label.style_label_left, color=color.new(_border, 8), textcolor=color.white, size=f_size(tagSizeInput))
+    array.push(_labels, _label)
+    if array.size(_boxes) > _max
+        _oldBox = array.shift(_boxes)
+        if not na(_oldBox)
+            box.delete(_oldBox)
+        _oldLabel = array.shift(_labels)
+        if not na(_oldLabel)
+            label.delete(_oldLabel)
+        array.shift(_tops)
+        array.shift(_bots)
+
+f_deleteBoxAt(box[] _boxes, label[] _labels, float[] _tops, float[] _bots, int _idx) =>
+    _box = array.get(_boxes, _idx)
+    if not na(_box)
+        box.delete(_box)
+    _label = array.get(_labels, _idx)
+    if not na(_label)
+        label.delete(_label)
+    array.remove(_boxes, _idx)
+    array.remove(_labels, _idx)
+    array.remove(_tops, _idx)
+    array.remove(_bots, _idx)
+
+f_deleteLiquidityLevelAt(line[] _lines, label[] _labels, float[] _levels, int[] _types, int[] _starts, int _idx) =>
+    _line = array.get(_lines, _idx)
+    if not na(_line)
+        line.delete(_line)
+    _label = array.get(_labels, _idx)
+    if not na(_label)
+        label.delete(_label)
+    array.remove(_lines, _idx)
+    array.remove(_labels, _idx)
+    array.remove(_levels, _idx)
+    array.remove(_types, _idx)
+    array.remove(_starts, _idx)
+
+f_deleteLineAt(line[] _lines, int _idx) =>
+    _line = array.get(_lines, _idx)
+    if not na(_line)
+        line.delete(_line)
+    array.remove(_lines, _idx)
+
+f_htfBias(_tf) =>
+    _c = request.security(syminfo.tickerid, _tf, close, barmerge.gaps_off, barmerge.lookahead_off)
+    _hi = request.security(syminfo.tickerid, _tf, ta.highest(high, 20), barmerge.gaps_off, barmerge.lookahead_off)
+    _lo = request.security(syminfo.tickerid, _tf, ta.lowest(low, 20), barmerge.gaps_off, barmerge.lookahead_off)
+    _mid = (_hi + _lo) * 0.5
+    int _bias = 0
+    if _c > _mid
+        _bias := 1
+    else if _c < _mid
+        _bias := -1
+    _bias
+
+atr = ta.atr(14)
+rsi = ta.rsi(close, 14)
+roc = ta.roc(close, 8)
+barRange = high - low
+bodySize = math.abs(close - open)
+closePos = barRange > 0 ? (close - low) / barRange : 0.5
+
+inAsia = useSessions and useAsia and not na(time(timeframe.period, sessAsia, sessionTZ))
+inLondon = useSessions and useLondon and not na(time(timeframe.period, sessLondon, sessionTZ))
+inNYAM = useSessions and useNYAM and not na(time(timeframe.period, sessNYAM, sessionTZ))
+sessionName = inNYAM ? "NY AM" : inLondon ? "LONDON" : inAsia ? "ASIA" : "OFF"
+
+bgcolor(useSessions and showSessionBG and inAsia ? color.new(color.rgb(68, 93, 202), 92) : na)
+bgcolor(useSessions and showSessionBG and inLondon ? color.new(color.rgb(183, 80, 80), 92) : na)
+bgcolor(useSessions and showSessionBG and inNYAM ? color.new(color.rgb(54, 154, 89), 92) : na)
+
+if useSessions and showSessionTags
+    if inAsia and not inAsia[1]
+        label.new(bar_index, high, "ASIA", style=label.style_label_down, color=color.new(color.rgb(68, 93, 202), 18), textcolor=color.white, size=f_size(tagSizeInput))
+    if inLondon and not inLondon[1]
+        label.new(bar_index, high, "LONDON", style=label.style_label_down, color=color.new(color.rgb(183, 80, 80), 18), textcolor=color.white, size=f_size(tagSizeInput))
+    if inNYAM and not inNYAM[1]
+        label.new(bar_index, high, "NY AM", style=label.style_label_down, color=color.new(color.rgb(54, 154, 89), 18), textcolor=color.white, size=f_size(tagSizeInput))
+
+pdh = request.security(syminfo.tickerid, "D", high[1], barmerge.gaps_off, barmerge.lookahead_off)
+pdl = request.security(syminfo.tickerid, "D", low[1], barmerge.gaps_off, barmerge.lookahead_off)
+pdc = request.security(syminfo.tickerid, "D", close[1], barmerge.gaps_off, barmerge.lookahead_off)
+
+swingPH = useSMC ? ta.pivothigh(high, swingLen, swingLen) : na
+swing

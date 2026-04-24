@@ -1,0 +1,6 @@
+[NY OPEN LEVELS]
+XAUUSD: bias WAIT, no alineado
+US30: bias alcista, alineado
+Mas limpio: US30
+Niveles: XAUUSD 4846.37/4772.95/4827.76/4792.44; US30 49483.10/48885.65/49362.10/49232.60
+Estado: LONGS

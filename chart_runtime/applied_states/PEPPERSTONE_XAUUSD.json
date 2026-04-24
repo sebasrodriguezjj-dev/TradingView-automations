@@ -1,0 +1,17 @@
+{
+  "owner": "SMART MONEY - GOOD MONEY Chart Runtime",
+  "symbol": "PEPPERSTONE:XAUUSD",
+  "desired_hash": "0682ac1fca04a62d8885f00ac3a0577d3f26e8270eb1700609ddffa648beda7d",
+  "desired_state_version": 14,
+  "applied_at": "2026-04-24T05:39:37-06:00",
+  "rendered_labels": [
+    "4H RESISTANCE 4772.95",
+    "4H SUPPORT 4664.11",
+    "5M EXECUTION SHORT 4724.84",
+    "5M EXECUTION LONG 4704.55"
+  ],
+  "screenshot": null,
+  "dry_run": false,
+  "source_workflow": "ny-open-levels",
+  "cleanup_scope": "full_symbol_redraw"
+}

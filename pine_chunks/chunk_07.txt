@@ -1,0 +1,46 @@
+ "SSL" : levelBearSweep ? "BSL" : bullPDSweep ? "PDL" : bearPDSweep ? "PDH" : bullSweep ? "BULL" : bearSweep ? "BEAR" : "NONE"
+zonesText = "FVG " + str.tostring(array.size(bullFvgBoxes) + array.size(bearFvgBoxes)) + " | IFVG " + str.tostring(array.size(bullIfvgBoxes) + array.size(bearIfvgBoxes))
+signalText = bullIfvgSignal ? "BULL IFVG" : bearIfvgSignal ? "BEAR IFVG" : bullEngulf ? "BULL ENG" : bearEngulf ? "BEAR ENG" : swingBullCHoCH ? "BULL CHOCH" : swingBearCHoCH ? "BEAR CHOCH" : "QUIET"
+pdLevelsText = "H " + str.tostring(pdh, "#") + " / L " + str.tostring(pdl, "#")
+eqText = not na(rangeMid) ? str.tostring(rangeMid, "#.##") : "N/A"
+
+f_cell(table _t, int _c, int _r, string _txt, color _bg, color _tc) =>
+    table.cell(_t, _c, _r, _txt, bgcolor=_bg, text_color=_tc)
+
+var table dash = table.new(position.top_right, 2, 12, bgcolor=color.new(color.black, 12), border_color=color.new(colNeutral, 70))
+if useDashboard and showDashboard and barstate.islast
+    f_cell(dash, 0, 0, dashboardCompact ? "MKT STRUCTURE" : "MARKET STRUCTURE", color.new(color.black, 45), color.white)
+    f_cell(dash, 1, 0, "STACK v3", color.new(color.black, 10), color.white)
+    f_cell(dash, 0, 1, "BIAS", color.new(color.gray, 84), color.white)
+    f_cell(dash, 1, 1, structureText, structureState == 1 ? color.new(colBull, 72) : structureState == -1 ? color.new(colBear, 72) : color.new(colNeutral, 82), color.white)
+    f_cell(dash, 0, 2, "HTF", color.new(color.gray, 84), color.white)
+    f_cell(dash, 1, 2, dashboardShowHTF ? htfText : "-", color.new(color.black, 16), color.white)
+    f_cell(dash, 0, 3, "SWING", color.new(color.gray, 84), color.white)
+    f_cell(dash, 1, 3, dashboardCompact ? structureText : structureText + " | " + lastSwingText, color.new(color.black, 16), color.white)
+    f_cell(dash, 0, 4, "INTERNAL", color.new(color.gray, 84), color.white)
+    f_cell(dash, 1, 4, dashboardShowInternal ? internalText : "-", color.new(color.black, 16), color.white)
+    f_cell(dash, 0, 5, "LIQUIDITY", color.new(color.gray, 84), color.white)
+    f_cell(dash, 1, 5, dashboardShowLiquidity ? liquidityText : "-", color.new(color.black, 16), color.white)
+    f_cell(dash, 0, 6, "SWEEPS", color.new(color.gray, 84), color.white)
+    f_cell(dash, 1, 6, dashboardCompact ? sweepText : sweepText + " | " + pdLevelsText, color.new(color.black, 16), color.white)
+    f_cell(dash, 0, 7, "IMBALANCE", color.new(color.gray, 84), color.white)
+    f_cell(dash, 1, 7, dashboardShowImbalance ? imbalanceText : "-", color.new(color.black, 16), color.white)
+    f_cell(dash, 0, 8, "ZONES", color.new(color.gray, 84), color.white)
+    f_cell(dash, 1, 8, dashboardCompact ? imbalanceText : zonesText, color.new(color.black, 16), color.white)
+    f_cell(dash, 0, 9, "SESSION", color.new(color.gray, 84), color.white)
+    f_cell(dash, 1, 9, dashboardShowSession ? sessionName : "-", color.new(color.black, 16), color.white)
+    f_cell(dash, 0, 10, "RSI / PD", color.new(color.gray, 84), color.white)
+    f_cell(dash, 1, 10, dashboardShowRsiPd ? rsiText + " | " + pdState + " | EQ " + eqText : "-", color.new(color.black, 16), color.white)
+    f_cell(dash, 0, 11, "SIGNAL", color.new(color.gray, 84), color.white)
+    f_cell(dash, 1, 11, signalText, color.new(color.black, 16), color.white)
+
+alertcondition(swingBullBOS, "SMC Bull BOS", "Bull BOS on {{ticker}} {{interval}}")
+alertcondition(swingBearBOS, "SMC Bear BOS", "Bear BOS on {{ticker}} {{interval}}")
+alertcondition(swingBullCHoCH, "SMC Bull CHOCH", "Bull CHOCH on {{ticker}} {{interval}}")
+alertcondition(swingBearCHoCH, "SMC Bear CHOCH", "Bear CHOCH on {{ticker}} {{interval}}")
+alertcondition(bullPDSweep, "PDL Sweep", "Bullish sweep of previous day low")
+alertcondition(bearPDSweep, "PDH Sweep", "Bearish sweep of previous day high")
+alertcondition(bullFVGNow, "Bull FVG", "Bull FVG on {{ticker}} {{interval}}")
+alertcondition(bearFVGNow, "Bear FVG", "Bear FVG on {{ticker}} {{interval}}")
+alertcondition(bullEngulf, "Bull Engulf", "Bull engulfing on {{ticker}} {{interval}}")
+alertcondition(bearEngulf, "Bear Engulf", "Bear engulfing on {{ticker}} {{interval}}")

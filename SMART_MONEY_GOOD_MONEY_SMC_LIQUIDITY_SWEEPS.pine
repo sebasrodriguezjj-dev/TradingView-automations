@@ -1,0 +1,1321 @@
+// This work is licensed under a Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+// https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Combined from user-provided source code:
+// - Smart Money Concepts [LuxAlgo]
+// - Liquidity Sweeps [LuxAlgo]
+// Original authorship: © LuxAlgo
+
+//@version=6
+indicator('SMART MONEY - GOOD MONEY', 'SMART MONEY - GOOD MONEY', overlay = true, max_labels_count = 500, max_lines_count = 500, max_boxes_count = 500)
+
+//---------------------------------------------------------------------------------------------------------------------}
+//CONSTANTS & STRINGS & INPUTS
+//---------------------------------------------------------------------------------------------------------------------{
+BULLISH_LEG                     = 1
+BEARISH_LEG                     = 0
+
+BULLISH                         = +1
+BEARISH                         = -1
+
+GREEN                           = #089981
+RED                             = #F23645
+BLUE                            = #2157f3
+GRAY                            = #878b94
+ORANGE                          = #f97316
+MONO_BULLISH                    = #b2b5be
+MONO_BEARISH                    = #5d606b
+
+HISTORICAL                      = 'Historical'
+PRESENT                         = 'Present'
+
+COLORED                         = 'Colored'
+MONOCHROME                      = 'Monochrome'
+
+ALL                             = 'All'
+BOS                             = 'BOS'
+CHOCH                           = 'CHoCH'
+
+TINY                            = size.tiny
+SMALL                           = size.small
+NORMAL                          = size.normal
+
+ATR                             = 'Atr'
+RANGE                           = 'Cumulative Mean Range'
+
+CLOSE                           = 'Close'
+HIGHLOW                         = 'High/Low'
+
+SOLID                           = '⎯⎯⎯'
+DASHED                          = '----'
+DOTTED                          = '····'
+
+SMART_GROUP                     = 'Smart Money Concepts'
+INTERNAL_GROUP                  = 'Real Time Internal Structure'
+SWING_GROUP                     = 'Real Time Swing Structure'
+BLOCKS_GROUP                    = 'Order Blocks'
+EQUAL_GROUP                     = 'EQH/EQL'
+GAPS_GROUP                      = 'Fair Value Gaps'
+LEVELS_GROUP                    = 'Highs & Lows MTF'
+ZONES_GROUP                     = 'Premium & Discount Zones'
+LIQ_SWEEPS_GROUP                = 'Liquidity Sweeps'
+SWEEP_AREA_GROUP                = 'Sweep Area'
+ENGULFING_GROUP                 = 'Engulfing Candles'
+VISUAL_OVERLAYS_GROUP           = 'Visual Overlays'
+VO_SETTINGS_GROUP               = 'Visual Overlay Settings'
+MANUAL_PRESET                   = 'Manual'
+US30_PRESET                     = 'US30'
+XAUUSD_PRESET                   = 'XAUUSD'
+
+enum voLineStyle
+    solid  = 'Solid'
+    dashed = 'Dashed'
+    dotted = 'Dotted'
+
+modeTooltip                     = 'Allows to display historical Structure or only the recent ones'
+styleTooltip                    = 'Indicator color theme'
+showTrendTooltip                = 'Display additional candles with a color reflecting the current trend detected by structure'
+showInternalsTooltip            = 'Display internal market structure'
+internalFilterConfluenceTooltip = 'Filter non significant internal structure breakouts'
+showStructureTooltip            = 'Display swing market Structure'
+showSwingsTooltip               = 'Display swing point as labels on the chart'
+showHighLowSwingsTooltip        = 'Highlight most recent strong and weak high/low points on the chart'
+showInternalOrderBlocksTooltip  = 'Display internal order blocks on the chart\n\nNumber of internal order blocks to display on the chart'
+showSwingOrderBlocksTooltip     = 'Display swing order blocks on the chart\n\nNumber of internal swing blocks to display on the chart'
+orderBlockFilterTooltip         = 'Method used to filter out volatile order blocks \n\nIt is recommended to use the cumulative mean range method when a low amount of data is available'
+orderBlockMitigationTooltip     = 'Select what values to use for order block mitigation'
+showEqualHighsLowsTooltip       = 'Display equal highs and equal lows on the chart'
+equalHighsLowsLengthTooltip     = 'Number of bars used to confirm equal highs and equal lows'
+equalHighsLowsThresholdTooltip  = 'Sensitivity threshold in a range (0, 1) used for the detection of equal highs & lows\n\nLower values will return fewer but more pertinent results'
+showFairValueGapsTooltip        = 'Display fair values gaps on the chart'
+fairValueGapsThresholdTooltip   = 'Filter out non significant fair value gaps'
+fairValueGapsTimeframeTooltip   = 'Fair value gaps timeframe'
+fairValueGapsExtendTooltip      = 'Determine how many bars to extend the Fair Value Gap boxes on chart'
+showPremiumDiscountZonesTooltip = 'Display premium, discount, and equilibrium zones on chart'
+
+modeInput                       = input.string( HISTORICAL, 'Mode',                     group = SMART_GROUP,    tooltip = modeTooltip, options = [HISTORICAL, PRESENT])
+styleInput                      = input.string( COLORED,    'Style',                    group = SMART_GROUP,    tooltip = styleTooltip,options = [COLORED, MONOCHROME])
+showTrendInput                  = input(        false,      'Color Candles',            group = SMART_GROUP,    tooltip = showTrendTooltip)
+
+showInternalsInput              = input(        true,       'Show Internal Structure',  group = INTERNAL_GROUP, tooltip = showInternalsTooltip)
+showInternalBullInput           = input.string( CHOCH,      'Bullish Structure',        group = INTERNAL_GROUP, inline = 'ibull', options = [ALL,BOS,CHOCH])
+internalBullColorInput          = input(        GREEN,      '',                         group = INTERNAL_GROUP, inline = 'ibull')
+showInternalBearInput           = input.string( CHOCH,      'Bearish Structure' ,       group = INTERNAL_GROUP, inline = 'ibear', options = [ALL,BOS,CHOCH])
+internalBearColorInput          = input(        RED,        '',                         group = INTERNAL_GROUP, inline = 'ibear')
+internalFilterConfluenceInput   = input(        false,      'Confluence Filter',        group = INTERNAL_GROUP, tooltip = internalFilterConfluenceTooltip)
+internalStructureSize           = input.string( TINY,       'Internal Label Size',      group = INTERNAL_GROUP, options = [TINY,SMALL,NORMAL])
+
+showStructureInput              = input(        true,       'Show Swing Structure',     group = SWING_GROUP,    tooltip = showStructureTooltip)
+showSwingBullInput              = input.string( ALL,        'Bullish Structure',        group = SWING_GROUP,    inline = 'bull',    options = [ALL,BOS,CHOCH])
+swingBullColorInput             = input(        GREEN,      '',                         group = SWING_GROUP,    inline = 'bull')
+showSwingBearInput              = input.string( ALL,        'Bearish Structure',        group = SWING_GROUP,    inline = 'bear',    options = [ALL,BOS,CHOCH])
+swingBearColorInput             = input(        RED,        '',                         group = SWING_GROUP,    inline = 'bear')
+swingStructureSize              = input.string( SMALL,      'Swing Label Size',         group = SWING_GROUP,    options = [TINY,SMALL,NORMAL])
+showSwingsInput                 = input(        false,      'Show Swings Points',       group = SWING_GROUP,    tooltip = showSwingsTooltip,inline = 'swings')
+swingsLengthInput               = input.int(    20,         '',                         group = SWING_GROUP,    minval = 10,                inline = 'swings')
+showHighLowSwingsInput          = input(        true,       'Show Strong/Weak High/Low',group = SWING_GROUP,    tooltip = showHighLowSwingsTooltip)
+
+showInternalOrderBlocksInput    = input(        false,      'Internal Order Blocks' ,   group = BLOCKS_GROUP,   tooltip = showInternalOrderBlocksTooltip,   inline = 'iob')
+internalOrderBlocksSizeInput    = input.int(    5,          '',                         group = BLOCKS_GROUP,   minval = 1, maxval = 20,                    inline = 'iob')
+showSwingOrderBlocksInput       = input(        false,      'Swing Order Blocks',       group = BLOCKS_GROUP,   tooltip = showSwingOrderBlocksTooltip,      inline = 'ob')
+swingOrderBlocksSizeInput       = input.int(    5,          '',                         group = BLOCKS_GROUP,   minval = 1, maxval = 20,                    inline = 'ob')
+orderBlockFilterInput           = input.string( 'Atr',      'Order Block Filter',       group = BLOCKS_GROUP,   tooltip = orderBlockFilterTooltip,          options = [ATR, RANGE])
+orderBlockMitigationInput       = input.string( HIGHLOW,    'Order Block Mitigation',   group = BLOCKS_GROUP,   tooltip = orderBlockMitigationTooltip,      options = [CLOSE,HIGHLOW])
+internalBullishOrderBlockColor  = input.color(color.new(#3179f5, 80), 'Internal Bullish OB',    group = BLOCKS_GROUP)
+internalBearishOrderBlockColor  = input.color(color.new(#f77c80, 80), 'Internal Bearish OB',    group = BLOCKS_GROUP)
+swingBullishOrderBlockColor     = input.color(color.new(#1848cc, 80), 'Bullish OB',             group = BLOCKS_GROUP)
+swingBearishOrderBlockColor     = input.color(color.new(#b22833, 80), 'Bearish OB',             group = BLOCKS_GROUP)
+
+showEqualHighsLowsInput         = input(        true,       'Equal High/Low',           group = EQUAL_GROUP,    tooltip = showEqualHighsLowsTooltip)
+equalHighsLowsLengthInput       = input.int(    3,          'Bars Confirmation',        group = EQUAL_GROUP,    tooltip = equalHighsLowsLengthTooltip,      minval = 1)
+equalHighsLowsThresholdInput    = input.float(  0.1,        'Threshold',                group = EQUAL_GROUP,    tooltip = equalHighsLowsThresholdTooltip,   minval = 0, maxval = 0.5, step = 0.1)
+equalHighsLowsSizeInput         = input.string( TINY,       'Label Size',               group = EQUAL_GROUP,    options = [TINY,SMALL,NORMAL])
+
+showFairValueGapsInput          = input(        false,      'Fair Value Gaps',          group = GAPS_GROUP,     tooltip = showFairValueGapsTooltip)
+fairValueGapsThresholdInput     = input(        true,       'Auto Threshold',           group = GAPS_GROUP,     tooltip = fairValueGapsThresholdTooltip)
+fairValueGapsTimeframeInput     = input.timeframe('',       'Timeframe',                group = GAPS_GROUP,     tooltip = fairValueGapsTimeframeTooltip)
+fairValueGapsBullColorInput     = input.color(color.new(#00ff68, 70), 'Bullish FVG' , group = GAPS_GROUP)
+fairValueGapsBearColorInput     = input.color(color.new(#ff0008, 70), 'Bearish FVG' , group = GAPS_GROUP)
+fairValueGapsExtendInput        = input.int(    1,          'Extend FVG',               group = GAPS_GROUP,     tooltip = fairValueGapsExtendTooltip,       minval = 0)
+
+showDailyLevelsInput            = input(        false,      'Daily',    group = LEVELS_GROUP,   inline = 'daily')
+dailyLevelsStyleInput           = input.string( SOLID,      '',         group = LEVELS_GROUP,   inline = 'daily',   options = [SOLID,DASHED,DOTTED])
+dailyLevelsColorInput           = input(        BLUE,       '',         group = LEVELS_GROUP,   inline = 'daily')
+showWeeklyLevelsInput           = input(        false,      'Weekly',   group = LEVELS_GROUP,   inline = 'weekly')
+weeklyLevelsStyleInput          = input.string( SOLID,      '',         group = LEVELS_GROUP,   inline = 'weekly',  options = [SOLID,DASHED,DOTTED])
+weeklyLevelsColorInput          = input(        BLUE,       '',         group = LEVELS_GROUP,   inline = 'weekly')
+showMonthlyLevelsInput          = input(        false,      'Monthly',   group = LEVELS_GROUP,   inline = 'monthly')
+monthlyLevelsStyleInput         = input.string( SOLID,      '',         group = LEVELS_GROUP,   inline = 'monthly', options = [SOLID,DASHED,DOTTED])
+monthlyLevelsColorInput         = input(        BLUE,       '',         group = LEVELS_GROUP,   inline = 'monthly')
+
+showPremiumDiscountZonesInput   = input(        false,      'Premium/Discount Zones',   group = ZONES_GROUP , tooltip = showPremiumDiscountZonesTooltip)
+premiumZoneColorInput           = input.color(  RED,        'Premium Zone',             group = ZONES_GROUP)
+equilibriumZoneColorInput       = input.color(  GRAY,       'Equilibrium Zone',         group = ZONES_GROUP)
+discountZoneColorInput          = input.color(  GREEN,      'Discount Zone',            group = ZONES_GROUP)
+
+ls_lenInput                     = input.int(5, 'Swings', minval = 1, group = LIQ_SWEEPS_GROUP)
+ls_optInput                     = input.string('Wicks + Outbreaks & Retest', 'options', options = ['Only Wicks', 'Only Outbreaks & Retest', 'Wicks + Outbreaks & Retest'], group = LIQ_SWEEPS_GROUP)
+ls_colBlInput                   = input.color(#089981, 'Bull ', group = LIQ_SWEEPS_GROUP, inline = 'lsc1')
+ls_colBrInput                   = input.color(#f23645, 'Bear',  group = LIQ_SWEEPS_GROUP, inline = 'lsc2')
+ls_colBl2Input                  = input.color(#08998180, '', group = LIQ_SWEEPS_GROUP, inline = 'lsc1')
+ls_colBr2Input                  = input.color(#f2364580, '', group = LIQ_SWEEPS_GROUP, inline = 'lsc2')
+
+ls_extendInput                  = input.bool(true, 'Extend', group = SWEEP_AREA_GROUP)
+ls_maxBarsInput                 = input.int(120, 'Max bars', minval = 1, maxval = 5000, group = SWEEP_AREA_GROUP)
+ls_colBl3Input                  = input.color(#08998141, 'Bull ', group = SWEEP_AREA_GROUP)
+ls_colBr3Input                  = input.color(#f2364541, 'Bear',  group = SWEEP_AREA_GROUP)
+
+showEngulfingInput              = input.bool(true, 'Show Engulfing Candles', group = ENGULFING_GROUP)
+engulfingBullColorInput         = input.color(color.green, 'Bullish Engulfing', group = ENGULFING_GROUP, inline = 'engb')
+engulfingBearColorInput         = input.color(color.red, 'Bearish Engulfing', group = ENGULFING_GROUP, inline = 'engb')
+
+voShowOBInput                   = input.bool(true, 'Order Blocks', group = VISUAL_OVERLAYS_GROUP, inline = 'voob')
+voObBullColorInput              = input.color(GREEN, '', group = VISUAL_OVERLAYS_GROUP, inline = 'voob', active = voShowOBInput)
+voObBearColorInput              = input.color(RED, '', group = VISUAL_OVERLAYS_GROUP, inline = 'voob', active = voShowOBInput)
+voObLookbackInput               = input.int(3, 'Show Last', minval = 1, maxval = 20, group = VISUAL_OVERLAYS_GROUP, inline = 'voob2', active = voShowOBInput)
+voObExtendInput                 = input.int(12, 'Extend', minval = 1, group = VISUAL_OVERLAYS_GROUP, inline = 'voob2', active = voShowOBInput)
+voShowOBLabelsInput             = input.bool(false, 'Labels', group = VISUAL_OVERLAYS_GROUP, active = voShowOBInput)
+
+voShowFVGInput                  = input.bool(true, 'FVGs', group = VISUAL_OVERLAYS_GROUP, inline = 'vofvg')
+voFvgBullColorInput             = input.color(GREEN, '', group = VISUAL_OVERLAYS_GROUP, inline = 'vofvg', active = voShowFVGInput)
+voFvgBearColorInput             = input.color(RED, '', group = VISUAL_OVERLAYS_GROUP, inline = 'vofvg', active = voShowFVGInput)
+voFvgLookbackInput              = input.int(3, 'Show Last', minval = 1, maxval = 20, group = VISUAL_OVERLAYS_GROUP, inline = 'vofvg2', active = voShowFVGInput)
+voFvgExtendInput                = input.int(4, 'Extend', minval = 1, group = VISUAL_OVERLAYS_GROUP, inline = 'vofvg2', active = voShowFVGInput)
+voShowFVGLabelsInput            = input.bool(true, 'Labels', group = VISUAL_OVERLAYS_GROUP, active = voShowFVGInput)
+
+voShowSwingLabelsInput          = input.bool(true, 'Swing Labels', group = VISUAL_OVERLAYS_GROUP, inline = 'voswlbl')
+voSwingBullColorInput           = input.color(GREEN, '', group = VISUAL_OVERLAYS_GROUP, inline = 'voswlbl', active = voShowSwingLabelsInput)
+voSwingBearColorInput           = input.color(RED, '', group = VISUAL_OVERLAYS_GROUP, inline = 'voswlbl', active = voShowSwingLabelsInput)
+voSwingLabelLookbackInput       = input.int(8, 'Show Last', minval = 1, maxval = 500, group = VISUAL_OVERLAYS_GROUP, active = voShowSwingLabelsInput)
+
+voShowSwingLinesInput           = input.bool(true, 'Swing Lines', group = VISUAL_OVERLAYS_GROUP, inline = 'voswln')
+voSwingLineLowColorInput        = input.color(GREEN, '', group = VISUAL_OVERLAYS_GROUP, inline = 'voswln', active = voShowSwingLinesInput)
+voSwingLineHighColorInput       = input.color(RED, '', group = VISUAL_OVERLAYS_GROUP, inline = 'voswln', active = voShowSwingLinesInput)
+voSwingLineStyleInput           = input.enum(voLineStyle.dashed, '', group = VISUAL_OVERLAYS_GROUP, inline = 'voswln', active = voShowSwingLinesInput)
+voSwingLinesExtendInput         = input.int(12, 'Extend', minval = 1, group = VISUAL_OVERLAYS_GROUP, active = voShowSwingLinesInput)
+
+voPlotPDHLToggleInput           = input.bool(true, 'Previous Day High/Low', group = VISUAL_OVERLAYS_GROUP, inline = 'vopd')
+voPdlColorInput                 = input.color(GREEN, '', group = VISUAL_OVERLAYS_GROUP, inline = 'vopd', active = voPlotPDHLToggleInput)
+voPdhColorInput                 = input.color(RED, '', group = VISUAL_OVERLAYS_GROUP, inline = 'vopd', active = voPlotPDHLToggleInput)
+voPdhlLineStyleInput            = input.enum(voLineStyle.dashed, '', group = VISUAL_OVERLAYS_GROUP, inline = 'vopd', active = voPlotPDHLToggleInput)
+
+voPlotPWHLToggleInput           = input.bool(true, 'Previous Week High/Low', group = VISUAL_OVERLAYS_GROUP, inline = 'vopw')
+voPwlColorInput                 = input.color(GREEN, '', group = VISUAL_OVERLAYS_GROUP, inline = 'vopw', active = voPlotPWHLToggleInput)
+voPwhColorInput                 = input.color(RED, '', group = VISUAL_OVERLAYS_GROUP, inline = 'vopw', active = voPlotPWHLToggleInput)
+voPwhlLineStyleInput            = input.enum(voLineStyle.dashed, '', group = VISUAL_OVERLAYS_GROUP, inline = 'vopw', active = voPlotPWHLToggleInput)
+
+voPlotPMHLToggleInput           = input.bool(false, 'Previous Month High/Low', group = VISUAL_OVERLAYS_GROUP, inline = 'vopm')
+voPmlColorInput                 = input.color(GREEN, '', group = VISUAL_OVERLAYS_GROUP, inline = 'vopm', active = voPlotPMHLToggleInput)
+voPmhColorInput                 = input.color(RED, '', group = VISUAL_OVERLAYS_GROUP, inline = 'vopm', active = voPlotPMHLToggleInput)
+voPmhlLineStyleInput            = input.enum(voLineStyle.dashed, '', group = VISUAL_OVERLAYS_GROUP, inline = 'vopm', active = voPlotPMHLToggleInput)
+
+voHtfLevelExtendInput           = input.int(20, 'HTF Extend', minval = 1, group = VISUAL_OVERLAYS_GROUP)
+voShowEMAInput                  = input.bool(false, 'EMA', group = VISUAL_OVERLAYS_GROUP, inline = 'voema')
+voEmaColorInput                 = input.color(ORANGE, '', group = VISUAL_OVERLAYS_GROUP, inline = 'voema', active = voShowEMAInput)
+
+presetModeInput                 = input.string(MANUAL_PRESET, 'Preset Mode', options = [MANUAL_PRESET, US30_PRESET, XAUUSD_PRESET], group = VO_SETTINGS_GROUP)
+voEmaLengthInput                = input.int(9, 'EMA Length', minval = 1, group = VO_SETTINGS_GROUP)
+voSwingLengthInput              = input.int(5, 'Swing Length', minval = 1, group = VO_SETTINGS_GROUP, tooltip = 'Used for swing labels, swing lines, order blocks, and FVG overlays')
+voPlotPDHLInput                 = voPlotPDHLToggleInput and timeframe.in_seconds() <= 86400
+voPlotPWHLInput                 = voPlotPWHLToggleInput and timeframe.in_seconds() <= 86400 * 7
+voPlotPMHLInput                 = voPlotPMHLToggleInput and timeframe.in_seconds() <= 86400 * 31
+useUs30Preset                   = presetModeInput == US30_PRESET
+useXauusdPreset                 = presetModeInput == XAUUSD_PRESET
+effectiveInternalBullInput      = useUs30Preset or useXauusdPreset ? CHOCH : showInternalBullInput
+effectiveInternalBearInput      = useUs30Preset or useXauusdPreset ? CHOCH : showInternalBearInput
+effectiveSwingsLengthInput      = useUs30Preset ? 20 : useXauusdPreset ? 14 : swingsLengthInput
+effectiveInternalOrderBlocks    = useUs30Preset or useXauusdPreset ? false : showInternalOrderBlocksInput
+effectiveLsOptInput             = useUs30Preset or useXauusdPreset ? 'Wicks + Outbreaks & Retest' : ls_optInput
+effectiveLsMaxBarsInput         = useUs30Preset ? 140 : useXauusdPreset ? 90 : ls_maxBarsInput
+effectiveVoShowOBInput          = useUs30Preset or useXauusdPreset ? true : voShowOBInput
+effectiveVoObLookbackInput      = useUs30Preset ? 3 : useXauusdPreset ? 2 : voObLookbackInput
+effectiveVoObExtendInput        = useUs30Preset ? 14 : useXauusdPreset ? 9 : voObExtendInput
+effectiveVoShowOBLabelsInput    = useUs30Preset or useXauusdPreset ? false : voShowOBLabelsInput
+effectiveVoShowFVGInput         = useUs30Preset or useXauusdPreset ? true : voShowFVGInput
+effectiveVoFvgLookbackInput     = useUs30Preset ? 3 : useXauusdPreset ? 4 : voFvgLookbackInput
+effectiveVoFvgExtendInput       = useUs30Preset ? 4 : useXauusdPreset ? 3 : voFvgExtendInput
+effectiveVoShowFVGLabelsInput   = useUs30Preset or useXauusdPreset ? true : voShowFVGLabelsInput
+effectiveVoShowSwingLabelsInput = useUs30Preset or useXauusdPreset ? true : voShowSwingLabelsInput
+effectiveVoSwingLabelLookback   = useUs30Preset ? 8 : useXauusdPreset ? 10 : voSwingLabelLookbackInput
+effectiveVoShowSwingLinesInput  = useUs30Preset or useXauusdPreset ? true : voShowSwingLinesInput
+effectiveVoSwingLinesExtend     = useUs30Preset ? 12 : useXauusdPreset ? 9 : voSwingLinesExtendInput
+effectiveVoPlotPDHLInput        = (useUs30Preset or useXauusdPreset ? true : voPlotPDHLInput) and timeframe.in_seconds() <= 86400
+effectiveVoPlotPWHLInput        = (useUs30Preset or useXauusdPreset ? true : voPlotPWHLInput) and timeframe.in_seconds() <= 86400 * 7
+effectiveVoPlotPMHLInput        = (useUs30Preset or useXauusdPreset ? false : voPlotPMHLInput) and timeframe.in_seconds() <= 86400 * 31
+effectiveVoShowEMAInput         = useUs30Preset or useXauusdPreset ? false : voShowEMAInput
+effectiveVoSwingLengthInput     = useUs30Preset ? 6 : useXauusdPreset ? 4 : voSwingLengthInput
+
+ls_oW                           = effectiveLsOptInput == 'Only Wicks'
+ls_oO                           = effectiveLsOptInput == 'Only Outbreaks & Retest'
+ls_WO                           = effectiveLsOptInput == 'Wicks + Outbreaks & Retest'
+
+//---------------------------------------------------------------------------------------------------------------------}
+//DATA STRUCTURES & VARIABLES
+//---------------------------------------------------------------------------------------------------------------------{
+type alerts
+    bool internalBullishBOS         = false
+    bool internalBearishBOS         = false
+    bool internalBullishCHoCH       = false
+    bool internalBearishCHoCH       = false
+    bool swingBullishBOS            = false
+    bool swingBearishBOS            = false
+    bool swingBullishCHoCH          = false
+    bool swingBearishCHoCH          = false
+    bool internalBullishOrderBlock  = false
+    bool internalBearishOrderBlock  = false
+    bool swingBullishOrderBlock     = false
+    bool swingBearishOrderBlock     = false
+    bool equalHighs                 = false
+    bool equalLows                  = false
+    bool bullishFairValueGap        = false
+    bool bearishFairValueGap        = false
+
+type trailingExtremes
+    float top
+    float bottom
+    int barTime
+    int barIndex
+    int lastTopTime
+    int lastBottomTime
+
+type fairValueGap
+    float top
+    float bottom
+    int bias
+    box topBox
+    box bottomBox
+
+type trend
+    int bias
+
+type equalDisplay
+    line l_ine      = na
+    label l_abel    = na
+
+type pivot
+    float currentLevel
+    float lastLevel
+    bool crossed
+    int barTime     = time
+    int barIndex    = bar_index
+
+type orderBlock
+    float barHigh
+    float barLow
+    int barTime
+    int bias
+
+type ls_piv
+    float prc
+    int bix
+    bool brk
+    bool mit
+    bool tak
+    bool wic
+    line lin
+
+type ls_boxBr
+    box  bx
+    line ln
+    bool br
+    int  dr
+
+type voZoneBlock
+    int dir
+    float top
+    float bottom
+    int barIdx
+
+type voPivotData
+    float lastPH
+    int lastPHBar
+    float lastPL
+    int lastPLBar
+
+type voSwingLineData
+    line highLine
+    line lowLine
+    int lastHBar
+    int lastLBar
+
+type voCandleSearch
+    float price
+    float otherPrice
+    int barIdx
+
+type voSwingState
+    float prevH
+    float currH
+    float prevL
+    float currL
+
+type voSwingLabel
+    int x
+    float y
+    string txt
+    bool isHigh
+    color clr
+    color textClr
+
+var pivot swingHigh                 = pivot.new(na,na,false)
+var pivot swingLow                  = pivot.new(na,na,false)
+var pivot internalHigh              = pivot.new(na,na,false)
+var pivot internalLow               = pivot.new(na,na,false)
+var pivot equalHigh                 = pivot.new(na,na,false)
+var pivot equalLow                  = pivot.new(na,na,false)
+var trend swingTrend                = trend.new(0)
+var trend internalTrend             = trend.new(0)
+var equalDisplay equalHighDisplay   = equalDisplay.new()
+var equalDisplay equalLowDisplay    = equalDisplay.new()
+var array<fairValueGap> fairValueGaps = array.new<fairValueGap>()
+var array<float> parsedHighs        = array.new<float>()
+var array<float> parsedLows         = array.new<float>()
+var array<float> highs              = array.new<float>()
+var array<float> lows               = array.new<float>()
+var array<int> times                = array.new<int>()
+var trailingExtremes trailing       = trailingExtremes.new()
+var array<orderBlock> swingOrderBlocks      = array.new<orderBlock>()
+var array<orderBlock> internalOrderBlocks   = array.new<orderBlock>()
+var array<box> swingOrderBlocksBoxes        = array.new<box>()
+var array<box> internalOrderBlocksBoxes     = array.new<box>()
+var swingBullishColor               = styleInput == MONOCHROME ? MONO_BULLISH : swingBullColorInput
+var swingBearishColor               = styleInput == MONOCHROME ? MONO_BEARISH : swingBearColorInput
+var fairValueGapBullishColor        = styleInput == MONOCHROME ? color.new(MONO_BULLISH,70) : fairValueGapsBullColorInput
+var fairValueGapBearishColor        = styleInput == MONOCHROME ? color.new(MONO_BEARISH,70) : fairValueGapsBearColorInput
+var premiumZoneColor                = styleInput == MONOCHROME ? MONO_BEARISH : premiumZoneColorInput
+var discountZoneColor               = styleInput == MONOCHROME ? MONO_BULLISH : discountZoneColorInput
+varip int currentBarIndex           = bar_index
+varip int lastBarIndex              = bar_index
+alerts currentAlerts                = alerts.new()
+var initialTime                     = time
+
+var array<ls_piv> ls_aPivH          = array.new<ls_piv>(1, ls_piv.new())
+var array<ls_piv> ls_aPivL          = array.new<ls_piv>(1, ls_piv.new())
+var array<ls_boxBr> ls_aBoxBr       = array.new<ls_boxBr>(1, ls_boxBr.new())
+var array<voZoneBlock> voCurrTfOBs  = array.new<voZoneBlock>()
+var array<box> voObBoxes            = array.new<box>()
+var voPivotData voCurrTfPivot       = voPivotData.new(na, na, na, na)
+var array<voZoneBlock> voCurrTfFvgs = array.new<voZoneBlock>()
+var array<box> voFvgBoxes           = array.new<box>()
+var voSwingLineData voSwingLines    = voSwingLineData.new(na, na, na, na)
+var voSwingState voSwingStateData   = voSwingState.new(na, na, na, na)
+var array<voSwingLabel> voSwingLabels = array.new<voSwingLabel>()
+var array<label> voSwingLabelObjs   = array.new<label>()
+var line voPdhLine                  = na
+var line voPdlLine                  = na
+var line voPwhLine                  = na
+var line voPwlLine                  = na
+var line voPmhLine                  = na
+var line voPmlLine                  = na
+var label voPdhLabel                = na
+var label voPdlLabel                = na
+var label voPwhLabel                = na
+var label voPwlLabel                = na
+var label voPmhLabel                = na
+var label voPmlLabel                = na
+
+if barstate.isfirst
+    if showSwingOrderBlocksInput
+        for index = 1 to swingOrderBlocksSizeInput
+            swingOrderBlocksBoxes.push(box.new(na,na,na,na,xloc = xloc.bar_time,extend = extend.right))
+    if effectiveInternalOrderBlocks
+        for index = 1 to internalOrderBlocksSizeInput
+            internalOrderBlocksBoxes.push(box.new(na,na,na,na,xloc = xloc.bar_time,extend = extend.right))
+
+bearishOrderBlockMitigationSource   = orderBlockMitigationInput == CLOSE ? close : high
+bullishOrderBlockMitigationSource   = orderBlockMitigationInput == CLOSE ? close : low
+atrMeasure                          = ta.atr(200)
+volatilityMeasure                   = orderBlockFilterInput == ATR ? atrMeasure : ta.cum(ta.tr) / bar_index
+highVolatilityBar                   = (high - low) >= (2 * volatilityMeasure)
+parsedHigh                          = highVolatilityBar ? low : high
+parsedLow                           = highVolatilityBar ? high : low
+ls_n                                = bar_index
+engulfingOpenBarPrevious            = open[1]
+engulfingCloseBarPrevious           = close[1]
+engulfingOpenBarCurrent             = open
+engulfingCloseBarCurrent            = close
+bullishEngulfing                    = (engulfingOpenBarCurrent <= engulfingCloseBarPrevious) and (engulfingOpenBarCurrent < engulfingOpenBarPrevious) and (engulfingCloseBarCurrent > engulfingOpenBarPrevious)
+bearishEngulfing                    = (engulfingOpenBarCurrent >= engulfingCloseBarPrevious) and (engulfingOpenBarCurrent > engulfingOpenBarPrevious) and (engulfingCloseBarCurrent < engulfingOpenBarPrevious)
+voEmaValue                          = ta.ema(close, voEmaLengthInput)
+voPivotHigh                         = ta.pivothigh(high, effectiveVoSwingLengthInput, effectiveVoSwingLengthInput)
+voPivotLow                          = ta.pivotlow(low, effectiveVoSwingLengthInput, effectiveVoSwingLengthInput)
+voGreen                             = close > open or close > close[1]
+voRed                               = close < open or close < close[1]
+voBullFVG                           = low[1] > high[3] and voGreen[2] and low[1] < high[2] and low[2] < high[3]
+voBearFVG                           = high[1] < low[3] and voRed[2] and high[1] > low[2] and high[2] > low[3]
+[voPdHigh, voPdLow]                 = request.security(syminfo.tickerid, 'D', [high[1], low[1]], lookahead = barmerge.lookahead_on)
+[voPwHigh, voPwLow]                 = request.security(syminfo.tickerid, 'W', [high[1], low[1]], lookahead = barmerge.lookahead_on)
+[voPmHigh, voPmLow]                 = request.security(syminfo.tickerid, 'M', [high[1], low[1]], lookahead = barmerge.lookahead_on)
+
+parsedHighs.push(parsedHigh)
+parsedLows.push(parsedLow)
+highs.push(high)
+lows.push(low)
+times.push(time)
+
+//---------------------------------------------------------------------------------------------------------------------}
+//USER-DEFINED FUNCTIONS
+//---------------------------------------------------------------------------------------------------------------------{
+leg(int size) =>
+    var leg = 0
+    newLegHigh  = high[size] > ta.highest(size)
+    newLegLow   = low[size]  < ta.lowest(size)
+
+    if newLegHigh
+        leg := BEARISH_LEG
+    else if newLegLow
+        leg := BULLISH_LEG
+    leg
+
+startOfNewLeg(int leg)      => ta.change(leg) != 0
+startOfBearishLeg(int leg)  => ta.change(leg) == -1
+startOfBullishLeg(int leg)  => ta.change(leg) == +1
+
+drawLabel(int labelTime, float labelPrice, string tag, color labelColor, string labelStyle) =>
+    var label l_abel = na
+
+    if modeInput == PRESENT
+        l_abel.delete()
+
+    l_abel := label.new(chart.point.new(labelTime, na, labelPrice), tag, xloc.bar_time, color = color(na), textcolor = labelColor, style = labelStyle, size = size.small)
+
+drawEqualHighLow(pivot p_ivot, float level, int size, bool equalHigh) =>
+    equalDisplay e_qualDisplay = equalHigh ? equalHighDisplay : equalLowDisplay
+
+    string tag        = 'EQL'
+    color equalColor  = swingBullishColor
+    string labelStyle = label.style_label_up
+
+    if equalHigh
+        tag        := 'EQH'
+        equalColor := swingBearishColor
+        labelStyle := label.style_label_down
+
+    if modeInput == PRESENT
+        line.delete(e_qualDisplay.l_ine)
+        label.delete(e_qualDisplay.l_abel)
+
+    e_qualDisplay.l_ine  := line.new(chart.point.new(p_ivot.barTime, na, p_ivot.currentLevel), chart.point.new(time[size], na, level), xloc = xloc.bar_time, color = equalColor, style = line.style_dotted)
+    labelPosition        = math.round(0.5 * (p_ivot.barIndex + bar_index - size))
+    e_qualDisplay.l_abel := label.new(chart.point.new(na, labelPosition, level), tag, xloc.bar_index, color = color(na), textcolor = equalColor, style = labelStyle, size = equalHighsLowsSizeInput)
+
+getCurrentStructure(int size, bool equalHighLow = false, bool internal = false) =>
+    currentLeg  = leg(size)
+    newPivot    = startOfNewLeg(currentLeg)
+    pivotLow    = startOfBullishLeg(currentLeg)
+    pivotHigh   = startOfBearishLeg(currentLeg)
+
+    if newPivot
+        if pivotLow
+            pivot p_ivot = equalHighLow ? equalLow : internal ? internalLow : swingLow
+
+            if equalHighLow and math.abs(p_ivot.currentLevel - low[size]) < equalHighsLowsThresholdInput * atrMeasure
+                drawEqualHighLow(p_ivot, low[size], size, false)
+                currentAlerts.equalLows := true
+
+            p_ivot.lastLevel    := p_ivot.currentLevel
+            p_ivot.currentLevel := low[size]
+            p_ivot.crossed      := false
+            p_ivot.barTime      := time[size]
+            p_ivot.barIndex     := bar_index[size]
+
+            if not equalHighLow and not internal
+                trailing.bottom         := p_ivot.currentLevel
+                trailing.barTime        := p_ivot.barTime
+                trailing.barIndex       := p_ivot.barIndex
+                trailing.lastBottomTime := p_ivot.barTime
+
+            if showSwingsInput and not internal and not equalHighLow
+                drawLabel(time[size], p_ivot.currentLevel, p_ivot.currentLevel < p_ivot.lastLevel ? 'LL' : 'HL', swingBullishColor, label.style_label_up)
+        else
+            pivot p_ivot = equalHighLow ? equalHigh : internal ? internalHigh : swingHigh
+
+            if equalHighLow and math.abs(p_ivot.currentLevel - high[size]) < equalHighsLowsThresholdInput * atrMeasure
+                drawEqualHighLow(p_ivot, high[size], size, true)
+                currentAlerts.equalHighs := true
+
+            p_ivot.lastLevel    := p_ivot.currentLevel
+            p_ivot.currentLevel := high[size]
+            p_ivot.crossed      := false
+            p_ivot.barTime      := time[size]
+            p_ivot.barIndex     := bar_index[size]
+
+            if not equalHighLow and not internal
+                trailing.top         := p_ivot.currentLevel
+                trailing.barTime     := p_ivot.barTime
+                trailing.barIndex    := p_ivot.barIndex
+                trailing.lastTopTime := p_ivot.barTime
+
+            if showSwingsInput and not internal and not equalHighLow
+                drawLabel(time[size], p_ivot.currentLevel, p_ivot.currentLevel > p_ivot.lastLevel ? 'HH' : 'LH', swingBearishColor, label.style_label_down)
+
+drawStructure(pivot p_ivot, string tag, color structureColor, string lineStyle, string labelStyle, string labelSize) =>
+    var line l_ine      = line.new(na, na, na, na, xloc = xloc.bar_time)
+    var label l_abel    = label.new(na, na)
+
+    if modeInput == PRESENT
+        l_ine.delete()
+        l_abel.delete()
+
+    l_ine   := line.new(chart.point.new(p_ivot.barTime, na, p_ivot.currentLevel), chart.point.new(time, na, p_ivot.currentLevel), xloc.bar_time, color = structureColor, style = lineStyle)
+    l_abel  := label.new(chart.point.new(na, math.round(0.5 * (p_ivot.barIndex + bar_index)), p_ivot.currentLevel), tag, xloc.bar_index, color = color(na), textcolor = structureColor, style = labelStyle, size = labelSize)
+
+deleteOrderBlocks(bool internal = false) =>
+    array<orderBlock> orderBlocks = internal ? internalOrderBlocks : swingOrderBlocks
+
+    for [index, eachOrderBlock] in orderBlocks
+        bool crossedOderBlock = false
+
+        if bearishOrderBlockMitigationSource > eachOrderBlock.barHigh and eachOrderBlock.bias == BEARISH
+            crossedOderBlock := true
+            if internal
+                currentAlerts.internalBearishOrderBlock := true
+            else
+                currentAlerts.swingBearishOrderBlock := true
+        else if bullishOrderBlockMitigationSource < eachOrderBlock.barLow and eachOrderBlock.bias == BULLISH
+            crossedOderBlock := true
+            if internal
+                currentAlerts.internalBullishOrderBlock := true
+            else
+                currentAlerts.swingBullishOrderBlock := true
+
+        if crossedOderBlock
+            orderBlocks.remove(index)
+
+storeOrdeBlock(pivot p_ivot, bool internal = false, int bias) =>
+    if (not internal and showSwingOrderBlocksInput) or (internal and effectiveInternalOrderBlocks)
+        array<float> a_rray = na
+        int parsedIndex = na
+
+        if bias == BEARISH
+            a_rray      := parsedHighs.slice(p_ivot.barIndex, bar_index)
+            parsedIndex := p_ivot.barIndex + a_rray.indexof(a_rray.max())
+        else
+            a_rray      := parsedLows.slice(p_ivot.barIndex, bar_index)
+            parsedIndex := p_ivot.barIndex + a_rray.indexof(a_rray.min())
+
+        orderBlock o_rderBlock        = orderBlock.new(parsedHighs.get(parsedIndex), parsedLows.get(parsedIndex), times.get(parsedIndex), bias)
+        array<orderBlock> orderBlocks = internal ? internalOrderBlocks : swingOrderBlocks
+
+        if orderBlocks.size() >= 100
+            orderBlocks.pop()
+        orderBlocks.unshift(o_rderBlock)
+
+drawOrderBlocks(bool internal = false) =>
+    array<orderBlock> orderBlocks = internal ? internalOrderBlocks : swingOrderBlocks
+    orderBlocksSize = orderBlocks.size()
+
+    if orderBlocksSize > 0
+        maxOrderBlocks                     = internal ? internalOrderBlocksSizeInput : swingOrderBlocksSizeInput
+        array<orderBlock> parsedOrdeBlocks = orderBlocks.slice(0, math.min(maxOrderBlocks, orderBlocksSize))
+        array<box> b_oxes                  = internal ? internalOrderBlocksBoxes : swingOrderBlocksBoxes
+
+        for [index, eachOrderBlock] in parsedOrdeBlocks
+            orderBlockColor = styleInput == MONOCHROME ? (eachOrderBlock.bias == BEARISH ? color.new(MONO_BEARISH, 80) : color.new(MONO_BULLISH, 80)) : internal ? (eachOrderBlock.bias == BEARISH ? internalBearishOrderBlockColor : internalBullishOrderBlockColor) : (eachOrderBlock.bias == BEARISH ? swingBearishOrderBlockColor : swingBullishOrderBlockColor)
+
+            box b_ox = b_oxes.get(index)
+            b_ox.set_top_left_point(chart.point.new(eachOrderBlock.barTime, na, eachOrderBlock.barHigh))
+            b_ox.set_bottom_right_point(chart.point.new(last_bar_time, na, eachOrderBlock.barLow))
+            b_ox.set_border_color(internal ? na : orderBlockColor)
+            b_ox.set_bgcolor(orderBlockColor)
+
+displayStructure(bool internal = false) =>
+    var bullishBar = true
+    var bearishBar = true
+
+    if internalFilterConfluenceInput
+        bullishBar := high - math.max(close, open) > math.min(close, open - low)
+        bearishBar := high - math.max(close, open) < math.min(close, open - low)
+
+    pivot p_ivot   = internal ? internalHigh : swingHigh
+    trend t_rend   = internal ? internalTrend : swingTrend
+
+    lineStyle      = internal ? line.style_dashed : line.style_solid
+    labelSize      = internal ? internalStructureSize : swingStructureSize
+
+    extraCondition = internal ? internalHigh.currentLevel != swingHigh.currentLevel and bullishBar : true
+    bullishColor   = styleInput == MONOCHROME ? MONO_BULLISH : internal ? internalBullColorInput : swingBullColorInput
+
+    if ta.crossover(close, p_ivot.currentLevel) and not p_ivot.crossed and extraCondition
+        string tag = t_rend.bias == BEARISH ? CHOCH : BOS
+
+        if internal
+            currentAlerts.internalBullishCHoCH := tag == CHOCH
+            currentAlerts.internalBullishBOS   := tag == BOS
+        else
+            currentAlerts.swingBullishCHoCH    := tag == CHOCH
+            currentAlerts.swingBullishBOS      := tag == BOS
+
+        p_ivot.crossed := true
+        t_rend.bias    := BULLISH
+
+        displayCondition = internal ? showInternalsInput and (effectiveInternalBullInput == ALL or (effectiveInternalBullInput == BOS and tag != CHOCH) or (effectiveInternalBullInput == CHOCH and tag == CHOCH)) : showStructureInput and (showSwingBullInput == ALL or (showSwingBullInput == BOS and tag != CHOCH) or (showSwingBullInput == CHOCH and tag == CHOCH))
+
+        if displayCondition
+            drawStructure(p_ivot, tag, bullishColor, lineStyle, label.style_label_down, labelSize)
+
+        if (internal and effectiveInternalOrderBlocks) or (not internal and showSwingOrderBlocksInput)
+            storeOrdeBlock(p_ivot, internal, BULLISH)
+
+    p_ivot         := internal ? internalLow : swingLow
+    extraCondition := internal ? internalLow.currentLevel != swingLow.currentLevel and bearishBar : true
+    bearishColor   = styleInput == MONOCHROME ? MONO_BEARISH : internal ? internalBearColorInput : swingBearColorInput
+
+    if ta.crossunder(close, p_ivot.currentLevel) and not p_ivot.crossed and extraCondition
+        string tag = t_rend.bias == BULLISH ? CHOCH : BOS
+
+        if internal
+            currentAlerts.internalBearishCHoCH := tag == CHOCH
+            currentAlerts.internalBearishBOS   := tag == BOS
+        else
+            currentAlerts.swingBearishCHoCH    := tag == CHOCH
+            currentAlerts.swingBearishBOS      := tag == BOS
+
+        p_ivot.crossed := true
+        t_rend.bias    := BEARISH
+
+        displayCondition = internal ? showInternalsInput and (effectiveInternalBearInput == ALL or (effectiveInternalBearInput == BOS and tag != CHOCH) or (effectiveInternalBearInput == CHOCH and tag == CHOCH)) : showStructureInput and (showSwingBearInput == ALL or (showSwingBearInput == BOS and tag != CHOCH) or (showSwingBearInput == CHOCH and tag == CHOCH))
+
+        if displayCondition
+            drawStructure(p_ivot, tag, bearishColor, lineStyle, label.style_label_up, labelSize)
+
+        if (internal and effectiveInternalOrderBlocks) or (not internal and showSwingOrderBlocksInput)
+            storeOrdeBlock(p_ivot, internal, BEARISH)
+
+fairValueGapBox(leftTime, rightTime, topPrice, bottomPrice, boxColor) =>
+    box.new(chart.point.new(leftTime, na, topPrice), chart.point.new(rightTime + fairValueGapsExtendInput * (time - time[1]), na, bottomPrice), xloc = xloc.bar_time, border_color = boxColor, bgcolor = boxColor)
+
+deleteFairValueGaps() =>
+    for [index, eachFairValueGap] in fairValueGaps
+        if (low < eachFairValueGap.bottom and eachFairValueGap.bias == BULLISH) or (high > eachFairValueGap.top and eachFairValueGap.bias == BEARISH)
+            eachFairValueGap.topBox.delete()
+            eachFairValueGap.bottomBox.delete()
+            fairValueGaps.remove(index)
+
+drawFairValueGaps() =>
+    [lastClose, lastOpen, lastTime, currentHigh, currentLow, currentTime, last2High, last2Low] = request.security(syminfo.tickerid, fairValueGapsTimeframeInput, [close[1], open[1], time[1], high[0], low[0], time[0], high[2], low[2]], lookahead = barmerge.lookahead_on)
+
+    barDeltaPercent     = (lastClose - lastOpen) / (lastOpen * 100)
+    newTimeframe        = timeframe.change(fairValueGapsTimeframeInput)
+    threshold           = fairValueGapsThresholdInput ? ta.cum(math.abs(newTimeframe ? barDeltaPercent : 0)) / bar_index * 2 : 0
+
+    bullishFairValueGap = currentLow > last2High and lastClose > last2High and barDeltaPercent > threshold and newTimeframe
+    bearishFairValueGap = currentHigh < last2Low and lastClose < last2Low and -barDeltaPercent > threshold and newTimeframe
+
+    if bullishFairValueGap
+        currentAlerts.bullishFairValueGap := true
+        fairValueGaps.unshift(fairValueGap.new(currentLow, last2High, BULLISH, fairValueGapBox(lastTime, currentTime, currentLow, math.avg(currentLow, last2High), fairValueGapBullishColor), fairValueGapBox(lastTime, currentTime, math.avg(currentLow, last2High), last2High, fairValueGapBullishColor)))
+    if bearishFairValueGap
+        currentAlerts.bearishFairValueGap := true
+        fairValueGaps.unshift(fairValueGap.new(currentHigh, last2Low, BEARISH, fairValueGapBox(lastTime, currentTime, currentHigh, math.avg(currentHigh, last2Low), fairValueGapBearishColor), fairValueGapBox(lastTime, currentTime, math.avg(currentHigh, last2Low), last2Low, fairValueGapBearishColor)))
+
+getStyle(string style) =>
+    switch style
+        SOLID  => line.style_solid
+        DASHED => line.style_dashed
+        DOTTED => line.style_dotted
+
+drawLevels(string timeframe, bool sameTimeframe, string style, color levelColor) =>
+    [topLevel, bottomLevel, leftTime, rightTime] = request.security(syminfo.tickerid, timeframe, [high[1], low[1], time[1], time], lookahead = barmerge.lookahead_on)
+
+    float parsedTop       = sameTimeframe ? high : topLevel
+    float parsedBottom    = sameTimeframe ? low : bottomLevel
+    int parsedLeftTime    = sameTimeframe ? time : leftTime
+    int parsedRightTime   = sameTimeframe ? time : rightTime
+    int parsedTopTime     = time
+    int parsedBottomTime  = time
+
+    if not sameTimeframe
+        int leftIndex              = times.binary_search_rightmost(parsedLeftTime)
+        int rightIndex             = times.binary_search_rightmost(parsedRightTime)
+        array<int> timeArray       = times.slice(leftIndex, rightIndex)
+        array<float> topArray      = highs.slice(leftIndex, rightIndex)
+        array<float> bottomArray   = lows.slice(leftIndex, rightIndex)
+
+        parsedTopTime              := timeArray.size() > 0 ? timeArray.get(topArray.indexof(topArray.max())) : initialTime
+        parsedBottomTime           := timeArray.size() > 0 ? timeArray.get(bottomArray.indexof(bottomArray.min())) : initialTime
+
+    var line topLine      = line.new(na, na, na, na, xloc = xloc.bar_time, color = levelColor, style = getStyle(style))
+    var line bottomLine   = line.new(na, na, na, na, xloc = xloc.bar_time, color = levelColor, style = getStyle(style))
+    var label topLabel    = label.new(na, na, xloc = xloc.bar_time, text = str.format('P{0}H', timeframe), color = color(na), textcolor = levelColor, size = size.small, style = label.style_label_left)
+    var label bottomLabel = label.new(na, na, xloc = xloc.bar_time, text = str.format('P{0}L', timeframe), color = color(na), textcolor = levelColor, size = size.small, style = label.style_label_left)
+
+    topLine.set_first_point(chart.point.new(parsedTopTime, na, parsedTop))
+    topLine.set_second_point(chart.point.new(last_bar_time + 20 * (time - time[1]), na, parsedTop))
+    topLabel.set_point(chart.point.new(last_bar_time + 20 * (time - time[1]), na, parsedTop))
+
+    bottomLine.set_first_point(chart.point.new(parsedBottomTime, na, parsedBottom))
+    bottomLine.set_second_point(chart.point.new(last_bar_time + 20 * (time - time[1]), na, parsedBottom))
+    bottomLabel.set_point(chart.point.new(last_bar_time + 20 * (time - time[1]), na, parsedBottom))
+
+higherTimeframe(string timeframe) => timeframe.in_seconds() > timeframe.in_seconds(timeframe)
+
+updateTrailingExtremes() =>
+    trailing.top            := math.max(high, trailing.top)
+    trailing.lastTopTime    := trailing.top == high ? time : trailing.lastTopTime
+    trailing.bottom         := math.min(low, trailing.bottom)
+    trailing.lastBottomTime := trailing.bottom == low ? time : trailing.lastBottomTime
+
+drawHighLowSwings() =>
+    var line topLine      = line.new(na, na, na, na, color = swingBearishColor, xloc = xloc.bar_time)
+    var line bottomLine   = line.new(na, na, na, na, color = swingBullishColor, xloc = xloc.bar_time)
+    var label topLabel    = label.new(na, na, color = color(na), textcolor = swingBearishColor, xloc = xloc.bar_time, style = label.style_label_down, size = size.tiny)
+    var label bottomLabel = label.new(na, na, color = color(na), textcolor = swingBullishColor, xloc = xloc.bar_time, style = label.style_label_up, size = size.tiny)
+
+    rightTimeBar = last_bar_time + 20 * (time - time[1])
+
+    topLine.set_first_point(chart.point.new(trailing.lastTopTime, na, trailing.top))
+    topLine.set_second_point(chart.point.new(rightTimeBar, na, trailing.top))
+    topLabel.set_point(chart.point.new(rightTimeBar, na, trailing.top))
+    topLabel.set_text(swingTrend.bias == BEARISH ? 'Strong High' : 'Weak High')
+
+    bottomLine.set_first_point(chart.point.new(trailing.lastBottomTime, na, trailing.bottom))
+    bottomLine.set_second_point(chart.point.new(rightTimeBar, na, trailing.bottom))
+    bottomLabel.set_point(chart.point.new(rightTimeBar, na, trailing.bottom))
+    bottomLabel.set_text(swingTrend.bias == BULLISH ? 'Strong Low' : 'Weak Low')
+
+drawZone(float labelLevel, int labelIndex, float top, float bottom, string tag, color zoneColor, string style) =>
+    var label l_abel = label.new(na, na, text = tag, color = color(na), textcolor = zoneColor, style = style, size = size.small)
+    var box b_ox     = box.new(na, na, na, na, bgcolor = color.new(zoneColor, 80), border_color = color(na), xloc = xloc.bar_time)
+
+    b_ox.set_top_left_point(chart.point.new(trailing.barTime, na, top))
+    b_ox.set_bottom_right_point(chart.point.new(last_bar_time, na, bottom))
+    l_abel.set_point(chart.point.new(na, labelIndex, labelLevel))
+
+drawPremiumDiscountZones() =>
+    drawZone(trailing.top, math.round(0.5 * (trailing.barIndex + last_bar_index)), trailing.top, 0.95 * trailing.top + 0.05 * trailing.bottom, 'Premium', premiumZoneColor, label.style_label_down)
+
+    equilibriumLevel = math.avg(trailing.top, trailing.bottom)
+    drawZone(equilibriumLevel, last_bar_index, 0.525 * trailing.top + 0.475 * trailing.bottom, 0.525 * trailing.bottom + 0.475 * trailing.top, 'Equilibrium', equilibriumZoneColorInput, label.style_label_left)
+
+    drawZone(trailing.bottom, math.round(0.5 * (trailing.barIndex + last_bar_index)), 0.95 * trailing.bottom + 0.05 * trailing.top, trailing.bottom, 'Discount', discountZoneColor, label.style_label_up)
+
+method ls_valid(float piv) => bool out = not na(piv)
+
+method ls_drawLine(ls_piv get, color c, string s = 'sd') =>
+    style = switch s
+        'dt' => line.style_dotted
+        'ds' => line.style_dashed
+        =>      line.style_solid
+    line.new(get.bix, get.prc, ls_n, get.prc, color = c, style = style)
+
+method ls_makeBoxBr(ls_piv get, color c3, color c, int d) =>
+    y1 = d == 1 ? high : get.prc
+    y2 = d == 1 ? get.prc : low
+    ls_boxBr.new(
+         box.new(ls_n - 1, y1, ls_n + 1, y2, border_color = color.new(na, na), bgcolor = c3)
+       , line.new(ls_n, y1, ls_n, y2, color = c, width = 3)
+       , false
+       , d
+     )
+
+ls_lnDot(y, c) => line.new(ls_n, y, ls_n + 3, y, color = c, style = line.style_dotted)
+
+voGetLineStyle(voLineStyle ls) =>
+    switch ls
+        voLineStyle.solid  => line.style_solid
+        voLineStyle.dashed => line.style_dashed
+        voLineStyle.dotted => line.style_dotted
+
+voIsBreakAbove(level) => not na(level) and close > level and close[1] <= level
+voIsBreakBelow(level) => not na(level) and close < level and close[1] >= level
+
+voLimitZoneArray(array<voZoneBlock> arr, int maxSize) =>
+    while arr.size() > maxSize
+        arr.pop()
+
+voLimitSwingLabels(array<voSwingLabel> arr, int maxSize) =>
+    while arr.size() > maxSize
+        arr.shift()
+
+voFindLowestCandle(int barsBack) =>
+    search = voCandleSearch.new(low, high, bar_index)
+    limit = math.max(0, math.min(barsBack, 50))
+    for i = 0 to limit
+        if low[i] < search.price
+            search.price := low[i]
+            search.otherPrice := high[i]
+            search.barIdx := bar_index - i
+    search
+
+voFindHighestCandle(int barsBack) =>
+    search = voCandleSearch.new(high, low, bar_index)
+    limit = math.max(0, math.min(barsBack, 50))
+    for i = 0 to limit
+        if high[i] > search.price
+            search.price := high[i]
+            search.otherPrice := low[i]
+            search.barIdx := bar_index - i
+    search
+
+voHasOverlappingOB(int dir, float top, float bottom, array<voZoneBlock> obs) =>
+    overlaps = false
+    for ob in obs
+        if ob.dir == dir and top >= ob.bottom and bottom <= ob.top
+            overlaps := true
+            break
+    overlaps
+
+voMitigateOBs(array<voZoneBlock> obs) =>
+    if obs.size() > 0
+        for i = obs.size() - 1 to 0
+            ob = obs.get(i)
+            if ob.dir == 1 and close < ob.bottom
+                obs.remove(i)
+            else if ob.dir == -1 and close > ob.top
+                obs.remove(i)
+
+voMitigateFVGs(array<voZoneBlock> fvgs) =>
+    if fvgs.size() > 0
+        for i = fvgs.size() - 1 to 0
+            fvg = fvgs.get(i)
+            if fvg.dir == 1 and low < fvg.bottom
+                fvgs.remove(i)
+            else if fvg.dir == -1 and high > fvg.top
+                fvgs.remove(i)
+
+voTrackPivotBreaks(voPivotData pivot) =>
+    bullBreak = false
+    bearBreak = false
+    int bullBar = na
+    int bearBar = na
+
+    if not na(voPivotHigh)
+        pivot.lastPH := voPivotHigh
+        pivot.lastPHBar := bar_index - effectiveVoSwingLengthInput
+
+    if not na(voPivotLow)
+        pivot.lastPL := voPivotLow
+        pivot.lastPLBar := bar_index - effectiveVoSwingLengthInput
+
+    if voIsBreakAbove(pivot.lastPH) and not na(pivot.lastPHBar)
+        bullBreak := true
+        bullBar := pivot.lastPHBar
+        pivot.lastPH := na
+        pivot.lastPHBar := na
+
+    if voIsBreakBelow(pivot.lastPL) and not na(pivot.lastPLBar)
+        bearBreak := true
+        bearBar := pivot.lastPLBar
+        pivot.lastPL := na
+        pivot.lastPLBar := na
+
+    [bullBreak, bullBar, bearBreak, bearBar]
+
+voDetectOBSimple(int dir, int pivotBar, array<voZoneBlock> obs, int maxOBs) =>
+    barsBack = math.max(bar_index - pivotBar - 1, 0)
+    search = dir > 0 ? voFindLowestCandle(barsBack) : voFindHighestCandle(barsBack)
+    top = dir > 0 ? search.otherPrice : search.price
+    bottom = dir > 0 ? search.price : search.otherPrice
+
+    if not voHasOverlappingOB(dir, top, bottom, obs)
+        obs.unshift(voZoneBlock.new(dir, top, bottom, search.barIdx))
+        voLimitZoneArray(obs, maxOBs)
+
+voDetectFVGSignal() =>
+    fvgDir = 0
+    fvgTop = 0.0
+    fvgBottom = 0.0
+    fvgBar = 0
+
+    if voBullFVG
+        fvgDir := 1
+        fvgTop := low[1]
+        fvgBottom := high[3]
+        fvgBar := bar_index - 3
+
+    if voBearFVG
+        fvgDir := -1
+        fvgTop := low[3]
+        fvgBottom := high[1]
+        fvgBar := bar_index - 3
+
+    [fvgDir, fvgTop, fvgBottom, fvgBar]
+
+voPriceSegment(float price, float baseLow, float segSize) =>
+    segSize > 0 ? math.floor((price - baseLow) / segSize) : 0
+
+//---------------------------------------------------------------------------------------------------------------------}
+//MUTABLE VARIABLES & EXECUTION
+//---------------------------------------------------------------------------------------------------------------------{
+parsedOpen  = showTrendInput ? open : na
+candleColor = internalTrend.bias == BULLISH ? swingBullishColor : swingBearishColor
+plotcandle(parsedOpen, high, low, close, color = candleColor, wickcolor = candleColor, bordercolor = candleColor)
+
+if showHighLowSwingsInput or showPremiumDiscountZonesInput
+    updateTrailingExtremes()
+
+    if showHighLowSwingsInput
+        drawHighLowSwings()
+
+    if showPremiumDiscountZonesInput
+        drawPremiumDiscountZones()
+
+if showFairValueGapsInput
+    deleteFairValueGaps()
+
+getCurrentStructure(effectiveSwingsLengthInput, false)
+getCurrentStructure(5, false, true)
+
+if showEqualHighsLowsInput
+    getCurrentStructure(equalHighsLowsLengthInput, true)
+
+if showInternalsInput or effectiveInternalOrderBlocks or showTrendInput
+    displayStructure(true)
+
+if showStructureInput or showSwingOrderBlocksInput or showHighLowSwingsInput
+    displayStructure()
+
+if effectiveInternalOrderBlocks
+    deleteOrderBlocks(true)
+
+if showSwingOrderBlocksInput
+    deleteOrderBlocks()
+
+if showFairValueGapsInput
+    drawFairValueGaps()
+
+if barstate.islastconfirmedhistory or barstate.islast
+    if effectiveInternalOrderBlocks
+        drawOrderBlocks(true)
+
+    if showSwingOrderBlocksInput
+        drawOrderBlocks()
+
+lastBarIndex    := currentBarIndex
+currentBarIndex := bar_index
+newBar          = currentBarIndex != lastBarIndex
+
+if barstate.islastconfirmedhistory or (barstate.isrealtime and newBar)
+    if showDailyLevelsInput and not higherTimeframe('D')
+        drawLevels('D', timeframe.isdaily, dailyLevelsStyleInput, dailyLevelsColorInput)
+
+    if showWeeklyLevelsInput and not higherTimeframe('W')
+        drawLevels('W', timeframe.isweekly, weeklyLevelsStyleInput, weeklyLevelsColorInput)
+
+    if showMonthlyLevelsInput and not higherTimeframe('M')
+        drawLevels('M', timeframe.ismonthly, monthlyLevelsStyleInput, monthlyLevelsColorInput)
+
+ls_ph = ta.pivothigh(ls_lenInput, ls_lenInput)
+ls_pl = ta.pivotlow(ls_lenInput, ls_lenInput)
+
+if ls_ph.ls_valid()
+    ls_aPivH.unshift(ls_piv.new(ls_ph, ls_n - ls_lenInput, false, false, false, false))
+
+if ls_pl.ls_valid()
+    ls_aPivL.unshift(ls_piv.new(ls_pl, ls_n - ls_lenInput, false, false, false, false))
+
+for i = ls_aPivH.size() - 1 to 0
+    get = ls_aPivH.get(i)
+    if not get.mit
+        if not get.brk
+            if close > get.prc
+                if not ls_oW
+                    get.brk := true
+                else
+                    get.mit := true
+            if not ls_oO and not get.wic
+                if high > get.prc and close < get.prc
+                    ls_aBoxBr.unshift(get.ls_makeBoxBr(ls_colBr3Input, ls_colBrInput, 1))
+                    get.ls_drawLine(ls_colBr2Input, 'dt'), ls_lnDot(low, ls_colBrInput)
+                    get.wic := true
+        else
+            if close < get.prc
+                get.mit := true
+            if not ls_oW and low < get.prc and close > get.prc
+                ls_aBoxBr.unshift(get.ls_makeBoxBr(ls_colBl3Input, ls_colBlInput, -1))
+                get.ls_drawLine(ls_colBl2Input, 'ds'), ls_lnDot(high, ls_colBlInput)
+                get.tak := true
+
+    if ls_n - get.bix > 2000 or get.mit or get.tak
+        ls_aPivH.remove(i).lin.delete()
+
+for i = ls_aPivL.size() - 1 to 0
+    get = ls_aPivL.get(i)
+    if not get.mit
+        if not get.brk
+            if close < get.prc
+                if not ls_oW
+                    get.brk := true
+                else
+                    get.mit := true
+            if not ls_oO and not get.wic
+                if low < get.prc and close > get.prc
+                    ls_aBoxBr.unshift(get.ls_makeBoxBr(ls_colBl3Input, ls_colBlInput, -1))
+                    get.ls_drawLine(ls_colBl2Input, 'dt'), ls_lnDot(high, ls_colBlInput)
+                    get.wic := true
+        else
+            if close > get.prc
+                get.mit := true
+            if not ls_oW and high > get.prc and close < get.prc
+                ls_aBoxBr.unshift(get.ls_makeBoxBr(ls_colBr3Input, ls_colBrInput, 1))
+                get.ls_drawLine(ls_colBr2Input, 'ds'), ls_lnDot(low, ls_colBrInput)
+                get.tak := true
+
+    if ls_n - get.bix > 2000 or get.mit or get.tak
+        ls_aPivL.remove(i).lin.delete()
+
+if ls_extendInput
+    for bx in ls_aBoxBr
+        if not bx.br and ls_n - bx.bx.get_left() - 1 <= effectiveLsMaxBarsInput
+            bx.bx.set_right(bar_index)
+            if bx.dr == -1 and close < bx.bx.get_bottom()
+                bx.br := true
+            if bx.dr == 1 and close > bx.bx.get_top()
+                bx.br := true
+
+if not na(voPivotHigh)
+    voSwingStateData.prevH := voSwingStateData.currH
+    voSwingStateData.currH := voPivotHigh
+    voSwingLines.lastHBar := bar_index - effectiveVoSwingLengthInput
+    voHighText = not na(voSwingStateData.prevH) and voSwingStateData.currH < voSwingStateData.prevH ? 'LH' : 'HH'
+    voHighTextColor = voHighText == 'LH' ? voSwingBearColorInput : voSwingBullColorInput
+    voHighFillColor = color.new(voHighTextColor, 80)
+    voSwingLabels.push(voSwingLabel.new(bar_index - effectiveVoSwingLengthInput, voSwingStateData.currH, voHighText, true, voHighFillColor, voHighTextColor))
+    voLimitSwingLabels(voSwingLabels, effectiveVoSwingLabelLookback)
+
+if not na(voPivotLow)
+    voSwingStateData.prevL := voSwingStateData.currL
+    voSwingStateData.currL := voPivotLow
+    voSwingLines.lastLBar := bar_index - effectiveVoSwingLengthInput
+    voLowText = not na(voSwingStateData.prevL) and voSwingStateData.currL < voSwingStateData.prevL ? 'LL' : 'HL'
+    voLowTextColor = voLowText == 'LL' ? voSwingBearColorInput : voSwingBullColorInput
+    voLowFillColor = color.new(voLowTextColor, 80)
+    voSwingLabels.push(voSwingLabel.new(bar_index - effectiveVoSwingLengthInput, voSwingStateData.currL, voLowText, false, voLowFillColor, voLowTextColor))
+    voLimitSwingLabels(voSwingLabels, effectiveVoSwingLabelLookback)
+
+[voBullBreak, voBullBar, voBearBreak, voBearBar] = voTrackPivotBreaks(voCurrTfPivot)
+
+if voBullBreak
+    voDetectOBSimple(1, voBullBar, voCurrTfOBs, effectiveVoObLookbackInput)
+
+if voBearBreak
+    voDetectOBSimple(-1, voBearBar, voCurrTfOBs, effectiveVoObLookbackInput)
+
+voMitigateOBs(voCurrTfOBs)
+voLimitZoneArray(voCurrTfOBs, effectiveVoObLookbackInput)
+
+[voFvgSigDir, voFvgSigTop, voFvgSigBottom, voFvgSigBar] = voDetectFVGSignal()
+
+if voFvgSigDir != 0
+    voCurrTfFvgs.unshift(voZoneBlock.new(voFvgSigDir, voFvgSigTop, voFvgSigBottom, voFvgSigBar))
+    voLimitZoneArray(voCurrTfFvgs, effectiveVoFvgLookbackInput)
+
+voMitigateFVGs(voCurrTfFvgs)
+voLimitZoneArray(voCurrTfFvgs, effectiveVoFvgLookbackInput)
+voLimitSwingLabels(voSwingLabels, effectiveVoSwingLabelLookback)
+
+plot(effectiveVoShowEMAInput ? voEmaValue : na, 'VO EMA', color = voEmaColorInput, linewidth = 2)
+
+if barstate.islast
+    for b in voObBoxes
+        b.delete()
+    voObBoxes.clear()
+
+    for b in voFvgBoxes
+        b.delete()
+    voFvgBoxes.clear()
+
+    for lbl in voSwingLabelObjs
+        lbl.delete()
+    voSwingLabelObjs.clear()
+
+    if not na(voSwingLines.highLine)
+        line.delete(voSwingLines.highLine)
+        voSwingLines.highLine := na
+    if not na(voSwingLines.lowLine)
+        line.delete(voSwingLines.lowLine)
+        voSwingLines.lowLine := na
+
+    if not na(voPdhLine)
+        line.delete(voPdhLine)
+        voPdhLine := na
+    if not na(voPdlLine)
+        line.delete(voPdlLine)
+        voPdlLine := na
+    if not na(voPwhLine)
+        line.delete(voPwhLine)
+        voPwhLine := na
+    if not na(voPwlLine)
+        line.delete(voPwlLine)
+        voPwlLine := na
+    if not na(voPmhLine)
+        line.delete(voPmhLine)
+        voPmhLine := na
+    if not na(voPmlLine)
+        line.delete(voPmlLine)
+        voPmlLine := na
+
+    if not na(voPdhLabel)
+        label.delete(voPdhLabel)
+        voPdhLabel := na
+    if not na(voPdlLabel)
+        label.delete(voPdlLabel)
+        voPdlLabel := na
+    if not na(voPwhLabel)
+        label.delete(voPwhLabel)
+        voPwhLabel := na
+    if not na(voPwlLabel)
+        label.delete(voPwlLabel)
+        voPwlLabel := na
+    if not na(voPmhLabel)
+        label.delete(voPmhLabel)
+        voPmhLabel := na
+    if not na(voPmlLabel)
+        label.delete(voPmlLabel)
+        voPmlLabel := na
+
+    if effectiveVoShowOBInput
+        for ob in voCurrTfOBs
+            voObColor = ob.dir > 0 ? color.new(voObBullColorInput, 80) : color.new(voObBearColorInput, 80)
+            voObBorder = ob.dir > 0 ? voObBullColorInput : voObBearColorInput
+            voObBoxes.unshift(box.new(
+                 left = ob.barIdx,
+                 top = ob.top,
+                 right = bar_index + effectiveVoObExtendInput,
+                 bottom = ob.bottom,
+                 border_color = voObBorder,
+                 border_width = 1,
+                 bgcolor = voObColor,
+                 text = effectiveVoShowOBLabelsInput ? (ob.dir > 0 ? 'OB UP' : 'OB DOWN') : '',
+                 text_color = voObBorder,
+                 text_halign = text.align_right,
+                 text_valign = text.align_center,
+                 text_size = size.small
+                 ))
+
+    if effectiveVoShowFVGInput
+        for fvg in voCurrTfFvgs
+            voFvgColorBg = fvg.dir > 0 ? color.new(voFvgBullColorInput, 85) : color.new(voFvgBearColorInput, 85)
+            voFvgBorder = fvg.dir > 0 ? color.new(voFvgBullColorInput, 60) : color.new(voFvgBearColorInput, 60)
+            voFvgText = fvg.dir > 0 ? voFvgBullColorInput : voFvgBearColorInput
+            voFvgBoxes.unshift(box.new(
+                 left = fvg.barIdx,
+                 top = fvg.top,
+                 right = bar_index + effectiveVoFvgExtendInput,
+                 bottom = fvg.bottom,
+                 bgcolor = voFvgColorBg,
+                 border_width = 1,
+                 border_style = line.style_dashed,
+                 border_color = voFvgBorder,
+                 text = effectiveVoShowFVGLabelsInput ? (fvg.dir > 0 ? 'FVG UP' : 'FVG DOWN') : '',
+                 text_color = voFvgText,
+                 text_halign = text.align_right,
+                 text_valign = text.align_center,
+                 text_size = size.small
+                 ))
+
+    if effectiveVoShowSwingLabelsInput
+        for lbl in voSwingLabels
+            voSwingLabelObjs.push(label.new(
+                 x = lbl.x,
+                 y = lbl.y,
+                 text = lbl.txt,
+                 yloc = lbl.isHigh ? yloc.abovebar : yloc.belowbar,
+                 color = lbl.clr,
+                 style = lbl.isHigh ? label.style_label_down : label.style_label_up,
+                 textcolor = lbl.textClr,
+                 size = size.small
+                 ))
+
+    if effectiveVoShowSwingLinesInput
+        if not na(voSwingStateData.currH) and not na(voSwingLines.lastHBar)
+            voSwingLines.highLine := line.new(
+                 x1 = voSwingLines.lastHBar,
+                 y1 = voSwingStateData.currH,
+                 x2 = bar_index + effectiveVoSwingLinesExtend,
+                 y2 = voSwingStateData.currH,
+                 color = color.new(voSwingLineHighColorInput, 30),
+                 style = voGetLineStyle(voSwingLineStyleInput),
+                 width = 1
+                 )
+        if not na(voSwingStateData.currL) and not na(voSwingLines.lastLBar)
+            voSwingLines.lowLine := line.new(
+                 x1 = voSwingLines.lastLBar,
+                 y1 = voSwingStateData.currL,
+                 x2 = bar_index + effectiveVoSwingLinesExtend,
+                 y2 = voSwingStateData.currL,
+                 color = color.new(voSwingLineLowColorInput, 30),
+                 style = voGetLineStyle(voSwingLineStyleInput),
+                 width = 1
+                 )
+
+    if effectiveVoPlotPDHLInput or effectiveVoPlotPWHLInput or effectiveVoPlotPMHLInput
+        voHtfMaxHigh = math.max(effectiveVoPlotPDHLInput ? voPdHigh : 0.0, math.max(effectiveVoPlotPWHLInput ? voPwHigh : 0.0, effectiveVoPlotPMHLInput ? voPmHigh : 0.0))
+        voHtfMinLow = math.min(effectiveVoPlotPDHLInput ? voPdLow : 10e10, math.min(effectiveVoPlotPWHLInput ? voPwLow : 10e10, effectiveVoPlotPMHLInput ? voPmLow : 10e10))
+        voSegmentSize = (voHtfMaxHigh - voHtfMinLow) / 50
+
+        voPdhSeg = effectiveVoPlotPDHLInput ? voPriceSegment(voPdHigh, voHtfMinLow, voSegmentSize) : -1
+        voPdlSeg = effectiveVoPlotPDHLInput ? voPriceSegment(voPdLow, voHtfMinLow, voSegmentSize) : -1
+        voPwhSeg = effectiveVoPlotPWHLInput ? voPriceSegment(voPwHigh, voHtfMinLow, voSegmentSize) : -2
+        voPwlSeg = effectiveVoPlotPWHLInput ? voPriceSegment(voPwLow, voHtfMinLow, voSegmentSize) : -2
+        voPmhSeg = effectiveVoPlotPMHLInput ? voPriceSegment(voPmHigh, voHtfMinLow, voSegmentSize) : -3
+        voPmlSeg = effectiveVoPlotPMHLInput ? voPriceSegment(voPmLow, voHtfMinLow, voSegmentSize) : -3
+
+        voPdhInPwh = voPdhSeg == voPwhSeg and effectiveVoPlotPDHLInput and effectiveVoPlotPWHLInput
+        voPdhInPmh = voPdhSeg == voPmhSeg and effectiveVoPlotPDHLInput and effectiveVoPlotPMHLInput
+        voPwhInPmh = voPwhSeg == voPmhSeg and effectiveVoPlotPWHLInput and effectiveVoPlotPMHLInput
+
+        voPdlInPwl = voPdlSeg == voPwlSeg and effectiveVoPlotPDHLInput and effectiveVoPlotPWHLInput
+        voPdlInPml = voPdlSeg == voPmlSeg and effectiveVoPlotPDHLInput and effectiveVoPlotPMHLInput
+        voPwlInPml = voPwlSeg == voPmlSeg and effectiveVoPlotPWHLInput and effectiveVoPlotPMHLInput
+
+        voPmhLbl = (voPdhInPmh ? 'PDH/' : '') + (voPwhInPmh ? 'PWH/' : '') + 'PMH'
+        voPwhLbl = (voPdhInPwh and not voPdhInPmh ? 'PDH/' : '') + 'PWH'
+        voPdhLbl = 'PDH'
+        voPmlLbl = (voPdlInPml ? 'PDL/' : '') + (voPwlInPml ? 'PWL/' : '') + 'PML'
+        voPwlLbl = (voPdlInPwl and not voPdlInPml ? 'PDL/' : '') + 'PWL'
+        voPdlLbl = 'PDL'
+
+        if effectiveVoPlotPMHLInput
+            voPmhLine := line.new(bar_index - 1, voPmHigh, bar_index + voHtfLevelExtendInput, voPmHigh, color = voPmhColorInput, style = voGetLineStyle(voPmhlLineStyleInput), width = 1)
+            voPmlLine := line.new(bar_index - 1, voPmLow, bar_index + voHtfLevelExtendInput, voPmLow, color = voPmlColorInput, style = voGetLineStyle(voPmhlLineStyleInput), width = 1)
+            voPmhLabel := label.new(bar_index + voHtfLevelExtendInput, voPmHigh, voPmhLbl, color = color.new(voPmhColorInput, 100), textcolor = voPmhColorInput, style = label.style_label_left, size = size.small)
+            voPmlLabel := label.new(bar_index + voHtfLevelExtendInput, voPmLow, voPmlLbl, color = color.new(voPmlColorInput, 100), textcolor = voPmlColorInput, style = label.style_label_left, size = size.small)
+
+        if effectiveVoPlotPWHLInput
+            voPwhLine := line.new(bar_index - 1, voPwHigh, bar_index + voHtfLevelExtendInput, voPwHigh, color = voPwhColorInput, style = voGetLineStyle(voPwhlLineStyleInput), width = 1)
+            voPwlLine := line.new(bar_index - 1, voPwLow, bar_index + voHtfLevelExtendInput, voPwLow, color = voPwlColorInput, style = voGetLineStyle(voPwhlLineStyleInput), width = 1)
+            if not voPwhInPmh
+                voPwhLabel := label.new(bar_index + voHtfLevelExtendInput, voPwHigh, voPwhLbl, color = color.new(voPwhColorInput, 100), textcolor = voPwhColorInput, style = label.style_label_left, size = size.small)
+            if not voPwlInPml
+                voPwlLabel := label.new(bar_index + voHtfLevelExtendInput, voPwLow, voPwlLbl, color = color.new(voPwlColorInput, 100), textcolor = voPwlColorInput, style = label.style_label_left, size = size.small)
+
+        if effectiveVoPlotPDHLInput
+            voPdhLine := line.new(bar_index - 1, voPdHigh, bar_index + voHtfLevelExtendInput, voPdHigh, color = voPdhColorInput, style = voGetLineStyle(voPdhlLineStyleInput), width = 1)
+            voPdlLine := line.new(bar_index - 1, voPdLow, bar_index + voHtfLevelExtendInput, voPdLow, color = voPdlColorInput, style = voGetLineStyle(voPdhlLineStyleInput), width = 1)
+            if not voPdhInPmh and not voPdhInPwh
+                voPdhLabel := label.new(bar_index + voHtfLevelExtendInput, voPdHigh, voPdhLbl, color = color.new(voPdhColorInput, 100), textcolor = voPdhColorInput, style = label.style_label_left, size = size.small)
+            if not voPdlInPml and not voPdlInPwl
+                voPdlLabel := label.new(bar_index + voHtfLevelExtendInput, voPdLow, voPdlLbl, color = color.new(voPdlColorInput, 100), textcolor = voPdlColorInput, style = label.style_label_left, size = size.small)
+
+plotshape(showEngulfingInput and bullishEngulfing, style = shape.triangleup, location = location.belowbar, color = engulfingBullColorInput, size = size.tiny, title = 'Bullish Engulfing Marker')
+plotshape(showEngulfingInput and bearishEngulfing, style = shape.triangledown, location = location.abovebar, color = engulfingBearColorInput, size = size.tiny, title = 'Bearish Engulfing Marker')
+
+//---------------------------------------------------------------------------------------------------------------------}
+//ALERTS
+//---------------------------------------------------------------------------------------------------------------------{
+alertcondition(currentAlerts.internalBullishBOS,        'Internal Bullish BOS',         'Internal Bullish BOS formed')
+alertcondition(currentAlerts.internalBullishCHoCH,      'Internal Bullish CHoCH',       'Internal Bullish CHoCH formed')
+alertcondition(currentAlerts.internalBearishBOS,        'Internal Bearish BOS',         'Internal Bearish BOS formed')
+alertcondition(currentAlerts.internalBearishCHoCH,      'Internal Bearish CHoCH',       'Internal Bearish CHoCH formed')
+
+alertcondition(currentAlerts.swingBullishBOS,           'Bullish BOS',                  'Internal Bullish BOS formed')
+alertcondition(currentAlerts.swingBullishCHoCH,         'Bullish CHoCH',                'Internal Bullish CHoCH formed')
+alertcondition(currentAlerts.swingBearishBOS,           'Bearish BOS',                  'Bearish BOS formed')
+alertcondition(currentAlerts.swingBearishCHoCH,         'Bearish CHoCH',                'Bearish CHoCH formed')
+
+alertcondition(currentAlerts.internalBullishOrderBlock, 'Bullish Internal OB Breakout', 'Price broke bullish internal OB')
+alertcondition(currentAlerts.internalBearishOrderBlock, 'Bearish Internal OB Breakout', 'Price broke bearish internal OB')
+alertcondition(currentAlerts.swingBullishOrderBlock,    'Bullish Swing OB Breakout',    'Price broke bullish swing OB')
+alertcondition(currentAlerts.swingBearishOrderBlock,    'Bearish Swing OB Breakout',    'Price broke bearish swing OB')
+
+alertcondition(currentAlerts.equalHighs,                'Equal Highs',                  'Equal highs detected')
+alertcondition(currentAlerts.equalLows,                 'Equal Lows',                   'Equal lows detected')
+
+alertcondition(currentAlerts.bullishFairValueGap,       'Bullish FVG',                  'Bullish FVG formed')
+alertcondition(currentAlerts.bearishFairValueGap,       'Bearish FVG',                  'Bearish FVG formed')
+alertcondition(bullishEngulfing,                        'Bullish Engulfing',            '[CurrencyPair] [TimeFrame], Bullish candle engulfing previous candle')
+alertcondition(bearishEngulfing,                        'Bearish Engulfing',            '[CurrencyPair] [TimeFrame], Bearish candle engulfing previous candle')
+
+//---------------------------------------------------------------------------------------------------------------------}

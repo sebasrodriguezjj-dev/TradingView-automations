@@ -1,0 +1,14 @@
+[BIAS INTEGRITY CHECK]
+**Historia**
+La historia ahora mismo es que el chequeo de integridad no recibio una ventana comun fresca. `XAUUSD` refresco a `07:22:43-06:00`, `US30` a `07:23:13-06:00`, y los PNG de `5m` siguen sin existir en disco.
+
+**Tesis**
+Eso no invalida por si solo el plan de NY, pero tampoco deja una base limpia para decir que el bias sigue intacto con conviccion. Se preserva el mapa actual: `XAUUSD` mantiene `4724.84 / 4704.55` y `US30` mantiene `49432.45 / 49343.10`; la lectura correcta ahora es reducir conviccion, no forzar una reclasificacion.
+
+**Niveles**
+`XAUUSD` -> `4H 4772.95 / 4664.11` | `5m 4724.84 / 4704.55`
+`US30` -> `4H 49531.60 / 48885.65` | `5m 49432.45 / 49343.10`
+
+**Accion**
+`STALE SNAPSHOT / DEGRADED`. `WAIT` en ambos.
+Mas limpio: `NINGUNO`. Mantener el plan base, pero con menos conviccion hasta recuperar una ventana comun fresca.

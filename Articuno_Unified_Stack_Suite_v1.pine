@@ -1,0 +1,810 @@
+//@version=6
+indicator("ARTICUNO UNIFIED STACK SUITE v3", overlay=true, max_bars_back=5000, max_lines_count=500, max_labels_count=500, max_boxes_count=300)
+
+groupMaster = "01. MASTER"
+preset = input.string("FULL STACK", "Preset", options=["FULL STACK", "CLEAN"], group=groupMaster)
+showDashboard = input.bool(true, "Mostrar Dashboard", group=groupMaster)
+showEndLabels = input.bool(true, "Mostrar End Labels", group=groupMaster)
+tagSizeInput = input.string("Small", "Tamano Labels", options=["Tiny", "Small", "Normal", "Large"], group=groupMaster)
+visualDensity = input.string("BALANCED", "Visual Density", options=["MINIMAL", "BALANCED", "FULL"], group=groupMaster)
+baseExtendBars = input.int(40, "Base Extend Bars", minval=10, maxval=200, group=groupMaster)
+labelOffsetBars = input.int(40, "Label Offset Bars", minval=5, maxval=200, group=groupMaster)
+
+groupModules = "02. MODULOS"
+useSMC = input.bool(true, "SMART MONEY CONCEPTS", group=groupModules)
+useLiquidity = input.bool(true, "LIQUIDITY SWEEPS", group=groupModules)
+useImbalances = input.bool(true, "FVG / IFVG", group=groupModules)
+useSessions = input.bool(true, "ICT KILLZONES & PIVOTS", group=groupModules)
+useEngulfing = input.bool(true, "ENGULFING CANDLES", group=groupModules)
+useDashboard = input.bool(true, "MARKET STRUCTURE DASHBOARD", group=groupModules)
+
+groupDashboard = "02A. DASHBOARD"
+dashboardCompact = input.bool(false, "Compact Mode", group=groupDashboard)
+dashboardShowHTF = input.bool(true, "Mostrar HTF", group=groupDashboard)
+dashboardShowInternal = input.bool(true, "Mostrar Internal", group=groupDashboard)
+dashboardShowLiquidity = input.bool(true, "Mostrar Liquidity", group=groupDashboard)
+dashboardShowImbalance = input.bool(true, "Mostrar Imbalance", group=groupDashboard)
+dashboardShowSession = input.bool(true, "Mostrar Session", group=groupDashboard)
+dashboardShowRsiPd = input.bool(true, "Mostrar RSI / PD", group=groupDashboard)
+
+groupDashboardBlocks = "02B. DASHBOARD BLOCKS"
+dashMarketStructureEnable = input.bool(true, "Market Structure Dashboard", group=groupDashboardBlocks)
+dashMarketStructureEMA = input.bool(false, "EMA Trend", group=groupDashboardBlocks)
+dashMarketStructureSwingHL = input.bool(false, "Swing H/L", group=groupDashboardBlocks)
+dashMarketStructureStructure = input.bool(true, "Structure", group=groupDashboardBlocks)
+dashMarketStructureOrderBlock = input.bool(false, "Order Block", group=groupDashboardBlocks)
+dashMarketStructureFVG = input.bool(false, "FVG", group=groupDashboardBlocks)
+dashCurrentTFEnable = input.bool(false, "Current Timeframe Dashboard", group=groupDashboardBlocks)
+dashCurrentTFSwingHL = input.bool(true, "Current TF Swing H/L", group=groupDashboardBlocks)
+dashCurrentTFVolume = input.bool(true, "Current TF Volume", group=groupDashboardBlocks)
+dashCurrentTFVolatility = input.bool(true, "Current TF Volatility", group=groupDashboardBlocks)
+dashContextEnable = input.bool(true, "Market Context Dashboard", group=groupDashboardBlocks)
+dashContextSession = input.bool(true, "Context Session", group=groupDashboardBlocks)
+dashContextKillzone = input.bool(true, "Context Killzone", group=groupDashboardBlocks)
+dashContextTrendBias = input.bool(true, "Context Trend Bias", group=groupDashboardBlocks)
+dashHTFLevelsEnable = input.bool(true, "HTF Levels Dashboard", group=groupDashboardBlocks)
+dashHTFLevelsPD = input.bool(true, "PDH/L", group=groupDashboardBlocks)
+dashHTFLevelsPW = input.bool(true, "PWH/L", group=groupDashboardBlocks)
+dashHTFLevelsPM = input.bool(true, "PMH/L", group=groupDashboardBlocks)
+trendBiasUseStructure = input.bool(true, "Trend Bias Uses Structure", group=groupDashboardBlocks)
+trendBiasUseOrderBlock = input.bool(false, "Trend Bias Uses Order Block", group=groupDashboardBlocks)
+trendBiasUseFVG = input.bool(true, "Trend Bias Uses FVG", group=groupDashboardBlocks)
+trendBiasUseEMA = input.bool(false, "Trend Bias Uses EMA Trend", group=groupDashboardBlocks)
+trendBiasUseSwingHL = input.bool(true, "Trend Bias Uses Swing H/L", group=groupDashboardBlocks)
+
+groupGlobalLayout = "02C. GLOBAL LAYOUT"
+emaLengthInput = input.int(9, "EMA Length", minval=1, maxval=200, group=groupGlobalLayout)
+volatilityLookbackInput = input.int(20, "Volatility Lookback", minval=5, maxval=200, group=groupGlobalLayout)
+distanceDisplayInput = input.string("Percent", "Distance Display", options=["Percent", "ATR", "Ticks"], group=groupGlobalLayout)
+dashboardPositionInput = input.string("Top Right", "Dashboard Position", options=["Top Right", "Top Left", "Bottom Right", "Bottom Left"], group=groupGlobalLayout)
+dashboardColorsInput = input.string("Dark Mode", "Dashboard Colors", options=["Dark Mode", "Light Mode"], group=groupGlobalLayout)
+enableMobileView = input.bool(false, "Enable Mobile View", group=groupGlobalLayout)
+mobilePresetInput = input.string("iPhone", "Mobile Preset", options=["iPhone", "Android", "Compact"], group=groupGlobalLayout)
+showOBInMobile = input.bool(false, "Show OB in Mobile", group=groupGlobalLayout)
+showFVGInMobile = input.bool(false, "Show FVG in Mobile", group=groupGlobalLayout)
+
+groupSMC = "03. SMART MONEY CONCEPTS"
+swingLen = input.int(5, "Swing Pivot Length", minval=2, maxval=20, group=groupSMC)
+internalLen = input.int(2, "Internal Pivot Length", minval=1, maxval=10, group=groupSMC)
+showSwingPoints = input.bool(true, "Mostrar HH/HL/LH/LL", group=groupSMC)
+showSwingLines = input.bool(true, "Mostrar Swing Levels", group=groupSMC)
+showStructureMarks = input.bool(true, "Mostrar BOS / CHOCH", group=groupSMC)
+showInternalMarks = input.bool(false, "Mostrar Internal BOS", group=groupSMC)
+showEQ = input.bool(true, "Mostrar EQH / EQL", group=groupSMC)
+showPremiumDiscount = input.bool(true, "Mostrar Equilibrium", group=groupSMC)
+showBullStructure = input.bool(true, "Mostrar Bullish Structure", group=groupSMC)
+showBearStructure = input.bool(true, "Mostrar Bearish Structure", group=groupSMC)
+swingLineStyleInput = input.string("DOTTED", "Swing Line Style", options=["SOLID", "DASHED", "DOTTED"], group=groupSMC)
+structureLineStyleInput = input.string("SOLID", "Structure Line Style", options=["SOLID", "DASHED", "DOTTED"], group=groupSMC)
+structureLineWidth = input.int(1, "Structure Line Width", minval=1, maxval=3, group=groupSMC)
+maxStructureMarks = input.int(18, "Max Structure Marks", minval=4, maxval=60, group=groupSMC)
+
+groupVisualOverlays = "03A. VISUAL OVERLAYS"
+showOverlayOrderBlocks = input.bool(false, "Order Blocks", group=groupVisualOverlays)
+overlayOrderBlocksShowLast = input.int(6, "OB Show Last", minval=1, maxval=20, group=groupVisualOverlays)
+overlayOrderBlocksExtend = input.int(20, "OB Extend", minval=1, maxval=200, group=groupVisualOverlays)
+showOverlayOrderBlockLabels = input.bool(false, "OB Labels", group=groupVisualOverlays)
+overlayFVGShowLast = input.int(3, "FVG Show Last", minval=1, maxval=20, group=groupVisualOverlays)
+overlayFVGExtend = input.int(1, "FVG Extend", minval=1, maxval=200, group=groupVisualOverlays)
+showOverlayFVGLabels = input.bool(true, "FVG Labels", group=groupVisualOverlays)
+showOverlaySwingLabels = input.bool(true, "Swing Labels", group=groupVisualOverlays)
+overlaySwingLabelsShowLast = input.int(10, "Swing Labels Show Last", minval=1, maxval=100, group=groupVisualOverlays)
+showOverlaySwingLines = input.bool(true, "Swing Lines", group=groupVisualOverlays)
+overlaySwingLinesExtend = input.int(20, "Swing Lines Extend", minval=1, maxval=200, group=groupVisualOverlays)
+showPreviousDayHLOverlay = input.bool(true, "Previous Day High/Low", group=groupVisualOverlays)
+showPreviousWeekHLOverlay = input.bool(true, "Previous Week High/Low", group=groupVisualOverlays)
+showPreviousMonthHLOverlay = input.bool(true, "Previous Month High/Low", group=groupVisualOverlays)
+htfExtendBars = input.int(30, "HTF Extend", minval=1, maxval=300, group=groupVisualOverlays)
+showEMAOverlay = input.bool(false, "EMA", group=groupVisualOverlays)
+
+groupRealtimeStructure = "03B. REAL TIME STRUCTURE"
+showInternalStructureRealtime = input.bool(true, "Show Internal Structure", group=groupRealtimeStructure)
+internalBullStructureMode = input.string("All", "Internal Bullish Structure", options=["All", "BOS", "CHOCH"], group=groupRealtimeStructure)
+internalBearStructureMode = input.string("All", "Internal Bearish Structure", options=["All", "BOS", "CHOCH"], group=groupRealtimeStructure)
+useConfluenceFilter = input.bool(true, "Confluence Filter", group=groupRealtimeStructure)
+internalLabelSizeInput = input.string("Small", "Internal Label Size", options=["Tiny", "Small", "Normal", "Large"], group=groupRealtimeStructure)
+showSwingStructureRealtime = input.bool(true, "Show Swing Structure", group=groupRealtimeStructure)
+swingBullStructureMode = input.string("All", "Swing Bullish Structure", options=["All", "BOS", "CHOCH"], group=groupRealtimeStructure)
+swingBearStructureMode = input.string("All", "Swing Bearish Structure", options=["All", "BOS", "CHOCH"], group=groupRealtimeStructure)
+swingStructureLabelSizeInput = input.string("Small", "Swing Label Size", options=["Tiny", "Small", "Normal", "Large"], group=groupRealtimeStructure)
+showStrongWeakHL = input.bool(true, "Show Strong/Weak High/Low", group=groupRealtimeStructure)
+
+groupOrderBlocks = "03C. ORDER BLOCKS"
+showInternalOrderBlocks = input.bool(false, "Internal Order Blocks", group=groupOrderBlocks)
+maxInternalOrderBlocks = input.int(5, "Internal OB Count", minval=1, maxval=20, group=groupOrderBlocks)
+showSwingOrderBlocks = input.bool(false, "Swing Order Blocks", group=groupOrderBlocks)
+maxSwingOrderBlocks = input.int(5, "Swing OB Count", minval=1, maxval=20, group=groupOrderBlocks)
+orderBlockFilterInput = input.string("ATR", "Order Block Filter", options=["ATR", "None"], group=groupOrderBlocks)
+orderBlockMitigationInput = input.string("High/Low", "Order Block Mitigation", options=["High/Low", "Close"], group=groupOrderBlocks)
+
+groupLiquidity = "04. LIQUIDITY SWEEPS"
+showPDLevels = input.bool(true, "Mostrar PDH / PDL / PDC", group=groupLiquidity)
+showSweepMarkers = input.bool(true, "Mostrar Sweep Markers", group=groupLiquidity)
+showLiquidityLevels = input.bool(true, "Mostrar BSL / SSL Levels", group=groupLiquidity)
+showLookbackSweeps = input.bool(true, "Mostrar Lookback Sweeps", group=groupLiquidity)
+showPivotSweeps = input.bool(true, "Mostrar Pivot Sweeps", group=groupLiquidity)
+showLiquidityLevelLabels = input.bool(true, "Mostrar Labels BSL / SSL", group=groupLiquidity)
+showSweepEventText = input.bool(true, "Mostrar Texto Sweep Event", group=groupLiquidity)
+showPDHLine = input.bool(true, "Mostrar PDH", group=groupLiquidity)
+showPDLLine = input.bool(true, "Mostrar PDL", group=groupLiquidity)
+showPDCLine = input.bool(true, "Mostrar PDC", group=groupLiquidity)
+liquidityLevelStyleInput = input.string("DASHED", "Liquidity Line Style", options=["SOLID", "DASHED", "DOTTED"], group=groupLiquidity)
+sweepLookback = input.int(20, "Sweep Lookback", minval=5, maxval=100, group=groupLiquidity)
+eqToleranceAtr = input.float(0.12, "EQ Tolerance ATR", minval=0.01, maxval=1.0, step=0.01, group=groupLiquidity)
+maxEQMarks = input.int(8, "Max EQ Marks", minval=2, maxval=20, group=groupLiquidity)
+maxLiquidityLevels = input.int(12, "Max Liquidity Levels", minval=4, maxval=30, group=groupLiquidity)
+sweepsOptionsInput = input.string("Only Wicks", "Sweep Options", options=["Only Wicks", "Wicks and Closes", "All"], group=groupLiquidity)
+extendSweepArea = input.bool(true, "Extend Sweep Area", group=groupLiquidity)
+sweepAreaMaxBars = input.int(300, "Sweep Area Max Bars", minval=10, maxval=500, group=groupLiquidity)
+
+groupImbalance = "05. FVG / IFVG"
+showFVGBoxes = input.bool(true, "Mostrar FVG Boxes", group=groupImbalance)
+showIFVGBoxes = input.bool(true, "Mostrar IFVG Boxes", group=groupImbalance)
+showImbalanceLabels = input.bool(true, "Mostrar Labels FVG / IFVG", group=groupImbalance)
+showBullFVGBoxes = input.bool(true, "Mostrar Bull FVG", group=groupImbalance)
+showBearFVGBoxes = input.bool(true, "Mostrar Bear FVG", group=groupImbalance)
+showBullIFVGBoxes = input.bool(true, "Mostrar Bull IFVG", group=groupImbalance)
+showBearIFVGBoxes = input.bool(true, "Mostrar Bear IFVG", group=groupImbalance)
+showIFVGMidline = input.bool(true, "Mostrar IFVG Midline", group=groupImbalance)
+showIFVGSignals = input.bool(true, "Mostrar IFVG Signals", group=groupImbalance)
+ifvgSignalPreference = input.string("Close", "IFVG Signal Preference", options=["Wick", "Close"], group=groupImbalance)
+imbalanceMinAtr = input.float(0.10, "Min Gap ATR", minval=0.01, maxval=2.0, step=0.01, group=groupImbalance)
+imbalanceExtendBars = input.int(60, "Extend Bars", minval=5, maxval=300, group=groupImbalance)
+deleteFilledFVG = input.bool(true, "Eliminar FVG mitigado", group=groupImbalance)
+fvgFillMode = input.string("Wick", "Fill Mode", options=["Wick", "Close"], group=groupImbalance)
+fvgBoxOpacity = input.int(86, "FVG Box Opacity", minval=60, maxval=95, group=groupImbalance)
+ifvgBoxOpacity = input.int(84, "IFVG Box Opacity", minval=50, maxval=95, group=groupImbalance)
+imbalanceBorderWidth = input.int(1, "Imbalance Border Width", minval=1, maxval=3, group=groupImbalance)
+maxFvgBoxes = input.int(10, "Max FVG Boxes", minval=2, maxval=30, group=groupImbalance)
+maxIfvgBoxes = input.int(8, "Max IFVG Boxes", minval=2, maxval=20, group=groupImbalance)
+useAutoFVGThreshold = input.bool(false, "FVG Auto Threshold", group=groupImbalance)
+fvgTimeframeInput = input.string("Chart", "FVG Timeframe", options=["Chart", "5", "15", "60", "240", "D"], group=groupImbalance)
+showPremiumDiscountZones = input.bool(false, "Premium/Discount Zones", group=groupImbalance)
+eqBarsConfirmation = input.int(3, "EQH/EQL Bars Confirmation", minval=1, maxval=10, group=groupImbalance)
+eqLabelSizeInput = input.string("Tiny", "EQH/EQL Label Size", options=["Tiny", "Small", "Normal", "Large"], group=groupImbalance)
+
+groupSessions = "06. ICT KILLZONES & PIVOTS"
+showSessionBG = input.bool(true, "Mostrar Session Background", group=groupSessions)
+showSessionTags = input.bool(true, "Mostrar Session Tags", group=groupSessions)
+sessionTZ = input.string("America/New_York", "Timezone", group=groupSessions)
+sessionDrawingLimit = input.int(3, "Session Drawing Limit", minval=1, maxval=10, group=groupSessions)
+timeframeLimitInput = input.string("30", "Timeframe Limit", options=["5", "15", "30", "60", "240"], group=groupSessions)
+sessionLabelSizeInput = input.string("Normal", "Label Size", options=["Tiny", "Small", "Normal", "Large"], group=groupSessions)
+useDrawingCutoff = input.bool(false, "Drawing Cutoff Time", group=groupSessions)
+cutoffStartInput = input.string("18:00", "Cutoff Start", group=groupSessions)
+cutoffEndInput = input.string("18:01", "Cutoff End", group=groupSessions)
+useAsia = input.bool(true, "Asia", inline="asia", group=groupSessions)
+sessAsia = input.session("2000-0000", "", inline="asia", group=groupSessions)
+useLondon = input.bool(true, "London", inline="lon", group=groupSessions)
+sessLondon = input.session("0200-0500", "", inline="lon", group=groupSessions)
+useNYAM = input.bool(true, "NY AM", inline="ny", group=groupSessions)
+sessNYAM = input.session("0930-1100", "", inline="ny", group=groupSessions)
+useNYLunch = input.bool(true, "NY Lunch", inline="nyl", group=groupSessions)
+sessNYLunch = input.session("1200-1300", "", inline="nyl", group=groupSessions)
+useNYPM = input.bool(true, "NY PM", inline="nyp", group=groupSessions)
+sessNYPM = input.session("1330-1600", "", inline="nyp", group=groupSessions)
+killzoneBoxTransparency = input.int(70, "Box Transparency", minval=0, maxval=100, group=groupSessions)
+killzoneTextTransparency = input.int(50, "Text Transparency", minval=0, maxval=100, group=groupSessions)
+
+groupSessionPivots = "06A. KILLZONE PIVOTS"
+showKillzonePivots = input.bool(true, "Show Pivots", group=groupSessionPivots)
+alertBrokenPivots = input.bool(true, "Alert Broken Pivots", group=groupSessionPivots)
+showPivotMidpoints = input.bool(false, "Show Pivot Midpoints", group=groupSessionPivots)
+stopOnceMitigated = input.bool(true, "Stop Once Mitigated", group=groupSessionPivots)
+showPivotLabels = input.bool(true, "Show Pivot Labels", group=groupSessionPivots)
+displayPivotPrice = input.bool(false, "Display Price", group=groupSessionPivots)
+pivotLabelsRightSide = input.bool(false, "Right Side", group=groupSessionPivots)
+extendPivotsMode = input.string("Until Mitigated", "Extend Pivots", options=["Until Mitigated", "Session End", "Fixed"], group=groupSessionPivots)
+pivotSourceSessions = input.string("Most Recent", "From Which Sessions", options=["Most Recent", "All"], group=groupSessionPivots)
+pivotStyleInput = input.string("Solid", "Pivot Style", options=["Solid", "Dashed", "Dotted"], group=groupSessionPivots)
+pivotWidthInput = input.int(1, "Pivot Width", minval=1, maxval=3, group=groupSessionPivots)
+midpointStyleInput = input.string("Dotted", "Midpoint Style", options=["Solid", "Dashed", "Dotted"], group=groupSessionPivots)
+midpointWidthInput = input.int(1, "Midpoint Width", minval=1, maxval=3, group=groupSessionPivots)
+
+groupCalendarLevels = "06B. DAY / WEEK / MONTH"
+showKillzoneAverage = input.bool(true, "Show Average", group=groupCalendarLevels)
+averageLengthInput = input.int(5, "Average Length", minval=1, maxval=20, group=groupCalendarLevels)
+showDayOpen = input.bool(false, "D Open", group=groupCalendarLevels)
+showDayHighLow = input.bool(false, "D High/Low", group=groupCalendarLevels)
+showDaySeparators = input.bool(false, "D Separators", group=groupCalendarLevels)
+showWeekOpen = input.bool(false, "W Open", group=groupCalendarLevels)
+showWeekHighLow = input.bool(false, "W High/Low", group=groupCalendarLevels)
+showWeekSeparators = input.bool(false, "W Separators", group=groupCalendarLevels)
+showMonthOpen = input.bool(false, "M Open", group=groupCalendarLevels)
+showMonthHighLow = input.bool(false, "M High/Low", group=groupCalendarLevels)
+showMonthSeparators = input.bool(false, "M Separators", group=groupCalendarLevels)
+calendarLevelStyleInput = input.string("Solid", "Calendar Level Style", options=["Solid", "Dashed", "Dotted"], group=groupCalendarLevels)
+calendarLevelWidth = input.int(1, "Calendar Level Width", minval=1, maxval=3, group=groupCalendarLevels)
+showDayOfWeekLabels = input.bool(true, "Day of Week Labels", group=groupCalendarLevels)
+hideWeekendLabels = input.bool(true, "Hide Weekend Labels", group=groupCalendarLevels)
+
+groupEngulf = "07. ENGULFING CANDLES"
+showEngulfMarkers = input.bool(true, "Mostrar Engulfing Markers", group=groupEngulf)
+engulfRequireZone = input.bool(true, "Requerir sweep o imbalance", group=groupEngulf)
+engulfRequireStructure = input.bool(true, "Requerir contexto estructural", group=groupEngulf)
+engulfDisplayMode = input.string("BOTH", "Representacion", options=["BOTH", "TRIANGLES", "BAR COLOR", "OFF"], group=groupEngulf)
+engulfMarkerSizeInput = input.string("Tiny", "Marker Size", options=["Tiny", "Small", "Normal", "Large"], group=groupEngulf)
+engulfFromMonth = input.int(1, "From Month", minval=1, maxval=12, group=groupEngulf)
+engulfFromDay = input.int(1, "From Day", minval=1, maxval=31, group=groupEngulf)
+engulfFromYear = input.int(2017, "From Year", minval=1970, maxval=9999, group=groupEngulf)
+engulfToMonth = input.int(1, "To Month", minval=1, maxval=12, group=groupEngulf)
+engulfToDay = input.int(1, "To Day", minval=1, maxval=31, group=groupEngulf)
+engulfToYear = input.int(9999, "To Year", minval=1970, maxval=9999, group=groupEngulf)
+showBullEngulfShape = input.bool(true, "Bull Shapes", group=groupEngulf)
+showBearEngulfShape = input.bool(true, "Bear Shapes", group=groupEngulf)
+bullEngulfPositionInput = input.string("Below bar", "Bull Position", options=["Below bar", "Above bar"], group=groupEngulf)
+bearEngulfPositionInput = input.string("Below bar", "Bear Position", options=["Below bar", "Above bar"], group=groupEngulf)
+
+groupColors = "08. COLORS"
+colBull = input.color(color.rgb(0, 196, 154), "Bull", group=groupColors)
+colBear = input.color(color.rgb(255, 77, 77), "Bear", group=groupColors)
+colNeutral = input.color(color.rgb(136, 136, 136), "Neutral", group=groupColors)
+colAqua = input.color(color.rgb(0, 180, 255), "Aqua", group=groupColors)
+colGold = input.color(color.rgb(255, 190, 0), "Gold", group=groupColors)
+colEMA = input.color(color.rgb(182, 113, 47), "EMA", group=groupColors)
+colBullFvg = input.color(color.rgb(0, 180, 255), "Bull FVG", group=groupColors)
+colBearFvg = input.color(color.rgb(214, 75, 75), "Bear FVG", group=groupColors)
+colBullIfvg = input.color(color.rgb(42, 132, 255), "Bull IFVG", group=groupColors)
+colBearIfvg = input.color(color.rgb(196, 44, 196), "Bear IFVG", group=groupColors)
+colAsia = input.color(color.rgb(68, 93, 202), "Asia Session", group=groupColors)
+colLondon = input.color(color.rgb(255, 77, 77), "London Session", group=groupColors)
+colNYAM = input.color(color.rgb(0, 196, 154), "NY AM Session", group=groupColors)
+colNYLunch = input.color(color.rgb(255, 208, 52), "NY Lunch Session", group=groupColors)
+colNYPM = input.color(color.rgb(162, 70, 213), "NY PM Session", group=groupColors)
+colEquilibriumZone = input.color(color.rgb(168, 173, 181), "Equilibrium Zone", group=groupColors)
+
+isClean = preset == "CLEAN"
+showExtraVisuals = not isClean and visualDensity != "MINIMAL"
+showDenseVisuals = visualDensity == "FULL"
+
+f_size(_s) =>
+    _s == "Tiny" ? size.tiny : _s == "Small" ? size.small : _s == "Large" ? size.large : size.normal
+
+f_lineStyle(_s) =>
+    _s == "DASHED" ? line.style_dashed : _s == "DOTTED" ? line.style_dotted : line.style_solid
+
+f_signalBreakRef(_preference, _bull) =>
+    _preference == "Wick" ? (_bull ? high : low) : close
+
+f_trimLineLabelArrays(line[] _lines, label[] _labels, int _max) =>
+    if array.size(_lines) > _max
+        line.delete(array.shift(_lines))
+        label.delete(array.shift(_labels))
+
+f_trimLineArray(line[] _lines, int _max) =>
+    if array.size(_lines) > _max
+        line.delete(array.shift(_lines))
+
+f_pushStructureMark(line[] _lines, label[] _labels, int _x1, float _y, string _txt, color _col, int _max) =>
+    _line = line.new(_x1, _y, bar_index, _y, color=_col, width=structureLineWidth, style=f_lineStyle(structureLineStyleInput))
+    _mid = int(math.floor((_x1 + bar_index) * 0.5))
+    _label = label.new(_mid, _y, _txt, style=label.style_none, textcolor=_col, size=f_size(tagSizeInput))
+    array.push(_lines, _line)
+    array.push(_labels, _label)
+    f_trimLineLabelArrays(_lines, _labels, _max)
+
+f_trimLiquidityLevels(line[] _lines, label[] _labels, float[] _levels, int[] _types, int[] _starts, int _max) =>
+    if array.size(_lines) > _max
+        line.delete(array.shift(_lines))
+        _oldLabel = array.shift(_labels)
+        if not na(_oldLabel)
+            label.delete(_oldLabel)
+        array.shift(_levels)
+        array.shift(_types)
+        array.shift(_starts)
+
+f_pushLiquidityLevel(line[] _lines, label[] _labels, float[] _levels, int[] _types, int[] _starts, int _x1, float _y, string _txt, int _type, color _col, int _max) =>
+    _line = line.new(_x1, _y, bar_index + baseExtendBars, _y, extend=extend.right, color=color.new(_col, 28), width=1, style=f_lineStyle(liquidityLevelStyleInput))
+    label _label = na
+    if showLiquidityLevelLabels
+        _label := label.new(_x1, _y, _txt, style=label.style_none, textcolor=color.new(_col, 0), size=f_size(tagSizeInput))
+    array.push(_lines, _line)
+    array.push(_labels, _label)
+    array.push(_levels, _y)
+    array.push(_types, _type)
+    array.push(_starts, _x1)
+    f_trimLiquidityLevels(_lines, _labels, _levels, _types, _starts, _max)
+
+f_pushBox(box[] _boxes, label[] _labels, float[] _tops, float[] _bots, int _left, float _top, float _bot, string _txt, color _bg, color _border, int _extend, bool _showLabel, int _max, int _fillOpacity, int _borderWidth) =>
+    _box = box.new(_left, _top, bar_index + _extend, _bot, bgcolor=color.new(_bg, _fillOpacity), border_color=color.new(_border, 10), border_width=_borderWidth)
+    array.push(_boxes, _box)
+    array.push(_tops, _top)
+    array.push(_bots, _bot)
+    label _label = na
+    if _showLabel
+        _label := label.new(bar_index + _extend, (_top + _bot) * 0.5, _txt, style=label.style_label_left, color=color.new(_border, 8), textcolor=color.white, size=f_size(tagSizeInput))
+    array.push(_labels, _label)
+    if array.size(_boxes) > _max
+        _oldBox = array.shift(_boxes)
+        if not na(_oldBox)
+            box.delete(_oldBox)
+        _oldLabel = array.shift(_labels)
+        if not na(_oldLabel)
+            label.delete(_oldLabel)
+        array.shift(_tops)
+        array.shift(_bots)
+
+f_deleteBoxAt(box[] _boxes, label[] _labels, float[] _tops, float[] _bots, int _idx) =>
+    _box = array.get(_boxes, _idx)
+    if not na(_box)
+        box.delete(_box)
+    _label = array.get(_labels, _idx)
+    if not na(_label)
+        label.delete(_label)
+    array.remove(_boxes, _idx)
+    array.remove(_labels, _idx)
+    array.remove(_tops, _idx)
+    array.remove(_bots, _idx)
+
+f_deleteLiquidityLevelAt(line[] _lines, label[] _labels, float[] _levels, int[] _types, int[] _starts, int _idx) =>
+    _line = array.get(_lines, _idx)
+    if not na(_line)
+        line.delete(_line)
+    _label = array.get(_labels, _idx)
+    if not na(_label)
+        label.delete(_label)
+    array.remove(_lines, _idx)
+    array.remove(_labels, _idx)
+    array.remove(_levels, _idx)
+    array.remove(_types, _idx)
+    array.remove(_starts, _idx)
+
+f_deleteLineAt(line[] _lines, int _idx) =>
+    _line = array.get(_lines, _idx)
+    if not na(_line)
+        line.delete(_line)
+    array.remove(_lines, _idx)
+
+f_htfBias(_tf) =>
+    _c = request.security(syminfo.tickerid, _tf, close, barmerge.gaps_off, barmerge.lookahead_off)
+    _hi = request.security(syminfo.tickerid, _tf, ta.highest(high, 20), barmerge.gaps_off, barmerge.lookahead_off)
+    _lo = request.security(syminfo.tickerid, _tf, ta.lowest(low, 20), barmerge.gaps_off, barmerge.lookahead_off)
+    _mid = (_hi + _lo) * 0.5
+    int _bias = 0
+    if _c > _mid
+        _bias := 1
+    else if _c < _mid
+        _bias := -1
+    _bias
+
+atr = ta.atr(volatilityLookbackInput)
+rsi = ta.rsi(close, 14)
+roc = ta.roc(close, 8)
+barRange = high - low
+bodySize = math.abs(close - open)
+closePos = barRange > 0 ? (close - low) / barRange : 0.5
+
+inAsia = useSessions and useAsia and not na(time(timeframe.period, sessAsia, sessionTZ))
+inLondon = useSessions and useLondon and not na(time(timeframe.period, sessLondon, sessionTZ))
+inNYAM = useSessions and useNYAM and not na(time(timeframe.period, sessNYAM, sessionTZ))
+inNYLunch = useSessions and useNYLunch and not na(time(timeframe.period, sessNYLunch, sessionTZ))
+inNYPM = useSessions and useNYPM and not na(time(timeframe.period, sessNYPM, sessionTZ))
+sessionName = inNYAM ? "NY AM" : inNYLunch ? "NY LUNCH" : inNYPM ? "NY PM" : inLondon ? "LONDON" : inAsia ? "ASIA" : "OFF"
+
+bgcolor(useSessions and showSessionBG and inAsia ? color.new(colAsia, killzoneBoxTransparency) : na)
+bgcolor(useSessions and showSessionBG and inLondon ? color.new(colLondon, killzoneBoxTransparency) : na)
+bgcolor(useSessions and showSessionBG and inNYAM ? color.new(colNYAM, killzoneBoxTransparency) : na)
+bgcolor(useSessions and showSessionBG and inNYLunch ? color.new(colNYLunch, killzoneBoxTransparency) : na)
+bgcolor(useSessions and showSessionBG and inNYPM ? color.new(colNYPM, killzoneBoxTransparency) : na)
+
+if useSessions and showSessionTags
+    if inAsia and not inAsia[1]
+        label.new(bar_index, high, "ASIA", style=label.style_label_down, color=color.new(colAsia, killzoneTextTransparency), textcolor=color.white, size=f_size(sessionLabelSizeInput))
+    if inLondon and not inLondon[1]
+        label.new(bar_index, high, "LONDON", style=label.style_label_down, color=color.new(colLondon, killzoneTextTransparency), textcolor=color.white, size=f_size(sessionLabelSizeInput))
+    if inNYAM and not inNYAM[1]
+        label.new(bar_index, high, "NY AM", style=label.style_label_down, color=color.new(colNYAM, killzoneTextTransparency), textcolor=color.white, size=f_size(sessionLabelSizeInput))
+    if inNYLunch and not inNYLunch[1]
+        label.new(bar_index, high, "NY LUNCH", style=label.style_label_down, color=color.new(colNYLunch, killzoneTextTransparency), textcolor=color.black, size=f_size(sessionLabelSizeInput))
+    if inNYPM and not inNYPM[1]
+        label.new(bar_index, high, "NY PM", style=label.style_label_down, color=color.new(colNYPM, killzoneTextTransparency), textcolor=color.white, size=f_size(sessionLabelSizeInput))
+
+pdh = request.security(syminfo.tickerid, "D", high[1], barmerge.gaps_off, barmerge.lookahead_off)
+pdl = request.security(syminfo.tickerid, "D", low[1], barmerge.gaps_off, barmerge.lookahead_off)
+pdc = request.security(syminfo.tickerid, "D", close[1], barmerge.gaps_off, barmerge.lookahead_off)
+pwh = request.security(syminfo.tickerid, "W", high[1], barmerge.gaps_off, barmerge.lookahead_off)
+pwl = request.security(syminfo.tickerid, "W", low[1], barmerge.gaps_off, barmerge.lookahead_off)
+pmh = request.security(syminfo.tickerid, "M", high[1], barmerge.gaps_off, barmerge.lookahead_off)
+pml = request.security(syminfo.tickerid, "M", low[1], barmerge.gaps_off, barmerge.lookahead_off)
+emaTrend = ta.ema(close, emaLengthInput)
+
+swingPH = useSMC ? ta.pivothigh(high, swingLen, swingLen) : na
+swingPL = useSMC ? ta.pivotlow(low, swingLen, swingLen) : na
+internalPH = useSMC ? ta.pivothigh(high, internalLen, internalLen) : na
+internalPL = useSMC ? ta.pivotlow(low, internalLen, internalLen) : na
+
+swingPHBar = bar_index - swingLen
+swingPLBar = bar_index - swingLen
+internalPHBar = bar_index - internalLen
+internalPLBar = bar_index - internalLen
+
+var float lastSwingHigh = na
+var float prevSwingHigh = na
+var int lastSwingHighBar = na
+var float lastSwingLow = na
+var float prevSwingLow = na
+var int lastSwingLowBar = na
+var float lastInternalHigh = na
+var int lastInternalHighBar = na
+var float lastInternalLow = na
+var int lastInternalLowBar = na
+var int structureState = 0
+var int internalState = 0
+var line[] structureLines = array.new_line()
+var label[] structureLabels = array.new_label()
+var line[] eqLines = array.new_line()
+var label[] eqLabels = array.new_label()
+var line[] liquidityLevelLines = array.new_line()
+var label[] liquidityLevelLabels = array.new_label()
+var float[] liquidityLevels = array.new_float()
+var int[] liquidityTypes = array.new_int()
+var int[] liquidityStartBars = array.new_int()
+var line[] liquidityEventLines = array.new_line()
+var label[] liquidityEventLabels = array.new_label()
+var line swingHighLine = na
+var line swingLowLine = na
+
+if useSMC and not na(swingPH)
+    prevSwingHigh := lastSwingHigh
+    lastSwingHigh := swingPH
+    lastSwingHighBar := swingPHBar
+    if showSwingLines and showExtraVisuals
+        if not na(swingHighLine)
+            line.delete(swingHighLine)
+        swingHighLine := line.new(swingPHBar, swingPH, bar_index + 40, swingPH, extend=extend.right, color=color.new(colBear, 10), width=1, style=line.style_dotted)
+    if useLiquidity and showLiquidityLevels and showExtraVisuals
+        f_pushLiquidityLevel(liquidityLevelLines, liquidityLevelLabels, liquidityLevels, liquidityTypes, liquidityStartBars, swingPHBar, swingPH, "BSL", 1, colBear, maxLiquidityLevels)
+
+if useSMC and not na(swingPL)
+    prevSwingLow := lastSwingLow
+    lastSwingLow := swingPL
+    lastSwingLowBar := swingPLBar
+    if showSwingLines and showExtraVisuals
+        if not na(swingLowLine)
+            line.delete(swingLowLine)
+        swingLowLine := line.new(swingPLBar, swingPL, bar_index + 40, swingPL, extend=extend.right, color=color.new(colBull, 10), width=1, style=line.style_dotted)
+    if useLiquidity and showLiquidityLevels and showExtraVisuals
+        f_pushLiquidityLevel(liquidityLevelLines, liquidityLevelLabels, liquidityLevels, liquidityTypes, liquidityStartBars, swingPLBar, swingPL, "SSL", -1, colBull, maxLiquidityLevels)
+
+if useSMC and not na(internalPH)
+    lastInternalHigh := internalPH
+    lastInternalHighBar := internalPHBar
+
+if useSMC and not na(internalPL)
+    lastInternalLow := internalPL
+    lastInternalLowBar := internalPLBar
+
+swingHH = useSMC and not na(lastSwingHigh) and not na(prevSwingHigh) and lastSwingHigh > prevSwingHigh
+swingLH = useSMC and not na(lastSwingHigh) and not na(prevSwingHigh) and lastSwingHigh < prevSwingHigh
+swingHL = useSMC and not na(lastSwingLow) and not na(prevSwingLow) and lastSwingLow > prevSwingLow
+swingLL = useSMC and not na(lastSwingLow) and not na(prevSwingLow) and lastSwingLow < prevSwingLow
+
+if useSMC and showSwingPoints and showExtraVisuals
+    if not na(swingPH)
+        if swingHH
+            label.new(swingPHBar, swingPH, "HH", style=label.style_label_down, color=color.new(colBull, 20), textcolor=color.black, size=f_size(tagSizeInput))
+        if swingLH
+            label.new(swingPHBar, swingPH, "LH", style=label.style_label_down, color=color.new(colBear, 20), textcolor=color.white, size=f_size(tagSizeInput))
+    if not na(swingPL)
+        if swingHL
+            label.new(swingPLBar, swingPL, "HL", style=label.style_label_up, color=color.new(colBull, 20), textcolor=color.black, size=f_size(tagSizeInput))
+        if swingLL
+            label.new(swingPLBar, swingPL, "LL", style=label.style_label_up, color=color.new(colBear, 20), textcolor=color.white, size=f_size(tagSizeInput))
+
+swingBullBOS = useSMC and not na(lastSwingHigh) and close > lastSwingHigh and close[1] <= lastSwingHigh
+swingBearBOS = useSMC and not na(lastSwingLow) and close < lastSwingLow and close[1] >= lastSwingLow
+swingBullCHoCH = structureState == -1 and swingBullBOS
+swingBearCHoCH = structureState == 1 and swingBearBOS
+
+if swingBullBOS
+    if showStructureMarks and showExtraVisuals
+        f_pushStructureMark(structureLines, structureLabels, lastSwingHighBar, lastSwingHigh, swingBullCHoCH ? "CHOCH" : "BOS", swingBullCHoCH ? colAqua : colBull, maxStructureMarks)
+    structureState := 1
+
+if swingBearBOS
+    if showStructureMarks and showExtraVisuals
+        f_pushStructureMark(structureLines, structureLabels, lastSwingLowBar, lastSwingLow, swingBearCHoCH ? "CHOCH" : "BOS", swingBearCHoCH ? color.fuchsia : colBear, maxStructureMarks)
+    structureState := -1
+
+internalBullBOS = useSMC and not na(lastInternalHigh) and close > lastInternalHigh and close[1] <= lastInternalHigh
+internalBearBOS = useSMC and not na(lastInternalLow) and close < lastInternalLow and close[1] >= lastInternalLow
+internalBullCHoCH = internalState == -1 and internalBullBOS
+internalBearCHoCH = internalState == 1 and internalBearBOS
+
+if internalBullBOS
+    if showInternalMarks and showExtraVisuals
+        f_pushStructureMark(structureLines, structureLabels, lastInternalHighBar, lastInternalHigh, internalBullCHoCH ? "iCHOCH" : "iBOS", color.new(colBull, 20), maxStructureMarks)
+    internalState := 1
+
+if internalBearBOS
+    if showInternalMarks and showExtraVisuals
+        f_pushStructureMark(structureLines, structureLabels, lastInternalLowBar, lastInternalLow, internalBearCHoCH ? "iCHOCH" : "iBOS", color.new(colBear, 20), maxStructureMarks)
+    internalState := -1
+
+eqTol = atr * eqToleranceAtr
+newEqHigh = useSMC and showEQ and not na(swingPH) and not na(lastSwingHigh) and not na(prevSwingHigh) and math.abs(lastSwingHigh - prevSwingHigh) <= eqTol
+newEqLow = useSMC and showEQ and not na(swingPL) and not na(lastSwingLow) and not na(prevSwingLow) and math.abs(lastSwingLow - prevSwingLow) <= eqTol
+
+if newEqHigh and showExtraVisuals
+    _eqLine = line.new(lastSwingHighBar, lastSwingHigh, bar_index + 40, lastSwingHigh, extend=extend.right, color=color.new(colBear, 20), width=1, style=line.style_dashed)
+    _eqLabel = label.new(bar_index + 40, lastSwingHigh, "EQH", style=label.style_label_left, color=color.new(colBear, 8), textcolor=color.white, size=f_size(tagSizeInput))
+    array.push(eqLines, _eqLine)
+    array.push(eqLabels, _eqLabel)
+    f_trimLineLabelArrays(eqLines, eqLabels, maxEQMarks)
+
+if newEqLow and showExtraVisuals
+    _eqLine = line.new(lastSwingLowBar, lastSwingLow, bar_index + 40, lastSwingLow, extend=extend.right, color=color.new(colBull, 20), width=1, style=line.style_dashed)
+    _eqLabel = label.new(bar_index + 40, lastSwingLow, "EQL", style=label.style_label_left, color=color.new(colBull, 8), textcolor=color.white, size=f_size(tagSizeInput))
+    array.push(eqLines, _eqLine)
+    array.push(eqLabels, _eqLabel)
+    f_trimLineLabelArrays(eqLines, eqLabels, maxEQMarks)
+
+recentHigh = useLiquidity ? ta.highest(high[1], sweepLookback) : na
+recentLow = useLiquidity ? ta.lowest(low[1], sweepLookback) : na
+rawBullSweep = useLiquidity and low < recentLow and close > recentLow and close > open and closePos > 0.55
+rawBearSweep = useLiquidity and high > recentHigh and close < recentHigh and close < open and closePos < 0.45
+bullPDSweep = useLiquidity and low < pdl and close > pdl
+bearPDSweep = useLiquidity and high > pdh and close < pdh
+
+levelBullSweep = false
+levelBearSweep = false
+
+if useLiquidity and showPivotSweeps and showExtraVisuals and array.size(liquidityLevelLines) > 0
+    for i = array.size(liquidityLevelLines) - 1 to 0
+        _level = array.get(liquidityLevels, i)
+        _type = array.get(liquidityTypes, i)
+        _start = array.get(liquidityStartBars, i)
+        if _type == 1
+            if high > _level and close < _level
+                levelBearSweep := true
+                if showSweepMarkers
+                    f_pushStructureMark(liquidityEventLines, liquidityEventLabels, _start, _level, "BSL SWEEP", colBear, maxStructureMarks)
+                f_deleteLiquidityLevelAt(liquidityLevelLines, liquidityLevelLabels, liquidityLevels, liquidityTypes, liquidityStartBars, i)
+            else if close > _level
+                f_deleteLiquidityLevelAt(liquidityLevelLines, liquidityLevelLabels, liquidityLevels, liquidityTypes, liquidityStartBars, i)
+        else
+            if low < _level and close > _level
+                levelBullSweep := true
+                if showSweepMarkers
+                    f_pushStructureMark(liquidityEventLines, liquidityEventLabels, _start, _level, "SSL SWEEP", colBull, maxStructureMarks)
+                f_deleteLiquidityLevelAt(liquidityLevelLines, liquidityLevelLabels, liquidityLevels, liquidityTypes, liquidityStartBars, i)
+            else if close < _level
+                f_deleteLiquidityLevelAt(liquidityLevelLines, liquidityLevelLabels, liquidityLevels, liquidityTypes, liquidityStartBars, i)
+
+bullSweep = (showLookbackSweeps and rawBullSweep) or (showPivotSweeps and levelBullSweep)
+bearSweep = (showLookbackSweeps and rawBearSweep) or (showPivotSweeps and levelBearSweep)
+
+plotshape(showSweepMarkers and bullSweep and not bullPDSweep, title="Bull Sweep", style=shape.triangleup, location=location.belowbar, color=colAqua, size=size.tiny)
+plotshape(showSweepMarkers and bearSweep and not bearPDSweep, title="Bear Sweep", style=shape.triangledown, location=location.abovebar, color=colAqua, size=size.tiny)
+plotshape(showSweepMarkers and bullPDSweep, title="PDL Sweep", style=shape.labelup, location=location.belowbar, color=color.new(colBull, 0), text="PDL", textcolor=color.white, size=size.tiny)
+plotshape(showSweepMarkers and bearPDSweep, title="PDH Sweep", style=shape.labeldown, location=location.abovebar, color=color.new(colBear, 0), text="PDH", textcolor=color.white, size=size.tiny)
+
+bullFVGNow = useImbalances and low > high[2] and (low - high[2]) >= atr * imbalanceMinAtr
+bearFVGNow = useImbalances and high < low[2] and (low[2] - high) >= atr * imbalanceMinAtr
+
+var box[] bullFvgBoxes = array.new_box()
+var label[] bullFvgLabels = array.new_label()
+var float[] bullFvgTops = array.new_float()
+var float[] bullFvgBots = array.new_float()
+var box[] bearFvgBoxes = array.new_box()
+var label[] bearFvgLabels = array.new_label()
+var float[] bearFvgTops = array.new_float()
+var float[] bearFvgBots = array.new_float()
+var box[] bullIfvgBoxes = array.new_box()
+var label[] bullIfvgLabels = array.new_label()
+var float[] bullIfvgTops = array.new_float()
+var float[] bullIfvgBots = array.new_float()
+var line[] bullIfvgMidLines = array.new_line()
+var box[] bearIfvgBoxes = array.new_box()
+var label[] bearIfvgLabels = array.new_label()
+var float[] bearIfvgTops = array.new_float()
+var float[] bearIfvgBots = array.new_float()
+var line[] bearIfvgMidLines = array.new_line()
+
+if bullFVGNow and showFVGBoxes and showBullFVGBoxes
+    f_pushBox(bullFvgBoxes, bullFvgLabels, bullFvgTops, bullFvgBots, bar_index - 2, low, high[2], "BULL FVG", colBullFvg, colBullFvg, imbalanceExtendBars, showImbalanceLabels and showExtraVisuals, maxFvgBoxes, fvgBoxOpacity, imbalanceBorderWidth)
+
+if bearFVGNow and showFVGBoxes and showBearFVGBoxes
+    f_pushBox(bearFvgBoxes, bearFvgLabels, bearFvgTops, bearFvgBots, bar_index - 2, low[2], high, "BEAR FVG", colBearFvg, colBearFvg, imbalanceExtendBars, showImbalanceLabels and showExtraVisuals, maxFvgBoxes, fvgBoxOpacity, imbalanceBorderWidth)
+
+if array.size(bullFvgBoxes) > 0
+    for i = array.size(bullFvgBoxes) - 1 to 0
+        _top = array.get(bullFvgTops, i)
+        _bot = array.get(bullFvgBots, i)
+        _flip = close < _bot
+        _fill = fvgFillMode == "Wick" ? low <= _bot : close <= _bot
+        if _flip
+            if showIFVGBoxes and showBearIFVGBoxes
+                f_pushBox(bearIfvgBoxes, bearIfvgLabels, bearIfvgTops, bearIfvgBots, bar_index, _top, _bot, "BEAR IFVG", colBearIfvg, colBearIfvg, imbalanceExtendBars, showImbalanceLabels and showExtraVisuals, maxIfvgBoxes, ifvgBoxOpacity, imbalanceBorderWidth)
+                if showIFVGMidline
+                    array.push(bearIfvgMidLines, line.new(bar_index, (_top + _bot) * 0.5, bar_index + imbalanceExtendBars, (_top + _bot) * 0.5, extend=extend.right, color=color.new(color.white, 45), width=1, style=line.style_dashed))
+                    f_trimLineArray(bearIfvgMidLines, maxIfvgBoxes)
+            f_deleteBoxAt(bullFvgBoxes, bullFvgLabels, bullFvgTops, bullFvgBots, i)
+        else if _fill and deleteFilledFVG
+            f_deleteBoxAt(bullFvgBoxes, bullFvgLabels, bullFvgTops, bullFvgBots, i)
+
+if array.size(bearFvgBoxes) > 0
+    for i = array.size(bearFvgBoxes) - 1 to 0
+        _top = array.get(bearFvgTops, i)
+        _bot = array.get(bearFvgBots, i)
+        _flip = close > _top
+        _fill = fvgFillMode == "Wick" ? high >= _top : close >= _top
+        if _flip
+            if showIFVGBoxes and showBullIFVGBoxes
+                f_pushBox(bullIfvgBoxes, bullIfvgLabels, bullIfvgTops, bullIfvgBots, bar_index, _top, _bot, "BULL IFVG", colBullIfvg, colBullIfvg, imbalanceExtendBars, showImbalanceLabels and showExtraVisuals, maxIfvgBoxes, ifvgBoxOpacity, imbalanceBorderWidth)
+                if showIFVGMidline
+                    array.push(bullIfvgMidLines, line.new(bar_index, (_top + _bot) * 0.5, bar_index + imbalanceExtendBars, (_top + _bot) * 0.5, extend=extend.right, color=color.new(color.white, 45), width=1, style=line.style_dashed))
+                    f_trimLineArray(bullIfvgMidLines, maxIfvgBoxes)
+            f_deleteBoxAt(bearFvgBoxes, bearFvgLabels, bearFvgTops, bearFvgBots, i)
+        else if _fill and deleteFilledFVG
+            f_deleteBoxAt(bearFvgBoxes, bearFvgLabels, bearFvgTops, bearFvgBots, i)
+
+if array.size(bullIfvgBoxes) > 0
+    for i = array.size(bullIfvgBoxes) - 1 to 0
+        _bot = array.get(bullIfvgBots, i)
+        if close < _bot
+            f_deleteBoxAt(bullIfvgBoxes, bullIfvgLabels, bullIfvgTops, bullIfvgBots, i)
+            if array.size(bullIfvgMidLines) > i
+                f_deleteLineAt(bullIfvgMidLines, i)
+
+if array.size(bearIfvgBoxes) > 0
+    for i = array.size(bearIfvgBoxes) - 1 to 0
+        _top = array.get(bearIfvgTops, i)
+        if close > _top
+            f_deleteBoxAt(bearIfvgBoxes, bearIfvgLabels, bearIfvgTops, bearIfvgBots, i)
+            if array.size(bearIfvgMidLines) > i
+                f_deleteLineAt(bearIfvgMidLines, i)
+
+bullFvgActive = array.size(bullFvgBoxes) > 0
+bearFvgActive = array.size(bearFvgBoxes) > 0
+bullIfvgActive = array.size(bullIfvgBoxes) > 0
+bearIfvgActive = array.size(bearIfvgBoxes) > 0
+
+bullIfvgSignal = false
+bearIfvgSignal = false
+bullBreakRef = f_signalBreakRef(ifvgSignalPreference, true)
+bearBreakRef = f_signalBreakRef(ifvgSignalPreference, false)
+
+if showIFVGSignals and array.size(bullIfvgBoxes) > 0
+    for i = array.size(bullIfvgBoxes) - 1 to 0
+        _top = array.get(bullIfvgTops, i)
+        _bot = array.get(bullIfvgBots, i)
+        _retest = low <= _top and high >= _bot
+        _reject = _retest and bullBreakRef > _top and open < _top
+        if _reject
+            bullIfvgSignal := true
+
+if showIFVGSignals and array.size(bearIfvgBoxes) > 0
+    for i = array.size(bearIfvgBoxes) - 1 to 0
+        _top = array.get(bearIfvgTops, i)
+        _bot = array.get(bearIfvgBots, i)
+        _retest = high >= _bot and low <= _top
+        _reject = _retest and bearBreakRef < _bot and open > _bot
+        if _reject
+            bearIfvgSignal := true
+
+bullEngulfRaw = useEngulfing and close > open and close[1] < open[1] and open <= close[1] and close >= open[1]
+bearEngulfRaw = useEngulfing and close < open and close[1] > open[1] and open >= close[1] and close <= open[1]
+bullEngulf = bullEngulfRaw and (not engulfRequireZone or bullSweep or bullPDSweep or bullFvgActive or bullIfvgActive) and (not engulfRequireStructure or structureState == 1 or swingBullCHoCH)
+bearEngulf = bearEngulfRaw and (not engulfRequireZone or bearSweep or bearPDSweep or bearFvgActive or bearIfvgActive) and (not engulfRequireStructure or structureState == -1 or swingBearCHoCH)
+
+engulfMarkersEnabled = showEngulfMarkers and engulfDisplayMode != "OFF" and engulfDisplayMode != "BAR COLOR"
+engulfSizeTiny = engulfMarkerSizeInput == "Tiny"
+engulfSizeSmall = engulfMarkerSizeInput == "Small"
+engulfSizeNormal = engulfMarkerSizeInput == "Normal"
+engulfSizeLarge = engulfMarkerSizeInput == "Large"
+
+plotshape(engulfMarkersEnabled and bullEngulf and engulfSizeTiny, title="Bull Engulf Tiny", style=shape.triangleup, location=location.belowbar, color=color.new(colBull, 0), size=size.tiny)
+plotshape(engulfMarkersEnabled and bullEngulf and engulfSizeSmall, title="Bull Engulf Small", style=shape.triangleup, location=location.belowbar, color=color.new(colBull, 0), size=size.small)
+plotshape(engulfMarkersEnabled and bullEngulf and engulfSizeNormal, title="Bull Engulf Normal", style=shape.triangleup, location=location.belowbar, color=color.new(colBull, 0), size=size.normal)
+plotshape(engulfMarkersEnabled and bullEngulf and engulfSizeLarge, title="Bull Engulf Large", style=shape.triangleup, location=location.belowbar, color=color.new(colBull, 0), size=size.large)
+plotshape(engulfMarkersEnabled and bearEngulf and engulfSizeTiny, title="Bear Engulf Tiny", style=shape.triangledown, location=location.abovebar, color=color.new(colBear, 0), size=size.tiny)
+plotshape(engulfMarkersEnabled and bearEngulf and engulfSizeSmall, title="Bear Engulf Small", style=shape.triangledown, location=location.abovebar, color=color.new(colBear, 0), size=size.small)
+plotshape(engulfMarkersEnabled and bearEngulf and engulfSizeNormal, title="Bear Engulf Normal", style=shape.triangledown, location=location.abovebar, color=color.new(colBear, 0), size=size.normal)
+plotshape(engulfMarkersEnabled and bearEngulf and engulfSizeLarge, title="Bear Engulf Large", style=shape.triangledown, location=location.abovebar, color=color.new(colBear, 0), size=size.large)
+barcolor(showEngulfMarkers and (engulfDisplayMode == "BOTH" or engulfDisplayMode == "BAR COLOR") and bullEngulf ? color.new(colBull, 62) : showEngulfMarkers and (engulfDisplayMode == "BOTH" or engulfDisplayMode == "BAR COLOR") and bearEngulf ? color.new(colBear, 62) : na)
+plotshape(showIFVGSignals and bullIfvgSignal, title="Bull IFVG Signal", style=shape.triangleup, location=location.belowbar, color=colBullIfvg, size=size.tiny)
+plotshape(showIFVGSignals and bearIfvgSignal, title="Bear IFVG Signal", style=shape.triangledown, location=location.abovebar, color=colBearIfvg, size=size.tiny)
+
+rangeMid = useSMC and showPremiumDiscount and not na(lastSwingHigh) and not na(lastSwingLow) ? (lastSwingHigh + lastSwingLow) * 0.5 : na
+pdState = not na(rangeMid) ? (close < rangeMid ? "DISCOUNT" : close > rangeMid ? "PREMIUM" : "EQ") : "N/A"
+
+plot(showEMAOverlay ? emaTrend : na, "EMA", color=color.new(colEMA, 0), linewidth=2, style=plot.style_linebr)
+plot(useLiquidity and showPDLevels and showPreviousDayHLOverlay ? pdh : na, "PDH", color=color.new(colBear, 10), linewidth=1, style=plot.style_linebr)
+plot(useLiquidity and showPDLevels and showPreviousDayHLOverlay ? pdl : na, "PDL", color=color.new(colBull, 10), linewidth=1, style=plot.style_linebr)
+plot(useLiquidity and showPDLevels and showExtraVisuals ? pdc : na, "PDC", color=color.new(colGold, 18), linewidth=1, style=plot.style_linebr)
+plot(showPreviousWeekHLOverlay ? pwh : na, "PWH", color=color.new(colBear, 35), linewidth=1, style=plot.style_linebr)
+plot(showPreviousWeekHLOverlay ? pwl : na, "PWL", color=color.new(colBull, 35), linewidth=1, style=plot.style_linebr)
+plot(showPreviousMonthHLOverlay ? pmh : na, "PMH", color=color.new(colBear, 55), linewidth=1, style=plot.style_linebr)
+plot(showPreviousMonthHLOverlay ? pml : na, "PML", color=color.new(colBull, 55), linewidth=1, style=plot.style_linebr)
+plot(showPremiumDiscount and showExtraVisuals ? rangeMid : na, "EQ MID", color=color.new(colNeutral, 55), linewidth=1, style=plot.style_linebr)
+
+var label lblPDH = na
+var label lblPDL = na
+var label lblPDC = na
+var label lblEQ = na
+var label lblPWH = na
+var label lblPWL = na
+var label lblPMH = na
+var label lblPML = na
+
+if barstate.islast and showEndLabels
+    label.delete(lblPDH)
+    label.delete(lblPDL)
+    label.delete(lblPDC)
+    label.delete(lblEQ)
+    label.delete(lblPWH)
+    label.delete(lblPWL)
+    label.delete(lblPMH)
+    label.delete(lblPML)
+    if useLiquidity and showPDLevels
+        if showPreviousDayHLOverlay
+            lblPDH := label.new(bar_index + 1, pdh, "PDH", style=label.style_label_left, color=colBear, textcolor=color.white, size=f_size(tagSizeInput))
+            lblPDL := label.new(bar_index + 1, pdl, "PDL", style=label.style_label_left, color=colBull, textcolor=color.white, size=f_size(tagSizeInput))
+        if showExtraVisuals
+            lblPDC := label.new(bar_index + 1, pdc, "PDC", style=label.style_label_left, color=colGold, textcolor=color.black, size=f_size(tagSizeInput))
+    if showPreviousWeekHLOverlay
+        lblPWH := label.new(bar_index + 1, pwh, "PWH", style=label.style_label_left, color=color.new(colBear, 20), textcolor=color.white, size=f_size(tagSizeInput))
+        lblPWL := label.new(bar_index + 1, pwl, "PWL", style=label.style_label_left, color=color.new(colBull, 20), textcolor=color.white, size=f_size(tagSizeInput))
+    if showPreviousMonthHLOverlay
+        lblPMH := label.new(bar_index + 1, pmh, "PMH", style=label.style_label_left, color=color.new(colBear, 35), textcolor=color.white, size=f_size(tagSizeInput))
+        lblPML := label.new(bar_index + 1, pml, "PML", style=label.style_label_left, color=color.new(colBull, 35), textcolor=color.white, size=f_size(tagSizeInput))
+    if showPremiumDiscount and showExtraVisuals and not na(rangeMid)
+        lblEQ := label.new(bar_index + 1, rangeMid, "EQ", style=label.style_label_left, color=color.new(colNeutral, 5), textcolor=color.white, size=f_size(tagSizeInput))
+
+htf1Bias = f_htfBias("60")
+htf2Bias = f_htfBias("240")
+
+structureText = structureState == 1 ? "BULLISH" : structureState == -1 ? "BEARISH" : "NEUTRAL"
+lastSwingText = swingHH ? "HH" : swingHL ? "HL" : swingLH ? "LH" : swingLL ? "LL" : "N/A"
+internalText = internalBullCHoCH ? "BULL CHOCH" : internalBearCHoCH ? "BEAR CHOCH" : internalBullBOS ? "BULL BOS" : internalBearBOS ? "BEAR BOS" : "QUIET"
+liquidityText = bullPDSweep ? "PDL SWEEP" : bearPDSweep ? "PDH SWEEP" : levelBullSweep ? "SSL SWEEP" : levelBearSweep ? "BSL SWEEP" : bullSweep ? "BULL SWEEP" : bearSweep ? "BEAR SWEEP" : "NONE"
+imbalanceText = bullIfvgActive ? "BULL IFVG" : bearIfvgActive ? "BEAR IFVG" : bullFvgActive ? "BULL FVG" : bearFvgActive ? "BEAR FVG" : "NONE"
+rsiText = str.tostring(rsi, "#.##") + (rsi >= 70 ? " OB" : rsi <= 30 ? " OS" : "")
+htfText = htf2Bias == 1 and htf1Bias == 1 ? "BULL" : htf2Bias == -1 and htf1Bias == -1 ? "BEAR" : "MIXED"
+sweepText = levelBullSweep ? "SSL" : levelBearSweep ? "BSL" : bullPDSweep ? "PDL" : bearPDSweep ? "PDH" : bullSweep ? "BULL" : bearSweep ? "BEAR" : "NONE"
+zonesText = "FVG " + str.tostring(array.size(bullFvgBoxes) + array.size(bearFvgBoxes)) + " | IFVG " + str.tostring(array.size(bullIfvgBoxes) + array.size(bearIfvgBoxes))
+signalText = bullIfvgSignal ? "BULL IFVG" : bearIfvgSignal ? "BEAR IFVG" : bullEngulf ? "BULL ENG" : bearEngulf ? "BEAR ENG" : swingBullCHoCH ? "BULL CHOCH" : swingBearCHoCH ? "BEAR CHOCH" : "QUIET"
+pdLevelsText = "H " + str.tostring(pdh, "#") + " / L " + str.tostring(pdl, "#")
+eqText = not na(rangeMid) ? str.tostring(rangeMid, "#.##") : "N/A"
+
+f_cell(table _t, int _c, int _r, string _txt, color _bg, color _tc) =>
+    table.cell(_t, _c, _r, _txt, bgcolor=_bg, text_color=_tc)
+
+var table dash = table.new(position.top_right, 2, 12, bgcolor=color.new(color.black, 12), border_color=color.new(colNeutral, 70))
+if useDashboard and showDashboard and barstate.islast
+    f_cell(dash, 0, 0, dashboardCompact ? "MKT STRUCTURE" : "MARKET STRUCTURE", color.new(color.black, 45), color.white)
+    f_cell(dash, 1, 0, "STACK v3", color.new(color.black, 10), color.white)
+    f_cell(dash, 0, 1, "BIAS", color.new(color.gray, 84), color.white)
+    f_cell(dash, 1, 1, structureText, structureState == 1 ? color.new(colBull, 72) : structureState == -1 ? color.new(colBear, 72) : color.new(colNeutral, 82), color.white)
+    f_cell(dash, 0, 2, "HTF", color.new(color.gray, 84), color.white)
+    f_cell(dash, 1, 2, dashboardShowHTF ? htfText : "-", color.new(color.black, 16), color.white)
+    f_cell(dash, 0, 3, "SWING", color.new(color.gray, 84), color.white)
+    f_cell(dash, 1, 3, dashboardCompact ? structureText : structureText + " | " + lastSwingText, color.new(color.black, 16), color.white)
+    f_cell(dash, 0, 4, "INTERNAL", color.new(color.gray, 84), color.white)
+    f_cell(dash, 1, 4, dashboardShowInternal ? internalText : "-", color.new(color.black, 16), color.white)
+    f_cell(dash, 0, 5, "LIQUIDITY", color.new(color.gray, 84), color.white)
+    f_cell(dash, 1, 5, dashboardShowLiquidity ? liquidityText : "-", color.new(color.black, 16), color.white)
+    f_cell(dash, 0, 6, "SWEEPS", color.new(color.gray, 84), color.white)
+    f_cell(dash, 1, 6, dashboardCompact ? sweepText : sweepText + " | " + pdLevelsText, color.new(color.black, 16), color.white)
+    f_cell(dash, 0, 7, "IMBALANCE", color.new(color.gray, 84), color.white)
+    f_cell(dash, 1, 7, dashboardShowImbalance ? imbalanceText : "-", color.new(color.black, 16), color.white)
+    f_cell(dash, 0, 8, "ZONES", color.new(color.gray, 84), color.white)
+    f_cell(dash, 1, 8, dashboardCompact ? imbalanceText : zonesText, color.new(color.black, 16), color.white)
+    f_cell(dash, 0, 9, "SESSION", color.new(color.gray, 84), color.white)
+    f_cell(dash, 1, 9, dashboardShowSession ? sessionName : "-", color.new(color.black, 16), color.white)
+    f_cell(dash, 0, 10, "RSI / PD", color.new(color.gray, 84), color.white)
+    f_cell(dash, 1, 10, dashboardShowRsiPd ? rsiText + " | " + pdState + " | EQ " + eqText : "-", color.new(color.black, 16), color.white)
+    f_cell(dash, 0, 11, "SIGNAL", color.new(color.gray, 84), color.white)
+    f_cell(dash, 1, 11, signalText, color.new(color.black, 16), color.white)
+
+alertcondition(swingBullBOS, "SMC Bull BOS", "Bull BOS on {{ticker}} {{interval}}")
+alertcondition(swingBearBOS, "SMC Bear BOS", "Bear BOS on {{ticker}} {{interval}}")
+alertcondition(swingBullCHoCH, "SMC Bull CHOCH", "Bull CHOCH on {{ticker}} {{interval}}")
+alertcondition(swingBearCHoCH, "SMC Bear CHOCH", "Bear CHOCH on {{ticker}} {{interval}}")
+alertcondition(bullPDSweep, "PDL Sweep", "Bullish sweep of previous day low")
+alertcondition(bearPDSweep, "PDH Sweep", "Bearish sweep of previous day high")
+alertcondition(bullFVGNow, "Bull FVG", "Bull FVG on {{ticker}} {{interval}}")
+alertcondition(bearFVGNow, "Bear FVG", "Bear FVG on {{ticker}} {{interval}}")
+alertcondition(bullEngulf, "Bull Engulf", "Bull engulfing on {{ticker}} {{interval}}")
+alertcondition(bearEngulf, "Bear Engulf", "Bear engulfing on {{ticker}} {{interval}}")

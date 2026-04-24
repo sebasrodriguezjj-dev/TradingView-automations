@@ -1,0 +1,64 @@
+y.get(bullIfvgTops, i)
+        _bot = array.get(bullIfvgBots, i)
+        _retest = low <= _top and high >= _bot
+        _reject = _retest and bullBreakRef > _top and open < _top
+        if _reject
+            bullIfvgSignal := true
+
+if showIFVGSignals and array.size(bearIfvgBoxes) > 0
+    for i = array.size(bearIfvgBoxes) - 1 to 0
+        _top = array.get(bearIfvgTops, i)
+        _bot = array.get(bearIfvgBots, i)
+        _retest = high >= _bot and low <= _top
+        _reject = _retest and bearBreakRef < _bot and open > _bot
+        if _reject
+            bearIfvgSignal := true
+
+bullEngulfRaw = useEngulfing and close > open and close[1] < open[1] and open <= close[1] and close >= open[1]
+bearEngulfRaw = useEngulfing and close < open and close[1] > open[1] and open >= close[1] and close <= open[1]
+bullEngulf = bullEngulfRaw and (not engulfRequireZone or bullSweep or bullPDSweep or bullFvgActive or bullIfvgActive) and (not engulfRequireStructure or structureState == 1 or swingBullCHoCH)
+bearEngulf = bearEngulfRaw and (not engulfRequireZone or bearSweep or bearPDSweep or bearFvgActive or bearIfvgActive) and (not engulfRequireStructure or structureState == -1 or swingBearCHoCH)
+
+plotshape(showEngulfMarkers and engulfDisplayMode != "OFF" and engulfDisplayMode != "BAR COLOR" and bullEngulf, title="Bull Engulf", style=shape.triangleup, location=location.belowbar, color=color.new(colBull, 0), size=f_size(engulfMarkerSizeInput))
+plotshape(showEngulfMarkers and engulfDisplayMode != "OFF" and engulfDisplayMode != "BAR COLOR" and bearEngulf, title="Bear Engulf", style=shape.triangledown, location=location.abovebar, color=color.new(colBear, 0), size=f_size(engulfMarkerSizeInput))
+barcolor(showEngulfMarkers and (engulfDisplayMode == "BOTH" or engulfDisplayMode == "BAR COLOR") and bullEngulf ? color.new(colBull, 62) : showEngulfMarkers and (engulfDisplayMode == "BOTH" or engulfDisplayMode == "BAR COLOR") and bearEngulf ? color.new(colBear, 62) : na)
+plotshape(showIFVGSignals and bullIfvgSignal, title="Bull IFVG Signal", style=shape.triangleup, location=location.belowbar, color=colBullIfvg, size=size.tiny)
+plotshape(showIFVGSignals and bearIfvgSignal, title="Bear IFVG Signal", style=shape.triangledown, location=location.abovebar, color=colBearIfvg, size=size.tiny)
+
+rangeMid = useSMC and showPremiumDiscount and not na(lastSwingHigh) and not na(lastSwingLow) ? (lastSwingHigh + lastSwingLow) * 0.5 : na
+pdState = not na(rangeMid) ? (close < rangeMid ? "DISCOUNT" : close > rangeMid ? "PREMIUM" : "EQ") : "N/A"
+
+plot(useLiquidity and showPDLevels ? pdh : na, "PDH", color=color.new(colBear, 10), linewidth=1, style=plot.style_linebr)
+plot(useLiquidity and showPDLevels ? pdl : na, "PDL", color=color.new(colBull, 10), linewidth=1, style=plot.style_linebr)
+plot(useLiquidity and showPDLevels and showExtraVisuals ? pdc : na, "PDC", color=color.new(colGold, 18), linewidth=1, style=plot.style_linebr)
+plot(showPremiumDiscount and showExtraVisuals ? rangeMid : na, "EQ MID", color=color.new(colNeutral, 55), linewidth=1, style=plot.style_linebr)
+
+var label lblPDH = na
+var label lblPDL = na
+var label lblPDC = na
+var label lblEQ = na
+
+if barstate.islast and showEndLabels
+    label.delete(lblPDH)
+    label.delete(lblPDL)
+    label.delete(lblPDC)
+    label.delete(lblEQ)
+    if useLiquidity and showPDLevels
+        lblPDH := label.new(bar_index + 1, pdh, "PDH", style=label.style_label_left, color=colBear, textcolor=color.white, size=f_size(tagSizeInput))
+        lblPDL := label.new(bar_index + 1, pdl, "PDL", style=label.style_label_left, color=colBull, textcolor=color.white, size=f_size(tagSizeInput))
+        if showExtraVisuals
+            lblPDC := label.new(bar_index + 1, pdc, "PDC", style=label.style_label_left, color=colGold, textcolor=color.black, size=f_size(tagSizeInput))
+    if showPremiumDiscount and showExtraVisuals and not na(rangeMid)
+        lblEQ := label.new(bar_index + 1, rangeMid, "EQ", style=label.style_label_left, color=color.new(colNeutral, 5), textcolor=color.white, size=f_size(tagSizeInput))
+
+htf1Bias = f_htfBias("60")
+htf2Bias = f_htfBias("240")
+
+structureText = structureState == 1 ? "BULLISH" : structureState == -1 ? "BEARISH" : "NEUTRAL"
+lastSwingText = swingHH ? "HH" : swingHL ? "HL" : swingLH ? "LH" : swingLL ? "LL" : "N/A"
+internalText = internalBullCHoCH ? "BULL CHOCH" : internalBearCHoCH ? "BEAR CHOCH" : internalBullBOS ? "BULL BOS" : internalBearBOS ? "BEAR BOS" : "QUIET"
+liquidityText = bullPDSweep ? "PDL SWEEP" : bearPDSweep ? "PDH SWEEP" : levelBullSweep ? "SSL SWEEP" : levelBearSweep ? "BSL SWEEP" : bullSweep ? "BULL SWEEP" : bearSweep ? "BEAR SWEEP" : "NONE"
+imbalanceText = bullIfvgActive ? "BULL IFVG" : bearIfvgActive ? "BEAR IFVG" : bullFvgActive ? "BULL FVG" : bearFvgActive ? "BEAR FVG" : "NONE"
+rsiText = str.tostring(rsi, "#.##") + (rsi >= 70 ? " OB" : rsi <= 30 ? " OS" : "")
+htfText = htf2Bias == 1 and htf1Bias == 1 ? "BULL" : htf2Bias == -1 and htf1Bias == -1 ? "BEAR" : "MIXED"
+sweepText = levelBullSweep ?

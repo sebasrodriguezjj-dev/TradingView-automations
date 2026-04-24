@@ -1,0 +1,5 @@
+2026-04-23T07:03:49-06:00 | SMART MONEY - GOOD MONEY Market Watchdog | watchdog started
+2026-04-23T07:05:53-06:00 | SMART MONEY - GOOD MONEY Market Watchdog | watchdog started
+2026-04-23T07:10:17-06:00 | SMART MONEY - GOOD MONEY Market Watchdog | watchdog started
+2026-04-23T09:24:21-06:00 | SMART MONEY - GOOD MONEY Market Watchdog | cycle failed: RuntimeError: PEPPERSTONE:XAUUSD: RuntimeError: Chart did not become ready for PEPPERSTONE:XAUUSD 240. Last status: {'success': True, 'cdp_connected': True, 'target_id': '937CF99535280795C9C1066476585733', 'target_url': 'https://www.tradingview.com/chart/AJ52AoVB/', 'target_title': 'Live stock, index, futures, Forex and Bitcoin charts on TradingView', 'chart_symbol': 'FOREXCOM:US30', 'chart_resolution': '240', 'chart_type': 1, 'api_available': True}
+2026-04-24T10:30:32-06:00 | SMART MONEY - GOOD MONEY Market Watchdog | watchdog started

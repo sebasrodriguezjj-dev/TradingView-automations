@@ -1,0 +1,99 @@
+PL = useSMC ? ta.pivotlow(low, swingLen, swingLen) : na
+internalPH = useSMC ? ta.pivothigh(high, internalLen, internalLen) : na
+internalPL = useSMC ? ta.pivotlow(low, internalLen, internalLen) : na
+
+swingPHBar = bar_index - swingLen
+swingPLBar = bar_index - swingLen
+internalPHBar = bar_index - internalLen
+internalPLBar = bar_index - internalLen
+
+var float lastSwingHigh = na
+var float prevSwingHigh = na
+var int lastSwingHighBar = na
+var float lastSwingLow = na
+var float prevSwingLow = na
+var int lastSwingLowBar = na
+var float lastInternalHigh = na
+var int lastInternalHighBar = na
+var float lastInternalLow = na
+var int lastInternalLowBar = na
+var int structureState = 0
+var int internalState = 0
+var line[] structureLines = array.new_line()
+var label[] structureLabels = array.new_label()
+var line[] eqLines = array.new_line()
+var label[] eqLabels = array.new_label()
+var line[] liquidityLevelLines = array.new_line()
+var label[] liquidityLevelLabels = array.new_label()
+var float[] liquidityLevels = array.new_float()
+var int[] liquidityTypes = array.new_int()
+var int[] liquidityStartBars = array.new_int()
+var line[] liquidityEventLines = array.new_line()
+var label[] liquidityEventLabels = array.new_label()
+var line swingHighLine = na
+var line swingLowLine = na
+
+if useSMC and not na(swingPH)
+    prevSwingHigh := lastSwingHigh
+    lastSwingHigh := swingPH
+    lastSwingHighBar := swingPHBar
+    if showSwingLines and showExtraVisuals
+        if not na(swingHighLine)
+            line.delete(swingHighLine)
+        swingHighLine := line.new(swingPHBar, swingPH, bar_index + 40, swingPH, extend=extend.right, color=color.new(colBear, 10), width=1, style=line.style_dotted)
+    if useLiquidity and showLiquidityLevels and showExtraVisuals
+        f_pushLiquidityLevel(liquidityLevelLines, liquidityLevelLabels, liquidityLevels, liquidityTypes, liquidityStartBars, swingPHBar, swingPH, "BSL", 1, colBear, maxLiquidityLevels)
+
+if useSMC and not na(swingPL)
+    prevSwingLow := lastSwingLow
+    lastSwingLow := swingPL
+    lastSwingLowBar := swingPLBar
+    if showSwingLines and showExtraVisuals
+        if not na(swingLowLine)
+            line.delete(swingLowLine)
+        swingLowLine := line.new(swingPLBar, swingPL, bar_index + 40, swingPL, extend=extend.right, color=color.new(colBull, 10), width=1, style=line.style_dotted)
+    if useLiquidity and showLiquidityLevels and showExtraVisuals
+        f_pushLiquidityLevel(liquidityLevelLines, liquidityLevelLabels, liquidityLevels, liquidityTypes, liquidityStartBars, swingPLBar, swingPL, "SSL", -1, colBull, maxLiquidityLevels)
+
+if useSMC and not na(internalPH)
+    lastInternalHigh := internalPH
+    lastInternalHighBar := internalPHBar
+
+if useSMC and not na(internalPL)
+    lastInternalLow := internalPL
+    lastInternalLowBar := internalPLBar
+
+swingHH = useSMC and not na(lastSwingHigh) and not na(prevSwingHigh) and lastSwingHigh > prevSwingHigh
+swingLH = useSMC and not na(lastSwingHigh) and not na(prevSwingHigh) and lastSwingHigh < prevSwingHigh
+swingHL = useSMC and not na(lastSwingLow) and not na(prevSwingLow) and lastSwingLow > prevSwingLow
+swingLL = useSMC and not na(lastSwingLow) and not na(prevSwingLow) and lastSwingLow < prevSwingLow
+
+if useSMC and showSwingPoints and showExtraVisuals
+    if not na(swingPH)
+        if swingHH
+            label.new(swingPHBar, swingPH, "HH", style=label.style_label_down, color=color.new(colBull, 20), textcolor=color.black, size=f_size(tagSizeInput))
+        if swingLH
+            label.new(swingPHBar, swingPH, "LH", style=label.style_label_down, color=color.new(colBear, 20), textcolor=color.white, size=f_size(tagSizeInput))
+    if not na(swingPL)
+        if swingHL
+            label.new(swingPLBar, swingPL, "HL", style=label.style_label_up, color=color.new(colBull, 20), textcolor=color.black, size=f_size(tagSizeInput))
+        if swingLL
+            label.new(swingPLBar, swingPL, "LL", style=label.style_label_up, color=color.new(colBear, 20), textcolor=color.white, size=f_size(tagSizeInput))
+
+swingBullBOS = useSMC and not na(lastSwingHigh) and close > lastSwingHigh and close[1] <= lastSwingHigh
+swingBearBOS = useSMC and not na(lastSwingLow) and close < lastSwingLow and close[1] >= lastSwingLow
+swingBullCHoCH = structureState == -1 and swingBullBOS
+swingBearCHoCH = structureState == 1 and swingBearBOS
+
+if swingBullBOS
+    if showStructureMarks and showExtraVisuals
+        f_pushStructureMark(structureLines, structureLabels, lastSwingHighBar, lastSwingHigh, swingBullCHoCH ? "CHOCH" : "BOS", swingBullCHoCH ? colAqua : colBull, maxStructureMarks)
+    structureState := 1
+
+if swingBearBOS
+    if showStructureMarks and showExtraVisuals
+        f_pushStructureMark(structureLines, structureLabels, lastSwingLowBar, lastSwingLow, swingBearCHoCH ? "CHOCH" : "BOS", swingBearCHoCH ? color.fuchsia : colBear, maxStructureMarks)
+    structureState := -1
+
+internalBullBOS = useSMC and not na(lastInternalHigh) and close > lastInternalHigh and close[1] <= lastInternalHigh
+inter
