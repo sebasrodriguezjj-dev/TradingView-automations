@@ -1,0 +1,20 @@
+# Secrets / environment files
+.env
+*.env
+.discord_webhook.env
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Logs
+*.log
+
+# Runtime state / generated files
+*.lock
+chart_runtime/
+market_runtime/
+
+# Extracted/generated assets
+pdf_extract/
+pine_chunks/
