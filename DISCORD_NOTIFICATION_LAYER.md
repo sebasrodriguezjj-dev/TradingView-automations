@@ -127,10 +127,10 @@ Priority rule:
   when they materially limit confidence.
 - Do not let notifications turn into system-health alerts when valid market
   data still exists.
-- Missing or stale screenshots alone must not dominate the Discord message if
-  the structured market snapshot JSON is still fresh and usable.
-- Reserve full `STALE SNAPSHOT / DEGRADED` notifications for cases where the
-  structured live market data itself is stale, missing, or not trustworthy.
+- Missing screenshots must never dominate the Discord message because they are
+  no longer part of the trading-analysis contract.
+- Reserve full `DATA_DEGRADED` notifications for cases where the structured
+  live market data itself is stale, missing, or not trustworthy.
 
 Mandatory message shape for Discord:
 
@@ -149,6 +149,14 @@ Communication rules:
 - use runtime notes only as a short confidence caveat when needed
 - if the setup is `TRIGGERED`, the tone should become more direct
 - if the setup is `EXPIRED`, say it clearly instead of recycling an old setup as current
+
+Runtime wording:
+
+- use `FULL_DATA`, `PARTIAL_DATA`, or `DATA_DEGRADED` for market-data health
+- use `CHART_RENDER_DEGRADED` only for chart render verification issues
+- use `DISCORD_DEGRADED` only for watcher / delivery failures
+- do not mention missing PNGs, screenshot paths, or visual-confidence phrases
+  as trading reasons
 
 The live automation prompts in `C:\Users\sebas\.codex\automations\*\automation.toml` are the source of truth.
 

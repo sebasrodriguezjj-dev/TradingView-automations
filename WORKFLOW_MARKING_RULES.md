@@ -4,6 +4,7 @@ Use these rules as mandatory workflow logic for chart markings, execution-line l
 
 Supporting refinement references:
 
+- [ARTICUNO_REINFORCEMENT_LAYER.md](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/ARTICUNO_REINFORCEMENT_LAYER.md)
 - [TRANSCRIPT_COMPATIBILITY_MATRIX.md](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/TRANSCRIPT_COMPATIBILITY_MATRIX.md)
 - [ENTRY_TIMING_ADDENDUM.md](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/ENTRY_TIMING_ADDENDUM.md)
 
@@ -17,7 +18,7 @@ Supporting refinement references:
 ## Runtime Ownership
 
 - Codex automations remain the analysis layer. They decide what the chart should contain.
-- Codex automations must consume live market context from the local market-runtime snapshots and screenshots, not from direct TradingView MCP tool calls.
+- Codex automations must consume live market context from the local market-runtime structured live-state JSON, not from direct TradingView MCP tool calls.
 - The local chart runtime is now the only writer of automation-owned TradingView drawings.
 - The local market runtime is now the only live reader that talks to TradingView directly for automation analysis.
 - Automations must update the desired state JSON files instead of relying on direct chart drawing or removal actions.
@@ -164,6 +165,26 @@ When preserving or updating levels:
 - If the task is only to refresh 5m entries, do not wipe the HTF layer while cleaning the old 5m pair.
 - When the user confirms an entry, mark the trade with short bounded lines for `ENTRY`, `TP1`, `TP2`, `TP3`, and `SL` rather than boxes.
 
+## Articuno Chart-Marking Reinforcement
+
+- Articuno does not change the drawing vocabulary of the engine.
+- Articuno only improves:
+  - level selection
+  - level lifecycle classification
+  - whether a level is `ACTIVE`, `STALE`, or `INVALIDATED`
+  - whether trade markup is permitted by risk
+  - whether `desired_state` should be preserved, refreshed, simplified, or left untouched
+- Before updating `desired_state`, use Articuno only to ask whether the current `4H SUPPORT`, `4H RESISTANCE`, `5M EXECUTION LONG`, or `5M EXECUTION SHORT` still have real structural and liquidity quality.
+- Articuno may reinforce whether `ENTRY / SL / TP1 / TP2 / TP3` markup is allowed, but only through the existing risk model.
+- Do not mark random micro pivots as execution levels.
+- Do not draw fresh entry levels after liquidity has already been paid.
+- Do not repackage a late setup as a fresh desired-state update.
+- Do not add new shapes, boxes, OB zones, FVG zones, trendline systems, or indicator drawings.
+- Keep HTF infinite.
+- Keep 5m finite.
+- Keep semantic colors unchanged.
+- Keep `desired_state` authoritative.
+
 ## Reassessment Redraw Standard
 
 When a workflow or manual trigger performs a full reassessment:
@@ -195,5 +216,18 @@ When updating `SMART_MONEY_GOOD_MONEY_ENGINE_STATE.md`, explicitly record:
 - If a newly created or preserved markup does not visually match these rules, do not keep it just because it exists.
 - Fix it immediately, or remove it and rebuild it cleanly.
 - Direct TradingView MCP tool calls are forbidden in the automation analysis path.
-- If a required market snapshot is stale or degraded, do not bypass it with a direct live read from inside the automation. Wait briefly for the local market runtime to refresh it, then finish in `STALE SNAPSHOT / DEGRADED` if it still fails.
+- If a required market live-state file is stale or `DATA_DEGRADED`, do not bypass it with a direct live read from inside the automation. Wait briefly for the local market runtime to refresh it, then preserve the prior map for that symbol if it still fails.
 - If a chart action fails during analysis, do not leave the workflow blocked waiting for a human. Update the desired state, let the local runtime reconcile the chart, and record the failure in continuity memory if it matters.
+
+## Structured Live State Rule
+
+- Use `market_runtime/live_state/*.json` as the only live market input for analysis.
+- Do not inspect, request, reference, or interpret screenshots / PNG files for trading decisions.
+- Required live structured inputs are:
+  - `market.quote`
+  - timeframe `state`
+  - OHLCV bars
+  - `D`, `4H`, `30m`, `15m`, and `5m`
+  - `derived_features` when available
+- If one symbol is `FULL_DATA` and the other is `DATA_DEGRADED`, analyze the fresh symbol and preserve the degraded symbol.
+- If both symbols are `DATA_DEGRADED`, preserve prior maps and do not invent new setup decisions.

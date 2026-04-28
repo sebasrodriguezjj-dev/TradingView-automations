@@ -1,7 +1,7 @@
 # SMART MONEY - GOOD MONEY Engine State
 
-Last updated by: Post Open Validation
-Last updated at: 2026-04-24T06:48:51.6830081-06:00
+Last updated by: NY Open Levels
+Last updated at: 2026-04-28T05:32:49.7710773-06:00
 
 ## Strategy Hierarchy
 
@@ -60,6 +60,31 @@ Last updated at: 2026-04-24T06:48:51.6830081-06:00
   - what is missing or what already happened
   - what to do now
 
+## Articuno Reinforcement Layer
+
+- `ARTICUNO_REINFORCEMENT_LAYER.md` is now an approved technical reinforcement layer.
+- It does **not** change:
+  - strategy
+  - risk
+  - timing states
+  - chart ownership
+  - automation behavior
+  - communication identity
+  - desired-state architecture
+- It reinforces only:
+  - SMC liquidity precision
+  - Supply/Demand level quality
+  - VPA participation confirmation
+  - Price Action trigger quality
+  - Opening Range NY context
+  - Risk/Expectancy trade permission
+  - Psychology anti-chase discipline
+- Articuno concepts may strengthen, weaken, or clarify an assessment.
+- Articuno concepts must never create standalone trade signals.
+- The strategy remains `Daily / 4H -> 30m -> 15m -> 5m`.
+- Articuno may improve which levels are selected, preserved, marked `STALE`, marked `INVALIDATED`, or sent to `desired_state`.
+- Articuno must not introduce new drawing types or alter `chart_executor` behavior.
+
 ## Communication Identity Layer
 
 - The stack now has a communication-only source of truth at `COMMUNICATION_STYLE_GUIDE.md`.
@@ -95,8 +120,11 @@ Last updated at: 2026-04-24T06:48:51.6830081-06:00
     - `market_snapshotter.py`
     - `market_watchdog.py`
     - `MARKET_AUTOMATION_RUNTIME.md`
-    - `market_runtime/snapshots/PEPPERSTONE_XAUUSD.json`
-    - `market_runtime/snapshots/FOREXCOM_US30.json`
+    - `market_runtime/live_state/PEPPERSTONE_XAUUSD.json`
+    - `market_runtime/live_state/FOREXCOM_US30.json`
+    - deprecated mirror during transition:
+      - `market_runtime/snapshots/PEPPERSTONE_XAUUSD.json`
+      - `market_runtime/snapshots/FOREXCOM_US30.json`
   - automation-owned chart markings are now declared in the desired state files under:
     - `chart_runtime/desired_states/PEPPERSTONE_XAUUSD.json`
     - `chart_runtime/desired_states/FOREXCOM_US30.json`
@@ -106,12 +134,14 @@ Last updated at: 2026-04-24T06:48:51.6830081-06:00
     - `chart_watchdog.py`
 - Source-of-truth rule:
   - for automation-owned markings, desired state is authoritative
-  - for automation live reads, the market-runtime snapshots plus screenshots are authoritative
+  - for automation live reads, the TradingView Structured Live State files are authoritative
   - the live chart is a rendered verification surface, not the durable memory layer
 - Direct-read rule:
   - TradingView MCP tools are forbidden inside the automation analysis path
-  - if a workflow needs live context, it must read the latest local snapshot plus screenshots
-  - if the snapshot is older than `30s`, the workflow should wait briefly for refresh and then finish in `STALE SNAPSHOT / DEGRADED` rather than asking for manual approval
+  - if a workflow needs live context, it must read the latest local live-state JSON
+  - screenshots, PNG paths, and image interpretation are outside the trading-analysis contract
+  - if one symbol is `FULL_DATA` and the other is `DATA_DEGRADED`, analyze the fresh symbol and preserve the degraded symbol
+  - if both symbols are `DATA_DEGRADED`, preserve prior maps and finish degraded rather than asking for manual approval
 - Reassessment rule:
   - a reassessment must preserve strategy logic and only refresh execution structure when price materially moved on
   - if the active `5m` pair changes, the owned drawing layer must be fully cleared and rebuilt from desired state
@@ -127,6 +157,37 @@ Last updated at: 2026-04-24T06:48:51.6830081-06:00
   - entries remain line-only
   - risk model remains `TP1 60`, `TP2 80`, `TP3 100`, preferred stop `60-80`, hard max `100`
   - color rule is now fixed: long-side execution lines blue, short-side execution lines yellow
+
+## TradingView Structured Live State Migration
+
+- All automations must use TradingView Structured Live State as the only live market input.
+- Screenshots, PNG paths, and image interpretation are removed from the trading-analysis contract.
+- Required live data:
+  - `market.quote`
+  - timeframe `state`
+  - OHLCV
+  - `D / 4H / 30m / 15m / 5m` payloads
+- Reinforcement-supporting derived features may include:
+  - `liquidity`
+  - `reaction_zones`
+  - `volume_support`
+  - `price_action`
+  - `session_context`
+  - `risk_inputs`
+  - `timing_context`
+- Missing screenshots must never downgrade, block, delay, or alter the trading decision.
+- Valid market data states:
+  - `FULL_DATA`
+  - `PARTIAL_DATA`
+  - `DATA_DEGRADED`
+- If a symbol has `FULL_DATA`, assess that symbol.
+- If a symbol has `PARTIAL_DATA`, assess that symbol with the same strategy and treat unavailable derived features as neutral.
+- If a symbol has `DATA_DEGRADED`, preserve its prior map and do not invent a new setup.
+- If one symbol is degraded and the other is fresh, analyze the fresh symbol and preserve the degraded symbol.
+- The strategy hierarchy, timing states, risk model, level logic, chart ownership, desired-state architecture, chart executor behavior, and communication style remain unchanged.
+- live_state derived features are assessment aids only. They must not create new drawing types or standalone trade signals.
+- Articuno reinforcement may improve desired_state level-selection quality, but must not change what types of lines the system draws.
+- Older screenshot-related logs below are legacy behavior from the previous runtime contract. They remain as historical records only and must not govern current workflow behavior.
 
 ## Execution Handling Preference
 
@@ -1734,4 +1795,240 @@ Current workflow state: `PEPPERSTONE:XAUUSD` enters Asia after a bearish NY expa
 - Spanish thread update: `Bias integrity check` cerro en `STALE SNAPSHOT / DEGRADED`. `XAUUSD` alcanzo a refrescar a `07:22:43-06:00` y `US30` a `07:23:13-06:00`, pero nunca compartieron una ventana comun valida y los PNG de `5m` siguen sin existir. Se preserva el mapa de `XAUUSD 4724.84 / 4704.55` y `US30 49432.45 / 49343.10`; el plan original no se invalida por ruido, pero la conviccion baja y la accion correcta sigue siendo `WAIT`.
 
 - 2026-04-24 | automation: Bias Integrity Check | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the run closed degraded because `XAUUSD` refreshed to `07:22:43-06:00` and `US30` refreshed later to `07:23:13-06:00`, so there was still no common fresh window by the final check, and both snapshot-referenced `5m` PNG paths still resolved to missing files; no new bias-integrity verdict was committed, so the desired-state maps stay preserved as XAUUSD `4724.84 / 4704.55` and US30 `49432.45 / 49343.10` while the prior timing reads remain in force | key drawn levels: XAUUSD `4H 4772.95 / 4664.11`, `5m 4724.84 / 4704.55`; US30 `4H 49531.60 / 48885.65`, `5m 49432.45 / 49343.10` | action state: `STALE SNAPSHOT / DEGRADED` | main lesson: `Bias Integrity Check` still needs one common fresh window across both symbols; if the symbols refresh on separate cycles, preserve the standing plan and reduce conviction instead of manufacturing a fresh intact / weakened / invalidated call from split data.
+
+### NY Open Levels - Stale Snapshot / Degraded
+
+- Run time: 2026-04-28T05:32:49.7710773-06:00
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Snapshot source: local market snapshots plus snapshot-referenced screenshot paths only; no direct TradingView read was used for the analysis path.
+- Runtime result: finished `STALE SNAPSHOT / DEGRADED`
+- Freshness check:
+  - first read showed `PEPPERSTONE:XAUUSD` already `degraded` with `as_of = 2026-04-27T06:13:39-06:00`, `fresh_until = 2026-04-27T06:14:09-06:00`, and `last_error = TimeoutExpired` from the local market runtime
+  - first read showed `FOREXCOM:US30` carrying `status = fresh` in JSON, but its structured snapshot was still stale by contract because `as_of = 2026-04-27T06:14:20-06:00` and `fresh_until = 2026-04-27T06:14:50-06:00`
+  - after the required brief wait, neither symbol refreshed and both snapshot files kept their prior `2026-04-27` timestamps
+- Degraded reason:
+  - the required NY baseline could not be rebuilt because the structured live input set was not trustworthy for either symbol at the current run time
+  - the supporting visual layer also remained unavailable because `market_runtime/screenshots` was still empty on disk
+- New York baseline handling:
+  - no new Daily / 4H -> 30m -> 15m -> 5m assessment was committed in this run
+  - preserve the last valid NY baseline from `2026-04-24` instead of forcing a new open thesis from expired data
+- `5m` execution lines:
+  - no new `ACTIVE / STALE / INVALIDATED` reclassification was committed because the live input set never returned to a valid state
+  - preserved last valid active pair for `XAUUSD`: `5M EXECUTION SHORT 4724.84` and `5M EXECUTION LONG 4704.55`
+  - preserved last valid active pair for `US30`: `5M EXECUTION SHORT 49432.45` and `5M EXECUTION LONG 49343.10`
+  - newly stale lines committed in this run: none
+  - newly invalidated lines committed in this run: none
+- Opportunity timing state:
+  - not refreshed in this run because `NY Open Levels` closed degraded
+  - keep the previous valid timing reads in force until the runtime restores fresh structured snapshots for both symbols:
+    - `XAUUSD`: long side `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`; short side `PRE-TRIGGER`
+    - `US30`: long side `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`; short side `PRE-TRIGGER`
+- Trading decision:
+  - `XAUUSD`: `STALE SNAPSHOT / DEGRADED`
+  - `US30`: `STALE SNAPSHOT / DEGRADED`
+  - cleaner symbol: `NONE`
+  - symbol to avoid: `BOTH` until the local market runtime restores fresh snapshots
+- Transcript-derived refinement usage:
+  - no new refinement was promoted in this run
+  - preserved the prior `indication -> correction -> continuation` and no-chase guidance only as the standing interpretation layer behind the last valid NY map
+- Labels repositioned: none; both desired-state JSON files were left untouched
+- Levels recolored / removed / replaced: none; both desired-state JSON files were left untouched
+- Trader-facing explanation:
+  - the market may already be somewhere else relative to the last valid NY map, but this run did not receive one trustworthy structured read for either symbol to say that with discipline
+  - that matters because `NY Open Levels` is supposed to set the baseline for the day, not to recycle day-old quotes and pretend they are current
+  - correct action now: `WAIT / STALE SNAPSHOT / DEGRADED`; do not chase either symbol and do not refresh the `5m` pair until the runtime restores fresh structured snapshots
+- Spanish thread update: `NY open levels` cerro en `STALE SNAPSHOT / DEGRADED`. `XAUUSD` seguia `degraded` desde `2026-04-27T06:13:39-06:00` y `US30`, aunque decia `fresh` en el JSON, tambien estaba vencido porque seguia anclado en `2026-04-27T06:14:20-06:00`; despues de la espera obligatoria no hubo refresh y la carpeta de screenshots siguio vacia. Se preserva el mapa valido de `XAUUSD 4724.84 / 4704.55` y `US30 49432.45 / 49343.10`, y la accion correcta por ahora es `WAIT`.
+
+- 2026-04-28 | automation: NY Open Levels | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the run closed degraded because `XAUUSD` remained `degraded` from `2026-04-27T06:13:39-06:00`, `US30` still carried an expired `2026-04-27T06:14:20-06:00` snapshot despite its stale `fresh` status flag, and neither symbol refreshed during the required wait window; no new NY baseline was committed, so the desired-state maps stay preserved as XAUUSD `4724.84 / 4704.55` and US30 `49432.45 / 49343.10` while the prior timing reads remain in force | key drawn levels: XAUUSD `4H 4772.95 / 4664.11`, `5m 4724.84 / 4704.55`; US30 `4H 49531.60 / 48885.65`, `5m 49432.45 / 49343.10` | action state: `STALE SNAPSHOT / DEGRADED` | main lesson: `NY Open Levels` still needs fresh structured snapshots for both required symbols; if the runtime does not refresh in time, preserve the last valid map and do not manufacture a new daily baseline from expired data.
+
+### Post Open Validation - Stale Snapshot / Degraded
+
+- Run time: `2026-04-28T06:48:37.7007266-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Snapshot source: local market snapshots plus snapshot-referenced screenshot paths only; no direct TradingView read was used for the analysis path.
+- Runtime result: finished `STALE SNAPSHOT / DEGRADED`
+- Freshness check:
+  - first read showed `PEPPERSTONE:XAUUSD` still `degraded` with `as_of = 2026-04-27T06:13:39-06:00`, `fresh_until = 2026-04-27T06:14:09-06:00`, and `last_error = TimeoutExpired` from the local market runtime
+  - first read showed `FOREXCOM:US30` still carrying `status = fresh` in JSON, but the structured snapshot was stale by contract because `as_of = 2026-04-27T06:14:20-06:00` and `fresh_until = 2026-04-27T06:14:50-06:00`
+  - after the required brief wait, neither symbol refreshed and both snapshots kept their prior `2026-04-27` timestamps
+- Degraded reason:
+  - the required post-open validation could not judge whether the New York open confirmed or rejected the standing baseline because the structured live input set was already expired for both symbols
+  - the supporting visual layer also remained unavailable because `market_runtime/screenshots` was still empty on disk
+- Open validation status:
+  - no new `validated / rejected / weakened / partially confirmed` verdict was committed for either symbol in this run
+  - preserve the last valid New York baseline from `2026-04-24` instead of forcing an open-validation call from day-old data
+- Structure and execution:
+  - no new `30m / 15m / 5m` setup-quality update was committed because the live window never became valid
+  - keep the standing interpretation from the last valid baseline: both earlier long defenses already triggered, while the short-side ideas still need fresh live rejection before they can be promoted
+- `5m` execution lines:
+  - no new `ACTIVE / STALE / INVALIDATED` reclassification was committed because the live input set never returned to a valid state
+  - preserved desired-state pair for `XAUUSD`: `4724.84 / 4704.55`
+  - preserved desired-state pair for `US30`: `49432.45 / 49343.10`
+- Opportunity timing state:
+  - not refreshed in this run because `Post Open Validation` closed degraded
+  - keep the previous valid timing reads in force until the runtime restores fresh structured snapshots for both symbols:
+    - `XAUUSD`: long side `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`; short side `PRE-TRIGGER` until `4724.84` actually sweeps and rejects
+    - `US30`: long side `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`; short side `PRE-TRIGGER` until `49432.45` actually rejects
+- Level interaction:
+  - no new respect / failure / sweep / reclaim verdict was committed for the standing `5m` pair because the open-validation read itself never became valid
+  - do not treat these expired snapshots as proof that `4704.55`, `4724.84`, `49343.10`, or `49432.45` were confirmed or lost today
+- Trading decision:
+  - `XAUUSD`: `STALE SNAPSHOT / DEGRADED`
+  - `US30`: `STALE SNAPSHOT / DEGRADED`
+  - cleaner symbol: `NONE`
+  - symbol to avoid: `BOTH` until the local market runtime restores fresh snapshots
+  - biggest trap right now: forcing an open-validation verdict from day-old quotes and pretending the earlier `TRIGGERED` longs are still fresh entries
+- Transcript-derived refinement usage:
+  - no new refinement was promoted in this run
+  - preserved the prior `indication -> correction -> continuation` and no-chase guidance only as the standing interpretation layer behind the last valid NY map
+- Labels repositioned: none; both desired-state JSON files were left untouched
+- Levels recolored / removed / replaced: none; both desired-state JSON files were left untouched
+- Trader-facing explanation:
+  - the market may already have confirmed or rejected those New York shelves, but this run never got a trustworthy live read to say which side won
+  - that matters because post-open validation is supposed to judge the open reaction around the same current levels, not recycle an old trigger as if it were still live
+  - correct action now: `WAIT / STALE SNAPSHOT / DEGRADED`; if you are already in from the earlier long reclaim, manage it, but if you are flat do not chase and wait for a new retest or a real short rejection once the runtime refreshes
+- Spanish thread update: `Post open validation` cerro en `STALE SNAPSHOT / DEGRADED`. `XAUUSD` siguio `degraded` desde `2026-04-27T06:13:39-06:00` con `TimeoutExpired`, `US30` siguio anclado en `2026-04-27T06:14:20-06:00`, y despues de la espera obligatoria no hubo refresh ni screenshots nuevos. Se preserva el mapa de `XAUUSD 4724.84 / 4704.55` y `US30 49432.45 / 49343.10`; los longs previos siguen `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`, los shorts siguen `PRE-TRIGGER`, y la accion correcta por ahora es `WAIT`.
+
+- 2026-04-28 | automation: Post Open Validation | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the run closed degraded because `XAUUSD` remained `degraded` from `2026-04-27T06:13:39-06:00` with `TimeoutExpired`, `US30` still carried an expired `2026-04-27T06:14:20-06:00` snapshot despite its stale `fresh` status flag, and neither symbol refreshed during the required wait window; no new post-open validation verdict was committed, so the desired-state maps stay preserved as XAUUSD `4724.84 / 4704.55` and US30 `49432.45 / 49343.10` while the prior timing reads remain in force | key drawn levels: XAUUSD `4H 4772.95 / 4664.11`, `5m 4724.84 / 4704.55`; US30 `4H 49531.60 / 48885.65`, `5m 49432.45 / 49343.10` | action state: `STALE SNAPSHOT / DEGRADED` | main lesson: `Post Open Validation` still needs fresh structured snapshots for both required symbols; if the runtime does not refresh in time, preserve the last valid map and do not manufacture an open-confirmation or open-rejection verdict from expired data.
+
+### Active Setup Detector - Stale Snapshot / Degraded
+
+- Run time: `2026-04-28T07:03:45.0385838-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Snapshot source: local market snapshots plus snapshot-referenced screenshot paths only; no direct TradingView read was used for the analysis path.
+- Runtime result: finished `STALE SNAPSHOT / DEGRADED`
+- Freshness check:
+  - first read showed `PEPPERSTONE:XAUUSD` still `degraded` with `as_of = 2026-04-27T06:13:39-06:00`, `fresh_until = 2026-04-27T06:14:09-06:00`, and `last_error = TimeoutExpired` from the local market runtime
+  - first read showed `FOREXCOM:US30` still carrying `status = fresh` in JSON, but the structured snapshot was stale by contract because `as_of = 2026-04-27T06:14:20-06:00` and `fresh_until = 2026-04-27T06:14:50-06:00`
+  - after the required brief wait, neither symbol refreshed and both snapshot files kept their prior `2026-04-27` timestamps
+  - the supporting visual layer also remained unavailable because `market_runtime/screenshots` still had `0` files on disk and the snapshot-referenced `5m` PNG paths did not exist
+- Setup status:
+  - no new `VALID LONG SETUP`, `VALID SHORT SETUP`, or fresh `WAIT` call was promoted from live data because the common input set never returned to a trustworthy state
+  - preserve the last valid New York map from `2026-04-24` instead of forcing a new activation verdict from expired data
+  - cleaner symbol: `NONE`
+  - symbol to avoid: `BOTH` until the local market runtime restores fresh snapshots
+- `5m` execution lines:
+  - no new `ACTIVE / STALE / INVALIDATED` reclassification was committed because the live input set never returned to a valid state
+  - preserved desired-state pair for `XAUUSD`: `5M EXECUTION SHORT 4724.84` and `5M EXECUTION LONG 4704.55`
+  - preserved desired-state pair for `US30`: `5M EXECUTION SHORT 49432.45` and `5M EXECUTION LONG 49343.10`
+- Opportunity timing state:
+  - not refreshed in this run because `Active Setup Detector` closed degraded
+  - keep the previous valid timing reads in force until the runtime restores fresh structured snapshots for both symbols:
+    - `XAUUSD`: long side `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`; short side `PRE-TRIGGER`
+    - `US30`: long side `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`; short side `PRE-TRIGGER`
+- Trading decision:
+  - `XAUUSD`: `STALE SNAPSHOT / DEGRADED`
+  - `US30`: `STALE SNAPSHOT / DEGRADED`
+  - active setup now: `NONE`
+  - correct action now: `WAIT`
+- Transcript-derived refinement usage:
+  - no new refinement was promoted in this run
+  - preserved the prior `indication -> correction -> continuation` and no-chase guidance only as the standing interpretation layer behind the last valid map
+- Labels repositioned: none; both desired-state JSON files were left untouched
+- Levels recolored / removed / replaced: none; both desired-state JSON files were left untouched
+- Trader-facing explanation:
+  - this workflow was supposed to decide whether there is a valid setup right now, but the runtime never restored one trustworthy live window for either symbol
+  - that matters because `Active Setup Detector` cannot honestly upgrade a setup to active or expired from day-old quotes and missing screenshots
+  - correct action now: `WAIT / STALE SNAPSHOT / DEGRADED`; if you were already in from the earlier reclaim, manage it, but if you are flat do not chase and wait for fresh structured snapshots before promoting any new trigger
+- Spanish thread update: `Active setup detector` cerro en `STALE SNAPSHOT / DEGRADED`. `XAUUSD` siguio `degraded` desde `2026-04-27T06:13:39-06:00` con `TimeoutExpired`, `US30` siguio anclado en `2026-04-27T06:14:20-06:00`, y despues de la espera obligatoria no hubo refresh ni screenshots nuevos. Se preserva el mapa de `XAUUSD 4724.84 / 4704.55` y `US30 49432.45 / 49343.10`; los longs previos siguen `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`, los shorts siguen `PRE-TRIGGER`, y la accion correcta por ahora es `WAIT`.
+
+- 2026-04-28 | automation: Active Setup Detector | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the run closed degraded because `XAUUSD` remained `degraded` from `2026-04-27T06:13:39-06:00` with `TimeoutExpired`, `US30` still carried an expired `2026-04-27T06:14:20-06:00` snapshot despite its stale `fresh` status flag, neither symbol refreshed during the required wait window, and the snapshot-referenced `5m` PNG paths still resolved to missing files; no new active setup was committed, so the desired-state maps stay preserved as XAUUSD `4724.84 / 4704.55` and US30 `49432.45 / 49343.10` while the prior timing reads remain in force | key drawn levels: XAUUSD `4H 4772.95 / 4664.11`, `5m 4724.84 / 4704.55`; US30 `4H 49531.60 / 48885.65`, `5m 49432.45 / 49343.10` | action state: `STALE SNAPSHOT / DEGRADED` | main lesson: `Active Setup Detector` still needs fresh structured snapshots for both required symbols; if the runtime does not refresh in time, preserve the last valid map and do not manufacture a live setup call from expired data.
+
+### Bias Integrity Check - No Fresh Refresh On 2026-04-28
+
+- Run time: 2026-04-28T07:23:30.0791528-06:00
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Snapshot source: local market snapshots plus screenshot paths only; no direct TradingView read was used for the analysis path.
+- Runtime result: finished `STALE SNAPSHOT / DEGRADED`
+- Freshness check:
+  - the first integrity read on `2026-04-28T07:23:30.0791528-06:00` found `XAUUSD` still `degraded` with `updated_at = 2026-04-27T06:14:50-06:00`, `as_of = 2026-04-27T06:13:39-06:00`, and `fresh_until = 2026-04-27T06:14:09-06:00`
+  - the same read found `US30` carrying `status = fresh`, but the snapshot itself was already expired with `updated_at = 2026-04-27T06:14:20-06:00`, `as_of = 2026-04-27T06:14:20-06:00`, and `fresh_until = 2026-04-27T06:14:50-06:00`
+  - after the required brief wait, the final common check found no JSON refresh for either symbol; `XAUUSD` remained about `90530.8s` old and `US30` remained about `90489.8s` old
+- Degraded reason:
+  - the required bias-integrity pass could not be completed because both required snapshots stayed outside the `30s` contract and the local market runtime did not refresh either symbol during the wait window
+  - all snapshot-referenced screenshot paths for `4H`, `30m`, `15m`, and `5m` still resolved to missing PNG files on disk for both symbols, so the visual layer remained unavailable as well
+- Bias integrity status:
+  - no new `BIAS INTACT / BIAS WEAKENED / BIAS INVALIDATED` verdict was committed for either symbol because the live input set was not trustworthy enough to judge integrity
+  - preserve the earlier New York baseline plus the standing `Active Setup Detector` interpretation instead of weakening or invalidating bias from day-old data
+  - the higher-timeframe directional ideas remain the last valid read, but conviction stays reduced until the runtime restores fresh structured snapshots
+- Important conditions preserved:
+  - `XAUUSD`: keep the NY map centered on `5M EXECUTION SHORT 4724.84` and `5M EXECUTION LONG 4704.55` under the preserved `4H RESISTANCE 4772.95` and `4H SUPPORT 4664.11`
+  - `US30`: keep the NY map centered on `5M EXECUTION SHORT 49432.45` and `5M EXECUTION LONG 49343.10` under the preserved `4H RESISTANCE 49531.60` and `4H SUPPORT 48885.65`
+- Liquidity / structure note:
+  - no new liquidity-taken or structure-failure verdict was committed in this run because the integrity pass never regained valid live inputs
+  - do not treat the expired `2026-04-27` snapshots as proof that the morning directional case is either broken or freshly confirmed
+- Cleaner symbol:
+  - `NONE`; conviction should stay reduced until the runtime restores fresh snapshots for both required symbols
+- What to stop assuming:
+  - stop assuming the prior bias is still freshly confirmed when both required live inputs are more than a day old
+  - stop assuming the stale `fresh` flag on `US30` is usable without checking the actual `as_of` and `fresh_until` timestamps
+- Transcript-derived refinement usage:
+  - no new refinement was promoted in this run
+  - preserved the standing `indication -> correction -> continuation` and no-chase guidance only as the prior interpretation layer behind the existing map
+- `5m` execution lines:
+  - no new `ACTIVE / STALE / INVALIDATED` reclassification was committed because the integrity pass closed degraded
+  - preserved desired-state pair for `XAUUSD`: `4724.84 / 4704.55`
+  - preserved desired-state pair for `US30`: `49432.45 / 49343.10`
+- Opportunity timing state:
+  - not refreshed in this run because `Bias Integrity Check` closed degraded
+  - keep the previous valid timing reads in force until the runtime restores fresh structured snapshots:
+    - `XAUUSD`: long side `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`; short side `PRE-TRIGGER`
+    - `US30`: long side `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`; short side `PRE-TRIGGER`
+- Labels repositioned: none; desired state was preserved unchanged
+- Levels recolored / removed / replaced: none; both desired-state JSON files were left untouched
+- Trader-facing explanation:
+  - this workflow was supposed to decide whether the original directional case was still holding, weakening, or failing across both symbols, but the runtime never refreshed either symbol into one valid analysis window
+  - that matters because bias integrity is about judging real current structure, not carrying forward day-old quotes and missing screenshots as if they were still live
+  - correct action now: `WAIT / STALE SNAPSHOT / DEGRADED`; keep the current map, reduce conviction, and do not relabel bias until the runtime restores fresh structured snapshots
+- Spanish thread update: `Bias integrity check` cerro en `STALE SNAPSHOT / DEGRADED`. `XAUUSD` siguio `degraded` desde `2026-04-27T06:13:39-06:00`, `US30` siguio con bandera `fresh` pero con snapshot vencido desde `2026-04-27T06:14:20-06:00`, y despues de la espera obligatoria no hubo refresh ni PNGs nuevos. Se preserva el mapa de `XAUUSD 4724.84 / 4704.55` y `US30 49432.45 / 49343.10`; el plan original no se invalida con data vencida, pero la conviccion sigue reducida y la accion correcta es `WAIT`.
+
+- 2026-04-28 | automation: Bias Integrity Check | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the run closed degraded because `XAUUSD` remained `degraded` with an expired `2026-04-27T06:13:39-06:00` snapshot, `US30` still carried an expired `2026-04-27T06:14:20-06:00` snapshot despite its stale `fresh` status flag, neither symbol refreshed during the required wait window, and all snapshot-referenced screenshot paths still resolved to missing files; no new integrity verdict was committed, so the desired-state maps stay preserved as XAUUSD `4724.84 / 4704.55` and US30 `49432.45 / 49343.10` while the prior timing reads remain in force | key drawn levels: XAUUSD `4H 4772.95 / 4664.11`, `5m 4724.84 / 4704.55`; US30 `4H 49531.60 / 48885.65`, `5m 49432.45 / 49343.10` | action state: `STALE SNAPSHOT / DEGRADED` | main lesson: `Bias Integrity Check` still needs fresh structured snapshots for both required symbols; if the runtime does not refresh in time, preserve the last valid map and do not manufacture an intact / weakened / invalidated verdict from expired data.
+
+### Mid-Session Reassessment - No Fresh Refresh On 2026-04-28
+
+- Run time: `2026-04-28T08:17:45.9031866-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Snapshot source: local market snapshots plus snapshot-referenced screenshot paths only; no direct TradingView read was used for the analysis path.
+- Runtime result: finished `STALE SNAPSHOT / DEGRADED`
+- Freshness check:
+  - the first reassessment read found `XAUUSD` still `degraded` with `updated_at = 2026-04-27T06:14:50-06:00`, `as_of = 2026-04-27T06:13:39-06:00`, and `fresh_until = 2026-04-27T06:14:09-06:00`
+  - the same read found `US30` still carrying `status = fresh`, but the structured snapshot was already expired with `updated_at = 2026-04-27T06:14:20-06:00`, `as_of = 2026-04-27T06:14:20-06:00`, and `fresh_until = 2026-04-27T06:14:50-06:00`
+  - after the required brief wait, neither symbol refreshed and the snapshot-referenced `5m` PNG paths still resolved to missing files on disk
+- Morning thesis status:
+  - the original New York plan is not invalidated, but this reassessment could not re-confirm whether it is still alive from current price because the runtime never restored one common fresh live window
+  - preserve the last valid baseline from `2026-04-24` plus the degraded carry-forward from the earlier `2026-04-28` workflows instead of manufacturing a mid-session read from expired data
+- Session state:
+  - whether the open evolved into continuation, reversal, rotation, or dead range was not refreshed in this run because the structured live input set never became valid
+  - the prior valid read already had both long-side moves classified as `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`; no fresh remaining momentum trade can be promoted from this run
+  - momentum versus patience: `PATIENCE`
+- Best remaining opportunity:
+  - none can be promoted while both required snapshots are stale; wait for a fresh retest or a fresh short-side rejection only after the runtime restores current structured data
+- Biggest trap still present:
+  - treating the old morning map as if it were a live mid-session trigger and chasing extension from day-old quotes
+- Cleaner symbol:
+  - `NONE` in this run; the earlier preference for `US30` was not re-confirmed
+- `5m` execution lines:
+  - no new `ACTIVE / STALE / INVALIDATED` reclassification was committed because the reassessment closed degraded
+  - preserved desired-state pair for `XAUUSD`: `4724.84 / 4704.55`
+  - preserved desired-state pair for `US30`: `49432.45 / 49343.10`
+- Opportunity timing state:
+  - not refreshed in this run because `Mid-Session Reassessment` closed degraded
+  - keep the previous valid timing reads in force until the runtime restores fresh structured snapshots:
+    - `XAUUSD`: long side `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`; short side `PRE-TRIGGER`
+    - `US30`: long side `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`; short side `PRE-TRIGGER`
+- Chart actions:
+  - desired state stayed untouched because the workflow never regained a trustworthy live input set
+  - preserve the current automation-owned map as `XAUUSD 4724.84 / 4704.55` and `US30 49432.45 / 49343.10`
+- Transcript-derived refinement usage:
+  - no new refinement was promoted in this run
+  - preserved the standing `indication -> correction -> continuation` and no-chase guidance only as the prior interpretation layer behind the existing map
+- Labels repositioned: none; desired state was preserved unchanged
+- Levels recolored / removed / replaced: none; both desired-state JSON files were left untouched
+- Trader-facing explanation:
+  - the market may already have continued, reversed, or died into range after the morning plan, but this run never got one trustworthy structured mid-session read to say which one happened
+  - that matters because `Mid-Session Reassessment` is supposed to decide whether the remaining opportunity is still ahead or already gone, not recycle day-old structure as if it were current
+  - correct action now: `WAIT / STALE SNAPSHOT / DEGRADED`; if you are already in from the earlier reclaim, manage it, but if you are flat do not chase and wait for a new retest only after the runtime refreshes
+- Spanish thread update: `Mid-session reassessment` cerro en `STALE SNAPSHOT / DEGRADED`. `XAUUSD` siguio `degraded` desde `2026-04-27T06:13:39-06:00`, `US30` siguio con bandera `fresh` pero con snapshot vencido desde `2026-04-27T06:14:20-06:00`, y despues de la espera obligatoria no hubo refresh ni PNGs reales. Se preserva el mapa de `XAUUSD 4724.84 / 4704.55` y `US30 49432.45 / 49343.10`; los longs previos siguen `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`, los shorts siguen `PRE-TRIGGER`, y la accion correcta por ahora es `WAIT`.
+
+- 2026-04-28 | automation: Mid-Session Reassessment | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the run closed degraded because `XAUUSD` remained `degraded` with an expired `2026-04-27T06:13:39-06:00` snapshot, `US30` still carried an expired `2026-04-27T06:14:20-06:00` snapshot despite its stale `fresh` status flag, neither symbol refreshed during the required wait window, and the snapshot-referenced `5m` PNG paths still resolved to missing files; no fresh mid-session reassessment was committed, so the desired-state maps stay preserved as XAUUSD `4724.84 / 4704.55` and US30 `49432.45 / 49343.10` while the prior timing reads remain in force | key drawn levels: XAUUSD `4H 4772.95 / 4664.11`, `5m 4724.84 / 4704.55`; US30 `4H 49531.60 / 48885.65`, `5m 49432.45 / 49343.10` | action state: `STALE SNAPSHOT / DEGRADED` | main lesson: `Mid-Session Reassessment` still needs fresh structured snapshots for both required symbols; if the runtime does not refresh in time, preserve the last valid map and do not manufacture a continuation / reversal / dead-range verdict from expired data.
 

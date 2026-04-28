@@ -1,4 +1,4 @@
-# TradingView Automation Engine
+﻿# TradingView Automation Engine
 
 ## Implementation Mode
 
@@ -11,7 +11,7 @@ Platform limitation found during setup:
   - make all 9 read and update the same shared continuity file:
     - [SMART_MONEY_GOOD_MONEY_ENGINE_STATE.md](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/SMART_MONEY_GOOD_MONEY_ENGINE_STATE.md)
 
-That shared file is now the engineâ€™s cross-automation memory layer.
+That shared file is now the engineÃ¢â‚¬â„¢s cross-automation memory layer.
 
 ## Chart Marking Rules
 
@@ -22,6 +22,7 @@ The workflow now has a dedicated chart-marking rules file:
 Every automation must read that rules file together with:
 
 - [SMART_MONEY_GOOD_MONEY_ENGINE_STATE.md](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/SMART_MONEY_GOOD_MONEY_ENGINE_STATE.md)
+- [ARTICUNO_REINFORCEMENT_LAYER.md](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/ARTICUNO_REINFORCEMENT_LAYER.md)
 - [TRANSCRIPT_COMPATIBILITY_MATRIX.md](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/TRANSCRIPT_COMPATIBILITY_MATRIX.md)
 - [ENTRY_TIMING_ADDENDUM.md](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/ENTRY_TIMING_ADDENDUM.md)
 - [COMMUNICATION_STYLE_GUIDE.md](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/COMMUNICATION_STYLE_GUIDE.md)
@@ -70,7 +71,10 @@ Important interpretation rule:
 Live market reading is now split from automation analysis.
 
 - The Codex automations still analyze the market and preserve the same strategy logic.
-- Live market context is now declared in the snapshot files:
+- Live market context is now declared in the TradingView Structured Live State files:
+  - [market_runtime/live_state/PEPPERSTONE_XAUUSD.json](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/market_runtime/live_state/PEPPERSTONE_XAUUSD.json)
+  - [market_runtime/live_state/FOREXCOM_US30.json](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/market_runtime/live_state/FOREXCOM_US30.json)
+- Deprecated compatibility mirror during transition:
   - [market_runtime/snapshots/PEPPERSTONE_XAUUSD.json](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/market_runtime/snapshots/PEPPERSTONE_XAUUSD.json)
   - [market_runtime/snapshots/FOREXCOM_US30.json](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/market_runtime/snapshots/FOREXCOM_US30.json)
 - The local live-reader is now:
@@ -84,11 +88,42 @@ Live market reading is now split from automation analysis.
 
 Important interpretation rule:
 
-- automation analysis must read market snapshots and screenshots first, not TradingView MCP tools directly
+- automation analysis must read TradingView Structured Live State first, not TradingView MCP tools directly
 - TradingView MCP tools are forbidden inside the automation analysis path
-- if the required snapshot is older than `30s`, the workflow should wait briefly for refresh and then finish in `STALE SNAPSHOT / DEGRADED` instead of asking for manual approval
-- if the structured JSON snapshot is fresh and contains valid market data, continue the trading assessment even if screenshots are missing or older than ideal
-- screenshot problems should reduce confidence, not replace the market thesis with a system-health report
+- valid live-market input is:
+  - `market.quote`
+  - timeframe `state`
+  - OHLCV bars
+  - `D / 4H / 30m / 15m / 5m`
+  - `derived_features` when available
+- do not inspect, request, reference, or interpret screenshots / PNG files for trading decisions
+- if a symbol is `FULL_DATA` or `PARTIAL_DATA` with `decision_allowed = true`, assess that symbol
+- if a symbol is `DATA_DEGRADED`, preserve its prior map and do not invent a new trade decision for it
+- if one symbol is fresh and the other is degraded, analyze the fresh symbol and preserve the degraded symbol
+- if both symbols are `DATA_DEGRADED`, preserve both and finish degraded instead of asking for manual approval
+
+## Structured Live State Rule For All 9 Automations
+
+Before finalizing any assessment:
+
+- read [ARTICUNO_REINFORCEMENT_LAYER.md](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/ARTICUNO_REINFORCEMENT_LAYER.md)
+- use [market_runtime/live_state/PEPPERSTONE_XAUUSD.json](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/market_runtime/live_state/PEPPERSTONE_XAUUSD.json)
+  and [market_runtime/live_state/FOREXCOM_US30.json](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/market_runtime/live_state/FOREXCOM_US30.json)
+  as the only live market source
+- do not inspect, request, reference, or interpret screenshots / PNG files for
+  trading decisions
+- do not create new setups from Articuno concepts
+- do not change strategy, risk rules, timing states, desired-state ownership,
+  or chart drawing vocabulary
+- use the live-state payload only to refine:
+  - liquidity precision
+  - level quality
+  - participation confirmation
+  - trigger quality
+  - New York opening context
+  - trade permission
+  - anti-chase discipline
+  - desired-state level-selection quality
 
 ## Discord Layer
 
@@ -125,7 +160,7 @@ Notification objective:
 - the Discord layer exists to surface trading context, not to narrate runtime internals
 - market thesis, levels, setup state, and action always come first
 - runtime health should appear only as a secondary note when it changes the trust level of the market read
-- do not emit a system-centric Discord summary when the structured market snapshot is still fresh enough to support trading analysis
+- do not emit a system-centric Discord summary when the structured live-state data is still fresh enough to support trading analysis
 - when a transcript-derived coaching heuristic is useful, keep it short and trader-facing: what price did, why it matters, what is still missing or what already happened, and what to do now
 - every Discord message must still preserve the exact trading decision even when the tone becomes more live, more human, or more energetic
 
@@ -224,6 +259,46 @@ The transcripts are a refinement source, not a replacement strategy.
   - the anti-chase posture
 - Keep transcript-derived coaching concise. The purpose is to make the trader sharper, not to turn live outputs into course summaries.
 
+## Articuno Reinforcement Layer
+
+Articuno is now an approved technical reinforcement layer, not a replacement methodology.
+
+- Use [ARTICUNO_REINFORCEMENT_LAYER.md](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/ARTICUNO_REINFORCEMENT_LAYER.md) before finalizing any of the 9 automation assessments.
+- Apply it only as reinforcement.
+- Do not create new setups from Articuno concepts.
+- Do not override `Daily / 4H -> 30m -> 15m -> 5m`.
+- Do not override risk rules.
+- Do not override timing states.
+- Do not override desired-state chart ownership.
+- Do not introduce new drawing types.
+- Do not change `chart_executor` behavior.
+
+Articuno may refine only:
+
+- liquidity precision
+- level quality
+- participation confirmation
+- trigger quality
+- New York opening context
+- trade permission
+- anti-chase discipline
+- desired-state level-selection quality
+
+Operational rule for all 9 automations:
+
+- the existing SMART MONEY / GOOD MONEY thesis comes first
+- Articuno may strengthen, weaken, or clarify that thesis
+- Articuno must never create the trade by itself
+- desired-state updates should become more selective, not more cluttered
+
+Chart-marking rule under Articuno:
+
+- do not add new drawing types
+- keep HTF infinite
+- keep 5m finite
+- keep semantic colors unchanged
+- use Articuno only to improve whether a level should be preserved, refreshed, simplified, invalidated, or left untouched
+
 ## Exact Automations And Prompts
 
 ### 1. NY Open Levels
@@ -239,7 +314,7 @@ Prompt:
 ```text
 Use this shared continuity file as mandatory baseline memory: C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\SMART_MONEY_GOOD_MONEY_ENGINE_STATE.md
 
-Review the latest local market snapshots and screenshots for PEPPERSTONE:XAUUSD and FOREXCOM:US30. This is the baseline thesis for todayâ€™s New York workflow, so set context carefully and keep it practical. Use Daily and 4H to define direction. Use 30m to map session structure, 15m to validate setup quality, and 5m only for execution timing. Prioritize supply/demand, structure, breakout/retest, rejection, confirmation, and clean level interaction. RSI is secondary and must stay brief. If structure is mixed, explicitly say WAIT / NO CLEAR EDGE.
+Review the latest TradingView Structured Live State files for PEPPERSTONE:XAUUSD and FOREXCOM:US30. This is the baseline thesis for todayÃ¢â‚¬â„¢s New York workflow, so set context carefully and keep it practical. Use Daily and 4H to define direction. Use 30m to map session structure, 15m to validate setup quality, and 5m only for execution timing. Prioritize supply/demand, structure, breakout/retest, rejection, confirmation, and clean level interaction. RSI is secondary and must stay brief. If structure is mixed, explicitly say WAIT / NO CLEAR EDGE.
 
 For each symbol, produce a Spanish report with:
 - HIGHER-TIMEFRAME BIAS: Daily directional bias, 4H directional bias, whether they are aligned, strength of bias, and whether to prefer longs, shorts, or patience.
@@ -260,7 +335,7 @@ Chart actions:
 - Keep 5m execution lines short and finite so they stay visually distinct from HTF structure.
 - Use uppercase labels: 4H RESISTANCE, 4H SUPPORT, 5M EXECUTION SHORT, 5M EXECUTION LONG, PDH, PDL, ON HIGH, ON LOW.
 
-After finishing the analysis, update the shared continuity file with todayâ€™s New York baseline thesis, the drawn levels for both symbols, the current preferred side, and a fresh log entry for this automation.
+After finishing the analysis, update the shared continuity file with todayÃ¢â‚¬â„¢s New York baseline thesis, the drawn levels for both symbols, the current preferred side, and a fresh log entry for this automation.
 
 End with a short Spanish thread update confirming both symbols were reviewed, the directional bias for each, which levels were drawn on each, and which symbol looks cleaner for the NY open.
 ```
@@ -278,9 +353,9 @@ Prompt:
 ```text
 Use this shared continuity file as mandatory baseline memory: C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\SMART_MONEY_GOOD_MONEY_ENGINE_STATE.md
 
-Continue from NY Open Levels. Before analyzing, read the current New York baseline, the previously recorded levels, and the latest workflow notes from the shared continuity file. Also inspect the latest desired-state chart map plus the local market-runtime screenshots. Use that prior context as baseline. Do not rebuild from scratch unless price action has clearly invalidated the previous framework. Lower-timeframe noise alone is not enough to invalidate the higher-timeframe thesis.
+Continue from NY Open Levels. Before analyzing, read the current New York baseline, the previously recorded levels, and the latest workflow notes from the shared continuity file. Also inspect the latest desired-state chart map plus the latest TradingView Structured Live State payloads. Use that prior context as baseline. Do not rebuild from scratch unless price action has clearly invalidated the previous framework. Lower-timeframe noise alone is not enough to invalidate the higher-timeframe thesis.
 
-Review the latest local market snapshots and screenshots for PEPPERSTONE:XAUUSD and FOREXCOM:US30 and produce a Spanish report with:
+Review the latest TradingView Structured Live State files for PEPPERSTONE:XAUUSD and FOREXCOM:US30 and produce a Spanish report with:
 - OPEN VALIDATION: whether the New York open is confirming or rejecting the higher-timeframe bias, whether price is accepting above or below key levels or rejecting them, and whether the open created a breakout, failed breakout, sweep, retest, or consolidation. State whether the move is clean or erratic.
 - STRUCTURE AND EXECUTION: the clearest 30m structure, the 15m setup-quality read, the 5m trigger state right now, whether a valid long setup is forming, whether a valid short setup is forming, whether the current 5m move is targeting liquidity or reacting after taking it, what exact confirmation is still missing, and what would invalidate the current idea.
 - OPPORTUNITY TIMING: classify the current execution opportunity as `PRE-TRIGGER`, `ARMED`, `TRIGGERED`, or `EXPIRED`. If it is already `TRIGGERED`, say clearly whether the correct action is `manage if already in`, `do not chase`, or `wait for new retest`.
@@ -314,9 +389,9 @@ Prompt:
 ```text
 Use this shared continuity file as mandatory baseline memory: C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\SMART_MONEY_GOOD_MONEY_ENGINE_STATE.md
 
-Continue from NY Open Levels and Post Open Validation. Before analyzing, read the current New York baseline, prior validation result, preserved levels, and latest workflow notes from the shared continuity file. Also inspect the latest desired-state chart map plus the local market-runtime screenshots. Use that prior context as baseline. Do not restart from scratch unless price has clearly invalidated the previous framework.
+Continue from NY Open Levels and Post Open Validation. Before analyzing, read the current New York baseline, prior validation result, preserved levels, and latest workflow notes from the shared continuity file. Also inspect the latest desired-state chart map plus the latest TradingView Structured Live State payloads. Use that prior context as baseline. Do not restart from scratch unless price has clearly invalidated the previous framework.
 
-Review the latest local market snapshots and screenshots for PEPPERSTONE:XAUUSD and FOREXCOM:US30 and determine for each symbol whether there is:
+Review the latest TradingView Structured Live State files for PEPPERSTONE:XAUUSD and FOREXCOM:US30 and determine for each symbol whether there is:
 - VALID LONG SETUP
 - VALID SHORT SETUP
 - WAIT
@@ -360,9 +435,9 @@ Prompt:
 ```text
 Use this shared continuity file as mandatory baseline memory: C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\SMART_MONEY_GOOD_MONEY_ENGINE_STATE.md
 
-Continue from the earlier New York workflow. Before analyzing, read the morning baseline thesis, the validation result, the setup status, the preserved levels, and the latest workflow notes from the shared continuity file. Also inspect the latest desired-state chart map plus the local market-runtime screenshots. Use that prior context as baseline. Do not overreact to lower-timeframe noise. Only weaken or invalidate the thesis if price action has caused meaningful structural failure relative to the prior context, and use 30m / 15m structure plus liquidity sweep behavior before downgrading a Daily / 4H thesis from 5m behavior alone.
+Continue from the earlier New York workflow. Before analyzing, read the morning baseline thesis, the validation result, the setup status, the preserved levels, and the latest workflow notes from the shared continuity file. Also inspect the latest desired-state chart map plus the latest TradingView Structured Live State payloads. Use that prior context as baseline. Do not overreact to lower-timeframe noise. Only weaken or invalidate the thesis if price action has caused meaningful structural failure relative to the prior context, and use 30m / 15m structure plus liquidity sweep behavior before downgrading a Daily / 4H thesis from 5m behavior alone.
 
-Review the latest local market snapshots and screenshots for PEPPERSTONE:XAUUSD and FOREXCOM:US30 and state for each symbol:
+Review the latest TradingView Structured Live State files for PEPPERSTONE:XAUUSD and FOREXCOM:US30 and state for each symbol:
 - BIAS INTACT
 - BIAS WEAKENED
 - BIAS INVALIDATED
@@ -387,7 +462,7 @@ Chart actions:
 
 After finishing the analysis, update the shared continuity file with intact / weakened / invalidated status for each symbol, any removed or added levels, the cleaner symbol, and a fresh log entry for this automation.
 
-End with a short Spanish thread update confirming whether each symbolâ€™s bias is intact, weakened, or invalidated, which symbol still deserves focus, and whether the original plan should be maintained or conviction reduced.
+End with a short Spanish thread update confirming whether each symbolÃ¢â‚¬â„¢s bias is intact, weakened, or invalidated, which symbol still deserves focus, and whether the original plan should be maintained or conviction reduced.
 ```
 
 ### 5. Mid-Session Reassessment
@@ -403,9 +478,9 @@ Prompt:
 ```text
 Use this shared continuity file as mandatory baseline memory: C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\SMART_MONEY_GOOD_MONEY_ENGINE_STATE.md
 
-Continue from the full New York workflow already stored in the shared continuity file. Do not reinvent the day. Reassess the original thesis using everything that has happened so far, plus the latest desired-state chart map and local market-runtime screenshots. Preserve the higher-timeframe hierarchy: Daily and 4H define context, 30m organizes the session structure, 15m filters setup quality, and 5m only refines execution.
+Continue from the full New York workflow already stored in the shared continuity file. Do not reinvent the day. Reassess the original thesis using everything that has happened so far, plus the latest desired-state chart map and the latest TradingView Structured Live State payloads. Preserve the higher-timeframe hierarchy: Daily and 4H define context, 30m organizes the session structure, 15m filters setup quality, and 5m only refines execution.
 
-Review the latest local market snapshots and screenshots for PEPPERSTONE:XAUUSD and FOREXCOM:US30 and assess:
+Review the latest TradingView Structured Live State files for PEPPERSTONE:XAUUSD and FOREXCOM:US30 and assess:
 - whether the original morning thesis is still alive
 - whether the best opportunity has already passed
 - whether the market is now cleaner, dirtier, trending, or rotating
@@ -450,12 +525,12 @@ Use this shared continuity file as mandatory baseline memory: C:\Users\sebas\Doc
 
 Continue from the full New York workflow already recorded in the shared continuity file. Review the morning baseline, post-open validation, active setup status, bias integrity, and mid-session reassessment before writing the end-of-day review. Use those earlier records plus the chart levels and labels that mattered as the baseline for comparison.
 
-Review the latest local market snapshots and screenshots for PEPPERSTONE:XAUUSD and FOREXCOM:US30 and produce a Spanish end-of-day review with:
+Review the latest TradingView Structured Live State files for PEPPERSTONE:XAUUSD and FOREXCOM:US30 and produce a Spanish end-of-day review with:
 - SESSION REVIEW: what actually happened in each symbol; whether the original bias held, weakened, or failed; which levels mattered most; which levels failed; whether the day was trend continuation, reversal, range, or mixed structure; which symbol was cleaner; where the best opportunity was; what the biggest trap was; and what should have been avoided.
 - STRATEGY LEARNING: what today reinforced about the strategy, what weakness or blind spot it exposed, whether the market rewarded patience, confirmation, aggression, fade, breakout, or range thinking, whether Daily + 4H alignment was useful, whether 5m execution helped or created noise, and the main lesson to carry into tomorrow.
 - MULTI-DAY INTELLIGENCE: compare today against any prior daily reviews already preserved in the shared continuity file and update recurring observations such as when XAUUSD trades cleaner than US30, when US30 trades cleaner than XAUUSD, how often pre-market bias survives the open, how often PDH / PDL / ON HIGH / ON LOW sweeps lead to continuation or reversal, which structure types are producing the cleanest moves, and when the preferred setup is working best or worst. If continuity is still limited, structure this section so it becomes cumulative over time.
 
-After finishing the review, update the shared continuity file with todayâ€™s session result, the main lesson for tomorrow, and any new multi-day observations that deserve to persist.
+After finishing the review, update the shared continuity file with todayÃ¢â‚¬â„¢s session result, the main lesson for tomorrow, and any new multi-day observations that deserve to persist.
 
 End with a short Spanish thread update summarizing the day in trader language, confirming what worked, what failed, and the main lesson for tomorrow.
 ```
@@ -473,7 +548,7 @@ Prompt:
 ```text
 Use this shared continuity file as mandatory baseline memory: C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\SMART_MONEY_GOOD_MONEY_ENGINE_STATE.md
 
-Review the latest local market snapshots and screenshots for PEPPERSTONE:XAUUSD. This is the baseline thesis for the Asia workflow. Use Daily and 4H to define direction. Use 30m to map session structure, 15m to validate setup quality, and 5m only for execution timing. Prioritize supply/demand, structure, breakout/retest, rejection, confirmation, and clean level interaction. RSI is secondary and must stay brief. If structure is mixed, explicitly say WAIT / NO CLEAR EDGE.
+Review the latest TradingView Structured Live State files for PEPPERSTONE:XAUUSD. This is the baseline thesis for the Asia workflow. Use Daily and 4H to define direction. Use 30m to map session structure, 15m to validate setup quality, and 5m only for execution timing. Prioritize supply/demand, structure, breakout/retest, rejection, confirmation, and clean level interaction. RSI is secondary and must stay brief. If structure is mixed, explicitly say WAIT / NO CLEAR EDGE.
 
 Produce a Spanish pre-session report with:
 - Daily directional bias
@@ -525,9 +600,9 @@ Prompt:
 ```text
 Use this shared continuity file as mandatory baseline memory: C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\SMART_MONEY_GOOD_MONEY_ENGINE_STATE.md
 
-Continue from Asia Session Gold. Before analyzing, read the current Asia baseline, the preserved levels, and the latest Asia workflow notes from the shared continuity file. Also inspect the latest desired-state chart map plus the local market-runtime screenshots. Use that prior context as baseline. Do not rebuild from scratch unless price has clearly invalidated the earlier Asia framework. Lower-timeframe noise alone is not enough to invalidate the higher-timeframe thesis.
+Continue from Asia Session Gold. Before analyzing, read the current Asia baseline, the preserved levels, and the latest Asia workflow notes from the shared continuity file. Also inspect the latest desired-state chart map plus the latest TradingView Structured Live State payloads. Use that prior context as baseline. Do not rebuild from scratch unless price has clearly invalidated the earlier Asia framework. Lower-timeframe noise alone is not enough to invalidate the higher-timeframe thesis.
 
-Review the latest local market snapshots and screenshots for PEPPERSTONE:XAUUSD and determine whether there is:
+Review the latest TradingView Structured Live State files for PEPPERSTONE:XAUUSD and determine whether there is:
 - VALID LONG SETUP
 - VALID SHORT SETUP
 - WAIT
@@ -573,7 +648,7 @@ Before deciding anything:
 - read the workflow marking rules
 - read the chart runtime contract
 - inspect the current desired state files for both symbols
-- inspect the live chart state
+- inspect the latest TradingView Structured Live State payloads for both symbols
 
 Then perform a full reassessment for XAUUSD and US30:
 - confirm the current higher-timeframe thesis
@@ -616,4 +691,5 @@ After finishing:
 - The largest platform limitation is scheduling timezone support. These automations were scheduled to match New York time using the **current April 2026 Costa Rica equivalents**, so New York DST changes may require a manual one-hour adjustment later.
 - Chart continuity is only as good as the TradingView layout continuity. If symbols, layouts, or manually drawn levels are cleared between runs, the engine still preserves analytical continuity through the shared file, but some visual context may need to be recreated.
 - Because the engine is implemented as cron automations rather than heartbeats, continuity is preserved through the shared state file instead of a single persistent thread. This is the cleanest practical workaround available with the current platform limitation.
+
 

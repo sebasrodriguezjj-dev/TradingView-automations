@@ -20,14 +20,14 @@ The automation stack now has three separate responsibilities:
 
 - `analysis layer`: the 8 Codex automations plus the paused manual live
   reassessment trigger
-- `market runtime layer`: a local snapshotter plus watchdog
+- `market runtime layer`: a local TradingView structured live-state reader plus watchdog
 - `chart runtime layer`: a local executor plus watchdog
 
 The Codex automations must no longer be the direct writer of TradingView drawings.
 
 Instead:
 
-- automations read live market context from the market-runtime snapshot files
+- automations read live market context from the market-runtime live-state files
 - automations update the desired chart state JSON files
 - the local chart executor watches those files
 - the executor is the only writer of automation-owned chart drawings
@@ -167,7 +167,7 @@ It:
 - clears the automation-owned drawing layer by full redraw
 - redraws HTF, 5m, and optional entry markup from desired state
 - verifies the owned drawing layer was actually cleared before rebuilding
-- captures a verification screenshot
+- captures a verification screenshot for render verification only
 - records applied state and runtime health
 
 ### Reassessment Safety Rule
@@ -241,3 +241,13 @@ The automation-owned layout should be treated as a dedicated automation surface.
 Do not rely on unmanaged discretionary drawings surviving inside the same automation-owned chart layer.
 
 If you want a manual discretionary layout, keep it separate from the automation runtime layout.
+
+## Render Verification Boundary
+
+- Chart-runtime screenshots are render verification only.
+- They are not market data.
+- They are not a trading-analysis input.
+- They must not affect market `data_confidence`.
+- They may support `CHART_RENDER_DEGRADED` logging, but they must not change
+  the trading thesis or block a live market assessment that already has
+  `FULL_DATA` or `PARTIAL_DATA`.

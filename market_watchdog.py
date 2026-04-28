@@ -3,9 +3,10 @@
 Local watchdog for the SMART MONEY - GOOD MONEY market runtime.
 
 Purpose:
-- Keep the market snapshotter alive outside Codex automations.
-- Refresh local market snapshots so automations can read live state without
-  talking to TradingView directly.
+- Keep the TradingView structured live-state reader alive outside Codex
+  automations.
+- Refresh local live-state JSON so automations can read live market context
+  without talking to TradingView directly.
 - Record health and degraded cycles instead of waiting for manual rescue.
 """
 
@@ -52,20 +53,37 @@ def main() -> int:
             "consecutive_failures": consecutive_failures,
         }
         try:
-            market_snapshotter.refresh_snapshot_statuses()
+            market_snapshotter.refresh_live_state_statuses()
             results = market_snapshotter.capture_all(dry_run=False)
-            market_snapshotter.refresh_snapshot_statuses()
+            market_snapshotter.refresh_live_state_statuses()
+            unhealthy_symbols = [
+                result
+                for result in results
+                if result.get("data_confidence") == "DATA_DEGRADED"
+            ]
             market_snapshotter.update_runtime_state(
                 cycle_status="healthy",
                 symbol_results=results,
             )
             consecutive_failures = 0
             state["status"] = "healthy"
+            state["consecutive_failures"] = consecutive_failures
+            state["data_mode"] = "structured_only"
             state["symbols"] = results
+            if unhealthy_symbols:
+                state["degraded_symbols"] = [
+                    {
+                        "symbol": result.get("symbol"),
+                        "status": result.get("status"),
+                        "data_confidence": result.get("data_confidence"),
+                        "last_error": result.get("last_error"),
+                    }
+                    for result in unhealthy_symbols
+                ]
             state["last_cycle_finished_at"] = now_iso()
             save_state(state)
         except Exception as exc:
-            stale_results = market_snapshotter.refresh_snapshot_statuses()
+            stale_results = market_snapshotter.refresh_live_state_statuses()
             market_snapshotter.update_runtime_state(
                 cycle_status="degraded",
                 symbol_results=stale_results,
@@ -73,6 +91,8 @@ def main() -> int:
             )
             consecutive_failures += 1
             state["status"] = "degraded"
+            state["data_mode"] = "structured_only"
+            state["symbols"] = stale_results
             state["last_cycle_finished_at"] = now_iso()
             state["consecutive_failures"] = consecutive_failures
             state["last_error"] = f"{type(exc).__name__}: {exc}"

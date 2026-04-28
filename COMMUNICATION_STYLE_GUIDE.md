@@ -169,6 +169,28 @@ Bad:
 
 - opening the message with runtime degradation when the market is still readable
 
+## Live Data Language
+
+Use these runtime labels in normal operation:
+
+- `FULL_DATA`
+- `PARTIAL_DATA`
+- `DATA_DEGRADED`
+- `CHART_RENDER_DEGRADED`
+- `DISCORD_DEGRADED`
+
+Do not use screenshot-era language as part of the trading thesis:
+
+- `visual confidence`
+- `PNG missing`
+- `screenshot paths absent`
+- `no common fresh screenshot window`
+
+If runtime context must appear, keep it short and secondary:
+
+- `Data: FULL_DATA desde TradingView Structured Live State.`
+- `Data: DATA_DEGRADED en US30; se preserva el mapa previo mientras XAUUSD sigue analizable.`
+
 ## Vocabulary
 
 Prefer:
@@ -216,3 +238,28 @@ A message is valid only if:
 - it includes only relevant levels
 - it closes with the correct action
 - it sounds like the same operator as the rest of the stack
+
+## Articuno Reinforcement In Communication
+
+Articuno may appear only as a compact reinforcement summary.
+
+- The main output must still follow: `Historia -> Tesis -> Niveles -> Accion`
+- Communication remains market-first
+- Articuno commentary must not turn the message into a course summary
+- Use Articuno only to tighten quality, timing honesty, and anti-chase clarity
+
+Allowed compact format:
+
+`Articuno Reinforcement:`
+
+- `SMC: liquidity already paid; no chase.`
+- `Supply/Demand: 4H resistance remains structurally valid.`
+- `VPA: participation supports rejection, but not standalone.`
+- `Price Action: 5m trigger already fired.`
+- `Opening Range: first NY impulse already expanded.`
+- `Risk: fresh entry no longer fits clean RR.`
+- `Psychology: WAIT FOR NEW RETEST.`
+
+Compressed Discord form:
+
+- `Filtro Articuno: liquidez ya pagada, nivel valido, trigger tarde. No chase; esperar nuevo retest.`
