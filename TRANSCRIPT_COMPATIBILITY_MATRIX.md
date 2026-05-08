@@ -31,7 +31,7 @@ The transcripts are a refinement source, not a replacement strategy.
 | Day 3 - Liquidity & Corrections | Correction helps filter fakeouts after the first indication | Promote to rule | Use to improve `PRE-TRIGGER`, `ARMED`, and confirmation logic before execution |
 | Day 4 - Entries | Wait for correction to end, then continuation; avoid first impulse chase | Promote to rule | Use for entry timing, continuation logic, and post-sweep confirmation |
 | Day 5 - Understand Entries More | Reaction levels plus market structure define usable setups | Promote to rule | Use to sharpen trigger validity and reaction-at-level logic |
-| Day 6 - Timeframe Correlation | Lower timeframes must confirm the higher timeframe instead of contradicting it casually | Promote to rule | Reinforce `Daily/4H -> 30m -> 15m -> 5m` and anti-noise rules |
+| Day 6 - Timeframe Correlation | Lower timeframes must confirm the higher timeframe instead of contradicting it casually | Promote to rule | Reinforce `Monthly / Weekly -> Daily / 4H -> 1H -> 30m -> 15m -> 5m` and anti-noise rules |
 | Day 7 / Day 10 - Mark Up Charts | Mark nearest meaningful highs/lows and avoid clutter | Promote to rule | Improve `5m` pair selection, staleness logic, and chart cleanliness |
 | Day 11 - Market Structure Entries | Use simple `HH/HL` vs `LH/LL`, swing highs/lows, and breaks | Promote to rule | Strengthen structure shift detection, tactical flips, and no-chase logic |
 | Day 12 - Decision Making & Trading Psychology | Wait for extra confirmation when the read is contradictory | Promote to rule | Strengthen `WAIT / NO CLEAR EDGE`, anti-chase, and timing-state honesty |
@@ -44,7 +44,7 @@ The transcripts are a refinement source, not a replacement strategy.
 Only promote a transcript concept if it passes all of these filters:
 
 - reinforces the current strategy instead of replacing it
-- respects `Daily/4H -> 30m -> 15m -> 5m`
+- respects `Monthly / Weekly -> Daily / 4H -> 1H -> 30m -> 15m -> 5m`
 - improves timing, clarity, or trigger quality
 - fits the existing risk model
 - does not encourage chasing, blind anticipation, or overtrading

@@ -10,9 +10,19 @@
   - [`start_discord_dispatch_watcher.ps1`](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/start_discord_dispatch_watcher.ps1)
 - Long-running watcher:
   - [`discord_dispatch_watcher.py`](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/discord_dispatch_watcher.py)
+- Enqueue helper:
+  - [`discord_enqueue.py`](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/discord_enqueue.py)
 - Optional manual send bridge:
   - [`send_discord_notification.ps1`](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/send_discord_notification.ps1)
-- Shared dispatch payload used by all 9 automations:
+- Outbox queue used by all 9 automations:
+  - [`discord_payloads/outbox`](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/discord_payloads/outbox)
+- Sent archive:
+  - [`discord_payloads/sent`](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/discord_payloads/sent)
+- Invalid event quarantine:
+  - [`discord_payloads/invalid`](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/discord_payloads/invalid)
+- Dropped backlog archive:
+  - [`discord_payloads/dropped`](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/discord_payloads/dropped)
+- Legacy mirror only:
   - [`discord_payloads/dispatch.txt`](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/discord_payloads/dispatch.txt)
 - Runtime log:
   - [`discord_notifier.log`](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/discord_notifier.log)
@@ -50,29 +60,46 @@ This was verified successfully on `2026-04-20`.
 
 ## Current Delivery Flow
 
-The final working architecture is watcher-based.
+The current working architecture is watcher-based with an outbox queue.
 
-All 9 automations now:
+All 9 market automations now:
 
-1. build their own Spanish Discord summary
-2. overwrite the shared dispatch file:
-   - [`dispatch.txt`](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/discord_payloads/dispatch.txt)
-3. do **not** send network requests directly from inside the automation
+1. build their own trader-facing Discord summary
+2. save a human mirror file:
+   - `discord_payloads/<automation_id>.txt`
+3. enqueue a unique event through:
+   - [`discord_enqueue.py`](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/discord_enqueue.py)
+4. do **not** send network requests directly from inside the automation
+
+The helper writes:
+
+- one per-run event file in `discord_payloads/outbox/*.json`
+- one human-readable mirror in `discord_payloads/<automation_id>.txt`
+- one legacy `dispatch.txt` mirror for compatibility only
+
+Dry-run tests may set `DISCORD_PAYLOADS_DIR`,
+`DISCORD_DISPATCH_STATE_PATH`, and `DISCORD_DISPATCH_LOG_PATH` to point at a
+temporary queue. Production automations should leave those variables unset so
+the normal `discord_payloads` queue remains the single live transport.
 
 Then the local watcher:
 
 1. stays running outside the automation sandbox
-2. polls `dispatch.txt`
-3. detects content changes
-4. sends the new message to Discord
-5. deduplicates using a persisted content hash
+2. polls `discord_payloads/outbox/*.json`
+3. sorts events by `created_at`
+4. sends each pending event to Discord
+5. archives successful events to `discord_payloads/sent/`
+6. quarantines corrupt events to `discord_payloads/invalid/`
+7. drops stale overflow backlog to `discord_payloads/dropped/`
+8. deduplicates by `event_id`, not by message hash
 
 Why this design:
 
 - avoids repeated network permission friction inside the 9 trading automations
 - keeps the workflow logic unchanged
 - gives one stable Discord send path for every flow
-- prevents direct Discord send failures from breaking or delaying the trading logic
+- prevents one automation from overwriting another automation's pending message
+- allows recent backlog replay after watcher downtime
 
 ## Startup Persistence
 
@@ -149,6 +176,58 @@ Communication rules:
 - use runtime notes only as a short confidence caveat when needed
 - if the setup is `TRIGGERED`, the tone should become more direct
 - if the setup is `EXPIRED`, say it clearly instead of recycling an old setup as current
+
+## Queue Event Contract
+
+Each outbox event should include:
+
+- `event_id`
+- `automation_id`
+- `automation_name`
+- `created_at`
+- `message`
+- `message_hash`
+- `market_scope`
+- `priority`
+- `kind`
+
+Rules:
+
+- one automation run should create one event
+- each of the 9 market automations must enqueue exactly one event after a run finishes, even when the market decision is `WAIT`, `NO CLEAR EDGE`, or `DATA_DEGRADED`
+- deduplication is by `event_id`, not by message hash
+- `dispatch.txt` is no longer the authoritative transport
+- `dispatch.txt` may remain as a legacy mirror of the most recent enqueued
+  message
+
+## Backlog Replay Policy
+
+If the watcher was down, it should replay recent pending events on restart.
+
+Defaults:
+
+- keep only the last `24 hours` of pending events
+- send at most `200` pending events per backlog replay window
+- if the backlog exceeds those limits:
+  - drop older events into `discord_payloads/dropped/`
+  - log the drop reason
+
+This prevents:
+
+- losing multiple runs because one shared file was overwritten
+- re-sending very old stale messages after a restart
+- dropping same-day trading automation runs during normal watcher downtime
+
+Operational sanity check:
+
+- inspect `discord_dispatch_state.json`, `discord_dispatch_watcher.log`,
+  `discord_payloads/outbox`, `discord_payloads/sent`,
+  `discord_payloads/dropped`, and `discord_payloads/invalid`
+- recent same-day market events should move from `outbox` to `sent`
+  when the watcher is healthy
+- if a run cannot be delivered, `discord_dispatch_state.json` must expose
+  `status = DISCORD_DEGRADED`, `dependency_status`, and `last_error`
+  instead of silently failing
 
 Runtime wording:
 

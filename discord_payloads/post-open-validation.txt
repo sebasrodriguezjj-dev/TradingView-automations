@@ -1,0 +1,13 @@
+[POST OPEN VALIDATION]
+Historia
+US30 si valido el open alcista, pero el primer long ya corrio hasta 49855.85 y ahora esta trabajando debajo de 1H SUPPLY 49794.40. Oro sigue mas mixto: defendio otra vez 4721.44, pero no logro aceptar arriba de 4726.26 despues de barrer 4730.99.
+
+Tesis
+Eso deja a XAUUSD preservado en el mismo bracket y a US30 con refresh 5m porque 49761.85 / 49734.35 ya quedaron detras del tape. En US30 el mapa nuevo es 49806.35 / 49755.85: short solo si el retest falla abajo de 49794.40; long solo si 49755.85 vuelve a defender. En oro el short bueno ya se activo una vez y si estas flat no quiero chase en medio.
+
+Niveles
+XAUUSD -> Daily 4857.02 / 4654.86 | 4H 4753.54 / 4700.95 | 1H 4734.67 / 4715.97 | 5m 4726.26 / 4721.44
+US30 -> Daily 50523.30 / 49089.00 | 4H 50104.45 / 49477.40 | 1H 49794.40 / 49701.85 | 5m 49806.35 / 49755.85
+
+Accion
+WAIT. Cleaner sigue siendo US30, pero el continuation long original ya fue TRIGGERED; espero nuevo retest, no chase. En XAUUSD, si ya estabas en el short del sweep toca gestionar; si estas flat, paciencia hasta nuevo test limpio.

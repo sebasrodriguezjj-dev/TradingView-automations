@@ -1,0 +1,12 @@
+[ASIA SESSION GOLD]
+Historia
+Oro entra Asia debajo del viejo 4H DEMAND 4700.95. El rebote desde 4688.12 / 4685.15 existe, pero la recuperacion ya se freno en 4699.52, asi que el tape llega mas en transicion que en continuidad.
+
+Tesis
+Daily sigue constructivo sobre 4654.86, pero el 4H ya perdio el piso previo y queda tacticamente danado mientras 4699.52 no recupere. El mapa util ahora es fade / range: short solo si 4699.52 falla otra vez como reclaim; long solo si 4688.12-4685.15 barre y reclama.
+
+Niveles
+XAUUSD -> Daily 4857.02 / 4654.86 | 4H 4753.54 / 4685.15 | 1H 4699.52 | 5m 4699.52 / 4688.12 | PDH 4764.87 | PDL 4685.15 | Range 4699.52 / 4686.07
+
+Accion
+WAIT / NO CLEAR EDGE. No quiero vender directo contra 4688.12 / 4685.15, no quiero comprar antes de recuperar 4699.52, y no quiero chase en medio del bracket.

@@ -1,12 +1,13 @@
-$pythonPath = "C:\Users\sebas\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
-$watcherPath = Join-Path $PSScriptRoot "discord_dispatch_watcher.py"
+$workspaceRoot = $PSScriptRoot
+. (Join-Path $workspaceRoot "watcher_process_control.ps1")
 
-if (-not (Test-Path $pythonPath)) {
-    throw "Python runtime not found at $pythonPath"
+$watcher = @{
+    Name = "discord"
+    Owner = "SMART MONEY - GOOD MONEY Discord Dispatch Watcher"
+    WorkspaceRoot = $workspaceRoot
+    ScriptPath = Join-Path $workspaceRoot "discord_dispatch_watcher.py"
+    LauncherPath = $MyInvocation.MyCommand.Path
+    PidPath = Join-Path $workspaceRoot "discord_dispatch_watcher.pid.json"
 }
 
-if (-not (Test-Path $watcherPath)) {
-    throw "Watcher script not found at $watcherPath"
-}
-
-Start-Process -FilePath $pythonPath -ArgumentList @($watcherPath) -WindowStyle Hidden
+Start-ManagedWatcherProcess -Watcher $watcher | Out-Null

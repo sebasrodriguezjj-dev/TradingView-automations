@@ -1,5 +1,13 @@
 [BIAS INTEGRITY CHECK]
-XAUUSD: BIAS INTACT
-US30: BIAS INTACT
-Mas limpio: US30
-Plan: MANTENER PLAN
+Historia
+US30 corrigio, defendio 49698.35/49701.85 y ya vuelve a trabajar contra 49755.85-49761.85. Oro sigue vivo arriba de 4700.95, pero 4726.26-4727.07 vuelve a frenar y 4734.67 sigue sin ceder.
+
+Tesis
+Eso deja a US30 con BIAS INTACT y como el foco limpio del plan. XAUUSD queda BIAS WEAKENED, no invalidado: la base HTF sigue util, pero el long no gana conviccion mientras no haya aceptacion real arriba de 4726.26.
+
+Niveles
+XAUUSD -> 4H 4753.54 / 4700.95 | 1H 4734.67 / 4715.97 | 5m 4726.26 / 4721.44
+US30 -> 4H 50104.45 / 49477.40 | 1H 49794.40 / 49701.85 | 5m 49761.85 / 49734.35
+
+Accion
+WAIT. Mantengo el plan con mas foco en US30 solo si 49734.35 aguanta y recupera 49755.85-49761.85. En oro reduzco conviccion: no asumir breakout, no vender el medio, y no chase; solo acceptacion arriba o sweep-failure claro arriba de 4726.26.

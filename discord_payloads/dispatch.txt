@@ -1,14 +1,13 @@
 [BIAS INTEGRITY CHECK]
-**Historia**
-La historia ahora mismo es que el chequeo de integridad no recibio una ventana comun fresca. `XAUUSD` refresco a `07:22:43-06:00`, `US30` a `07:23:13-06:00`, y los PNG de `5m` siguen sin existir en disco.
+Historia
+US30 corrigio, defendio 49698.35/49701.85 y ya vuelve a trabajar contra 49755.85-49761.85. Oro sigue vivo arriba de 4700.95, pero 4726.26-4727.07 vuelve a frenar y 4734.67 sigue sin ceder.
 
-**Tesis**
-Eso no invalida por si solo el plan de NY, pero tampoco deja una base limpia para decir que el bias sigue intacto con conviccion. Se preserva el mapa actual: `XAUUSD` mantiene `4724.84 / 4704.55` y `US30` mantiene `49432.45 / 49343.10`; la lectura correcta ahora es reducir conviccion, no forzar una reclasificacion.
+Tesis
+Eso deja a US30 con BIAS INTACT y como el foco limpio del plan. XAUUSD queda BIAS WEAKENED, no invalidado: la base HTF sigue util, pero el long no gana conviccion mientras no haya aceptacion real arriba de 4726.26.
 
-**Niveles**
-`XAUUSD` -> `4H 4772.95 / 4664.11` | `5m 4724.84 / 4704.55`
-`US30` -> `4H 49531.60 / 48885.65` | `5m 49432.45 / 49343.10`
+Niveles
+XAUUSD -> 4H 4753.54 / 4700.95 | 1H 4734.67 / 4715.97 | 5m 4726.26 / 4721.44
+US30 -> 4H 50104.45 / 49477.40 | 1H 49794.40 / 49701.85 | 5m 49761.85 / 49734.35
 
-**Accion**
-`STALE SNAPSHOT / DEGRADED`. `WAIT` en ambos.
-Mas limpio: `NINGUNO`. Mantener el plan base, pero con menos conviccion hasta recuperar una ventana comun fresca.
+Accion
+WAIT. Mantengo el plan con mas foco en US30 solo si 49734.35 aguanta y recupera 49755.85-49761.85. En oro reduzco conviccion: no asumir breakout, no vender el medio, y no chase; solo acceptacion arriba o sweep-failure claro arriba de 4726.26.

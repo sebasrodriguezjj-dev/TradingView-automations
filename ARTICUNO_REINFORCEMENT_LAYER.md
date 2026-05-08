@@ -24,7 +24,7 @@ The SMART MONEY / GOOD MONEY strategy remains unchanged.
 
 The strategy remains:
 
-- `Daily / 4H -> 30m -> 15m -> 5m`
+- `Monthly / Weekly -> Daily / 4H -> 1H -> 30m -> 15m -> 5m`
 
 This layer does **not** create signals.
 This layer does **not** modify risk.
@@ -49,7 +49,7 @@ Articuno may only:
 Articuno must never:
 
 - create standalone trades
-- override `Daily / 4H -> 30m -> 15m -> 5m`
+- override `Monthly / Weekly -> Daily / 4H -> 1H -> 30m -> 15m -> 5m`
 - override the risk model
 - override timing states
 - override desired-state chart ownership
@@ -77,7 +77,7 @@ Forbidden use:
 
 - do not enter just because a sweep happened
 - do not promote an OB/FVG as a standalone entry
-- do not let 5m SMC behavior override HTF context
+- do not let 5m SMC behavior override macro, HTF, 1H, 30m, or 15m context
 
 Checklist:
 
@@ -105,7 +105,7 @@ Rule:
 
 What it reinforces:
 
-- structural quality of `4H SUPPORT`, `4H RESISTANCE`, `5M EXECUTION LONG`, and `5M EXECUTION SHORT`
+- structural quality of macro, `Daily`, `4H`, `1H`, and `5M EXECUTION` levels
 
 Allowed use:
 
@@ -196,7 +196,7 @@ Allowed use:
 Forbidden use:
 
 - do not take pure scalps outside the HTF thesis
-- do not let 5m override Daily / 4H
+- do not let 5m override Monthly / Weekly / Daily / 4H / 1H
 - do not enter off the first impulse candle without reaction / confirmation
 - do not mark new execution levels from random microstructure
 
@@ -221,7 +221,7 @@ Desired-state effect:
 
 Rule:
 
-- 5m confirms execution only; it does not override HTF context
+- 5m confirms execution only; it does not override macro, HTF, or 1H context
 
 ### 5. Opening Range = NY Context
 

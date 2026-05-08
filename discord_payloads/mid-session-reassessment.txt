@@ -1,0 +1,13 @@
+[MID-SESSION REASSESSMENT]
+Historia
+Oro sigue fuerte, pero ya volvio a la zona que importa arriba. Hizo la extension hasta 4758.03, rechazo otra vez desde 4750.77-4753.54 y todavia no decide si eso va a convertirse en short real o solo en otra correccion antes de seguir. US30 ya no esta en el mapa alcista de la manana: barrio 50124.90, perdio 50004.95 / 49903.95 y ahora rota debajo del viejo bracket.
+
+Tesis
+Eso deja a XAUUSD como el simbolo mas limpio, pero todavia ARMED, no TRIGGERED: short solo si 4750.77-4753.54 vuelve a rechazar y pierde 4744.11 / 4737.72; long solo en nuevo retest defendido de 4737.72. En US30 el long original ya expiro; el refresh baja el mapa a 49916.90 / 49767.90 y no quiero asumir continuation alcista mientras 49916.90 no se recupere.
+
+Niveles
+XAUUSD -> Daily 4857.02 / 4654.86 | 4H 4753.54 / 4700.95 | 1H 4740.05 / 4721.92 | 5m 4750.77 / 4737.72
+US30 -> Daily 50523.30 / 49089.00 | 4H SUPPLY 50104.45 | 1H SUPPLY 49916.90 | 5m 49916.90 / 49767.90
+
+Accion
+WAIT. XAUUSD queda ARMED y mas limpio: short solo con aceptacion real debajo de 4744.11 y 4737.72; si no, paciencia o nuevo retest long. US30 queda PRE-TRIGGER despues del refresh: short solo si 49916.90 falla como reclaim; long solo si 49767.90 barre y se defiende. No quiero chase en ninguno.

@@ -1,0 +1,13 @@
+[LIVE REASSESSMENT TRIGGER]
+Historia
+La historia ahora mismo es que oro ya no esta negociando el bracket viejo: la reaccion desde 4750.77-4753.54 lo bajo a 4H DEMAND 4700.95 y ahora la pelea real es esa defensa contra 4707.30. US30 tambien dejo atras 49916.90 / 49767.90 y la decision viva bajo al bloque 49612.40 / 49512.90.
+
+Tesis
+Eso obliga refresh en ambos, pero no cambia la disciplina. En XAUUSD el sesgo mayor sigue vivo solo si 4700.95 aguanta y 4707.30 vuelve a aceptar; si no, el short limpio sale en perdida de 4700.95 o rechazo otra vez bajo 4707.30. En US30 no quiero vender tarde ni comprar a ciegas: short solo en reclaim fallido de 49612.40 y long solo si 49512.90 barre y sostiene.
+
+Niveles
+XAUUSD -> Daily 4857.02 / 4654.86 | 4H 4753.54 / 4700.95 | 1H 4740.05 | 5m 4707.30 / 4700.95
+US30 -> Daily 50523.30 / 49089.00 | 4H 50104.45 | 1H 49916.90 | 5m 49612.40 / 49512.90
+
+Accion
+WAIT. XAUUSD queda ARMED: si ya tomaste el breakdown previo, gestionar; si estas flat, no quiero chase y espero defensa de 4700.95 con reclaim de 4707.30 o perdida limpia. US30 queda PRE-TRIGGER: no hago nada en el medio y solo actuo si 49612.40 falla como reclaim o si 49512.90 barre y aguanta.

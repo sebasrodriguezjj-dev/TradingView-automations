@@ -8,7 +8,7 @@ TradingView reads out of the Codex automation path.
 The analytical workflows keep doing the same job:
 
 - read continuity memory
-- analyze `Daily / 4H -> 30m -> 15m -> 5m`
+- analyze `Monthly / Weekly -> Daily / 4H -> 1H -> 30m -> 15m -> 5m`
 - decide bias, readiness, and levels
 - update desired chart state and Discord summaries
 
@@ -41,6 +41,8 @@ Primary files:
 
 - [market_runtime/live_state/PEPPERSTONE_XAUUSD.json](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/market_runtime/live_state/PEPPERSTONE_XAUUSD.json)
 - [market_runtime/live_state/FOREXCOM_US30.json](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/market_runtime/live_state/FOREXCOM_US30.json)
+- [market_runtime/market_runtime_state.json](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/market_runtime/market_runtime_state.json)
+- [market_runtime/market_watchdog_state.json](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/market_runtime/market_watchdog_state.json)
 
 Deprecated compatibility mirror during transition:
 
@@ -57,7 +59,7 @@ That means:
   - `market.quote`
   - timeframe `state`
   - OHLCV bars
-  - `D`, `4H`, `30m`, `15m`, and `5m`
+  - `M`, `W`, `D`, `4H`, `1H`, `30m`, `15m`, and `5m`
   - `derived_features` when available
 
 ## TradingView Structured Live State Contract
@@ -79,14 +81,17 @@ Each live-state file must remain valid JSON and should include:
   "fresh_until": "2026-04-28T07:00:30-06:00",
   "freshness_seconds": 30,
   "data_mode": "structured_only",
-  "timeframes_captured": ["D", "4H", "30m", "15m", "5m"],
+  "timeframes_captured": ["M", "W", "D", "4H", "1H", "30m", "15m", "5m"],
   "market": {
     "info": {},
     "quote": {}
   },
   "timeframes": {
+    "M": {},
+    "W": {},
     "D": {},
     "4H": {},
+    "1H": {},
     "30m": {},
     "15m": {},
     "5m": {}
@@ -118,7 +123,7 @@ Rules:
 - `status` must be one of `fresh`, `stale`, or `degraded`
 - `data_mode` must stay `structured_only`
 - `market.quote` must exist for a symbol to be tradable
-- `timeframes` must include `D`, `4H`, `30m`, `15m`, and `5m`
+- `timeframes` must include `M`, `W`, `D`, `4H`, `1H`, `30m`, `15m`, and `5m`
 - each required timeframe must include:
   - `timeframe`
   - `captured_at`
@@ -156,7 +161,7 @@ Valid degradation reasons:
 
 - stale or missing `as_of` / `fresh_until`
 - missing `market.quote`
-- missing `D / 4H / 30m / 15m / 5m` timeframe payloads
+- missing `M / W / D / 4H / 1H / 30m / 15m / 5m` timeframe payloads
 - empty `bars` for a required timeframe
 - missing `latest_bar_time` for a required timeframe
 - invalid JSON
@@ -178,14 +183,75 @@ Invalid degradation reasons:
 - If a symbol is older than that, it is no longer valid for automation
   analysis.
 - Automations must not bypass this by calling TradingView directly.
-- Per-symbol freshness is mandatory:
+- Normal per-symbol freshness is mandatory:
   - if `XAUUSD` is `FULL_DATA` and `US30` is `DATA_DEGRADED`, analyze XAUUSD
     and preserve US30
   - if `US30` is `FULL_DATA` and `XAUUSD` is `DATA_DEGRADED`, analyze US30 and
     preserve XAUUSD
   - if both are `FULL_DATA`, assess both normally
   - if both are `DATA_DEGRADED`, preserve both and finish degraded
+- That normal per-symbol rule remains valid while the workflow is not stalled.
+- After a formal workflow stall, the recovery gate depends on the workflow's
+  required symbol set:
+  - New York dual-symbol workflows require valid structured data for both
+    `XAUUSD` and `US30` before the next full reassess + redraw
+  - Asia gold workflows require valid structured data for `XAUUSD`; `US30`
+    does not block the gold reassessment
 - There is no all-or-nothing common screenshot window anymore.
+
+## Stall And Recovery Contract
+
+Treat `15 minutes` without a full valid structured assessment cycle as
+`workflow_stalled`.
+
+This is an operational recovery rule, not a trading signal.
+
+The market runtime state now tracks:
+
+- `last_full_valid_cycle_at`
+- `workflow_stalled`
+- `stall_started_at`
+- `recovery_pending`
+- `recovery_requested_at`
+- `recovery_gate_status`
+- `last_recovery_reassess_at`
+- `valid_symbols`
+- `invalid_symbols`
+- `all_symbols_valid`
+
+Rules:
+
+- `workflow_stalled = true` means the old map should no longer be treated as a
+  fresh operational baseline.
+- `recovery_pending = true` means the runtime is waiting for the next valid
+  reassessment cycle to acknowledge the stall.
+- `recovery_gate_status = ready` means the required symbol set is valid again
+  and the next eligible workflow should perform a full reassess + redraw.
+- `recovery_gate_status = waiting_for_valid_symbols` means preserve prior maps
+  and do not invent a fresh thesis yet.
+- A recovery reassessment is acknowledged when desired-state files are refreshed
+  after the recovery request.
+
+## Symbol-Level Recovery Ladder
+
+One symbol failure must not silently poison the other symbol's refresh result.
+
+Each symbol capture now uses a short recovery ladder:
+
+1. normal capture
+2. immediate retry
+3. re-select symbol/timeframe and retry
+4. re-run gateway connection/status recovery
+5. re-run the missing symbol only
+6. if still broken, mark that symbol degraded and hold recovery
+
+Recovery notes:
+
+- degradation remains per symbol, not global by default
+- missing screenshots do not count as structured-data failure
+- only stale or missing structured fields, empty required bars, invalid JSON,
+  TradingView reader failure, or gateway failure may degrade a symbol
+- a healthy symbol should remain usable even when the other symbol is retrying
 
 ## Screenshots Are Outside The Trading-Analysis Contract
 
@@ -278,6 +344,8 @@ It:
 - refreshes live-state JSON continuously
 - records healthy / degraded cycles instead of waiting for manual rescue
 - isolates symbol-level degradation so one bad symbol does not block the other
+- mirrors stall and recovery readiness into watchdog state so workflows can see
+  whether recovery is pending or ready before mutating desired state
 
 ## Shared TradingView Access Layer
 

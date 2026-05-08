@@ -1,6 +1,13 @@
 [NY OPEN LEVELS]
-XAUUSD: bias WAIT, no alineado
-US30: bias alcista, alineado
-Mas limpio: US30
-Niveles: XAUUSD 4846.37/4772.95/4827.76/4792.44; US30 49483.10/48885.65/49362.10/49232.60
-Estado: LONGS
+Historia
+NY abre con `US30` mas limpio que oro. `US30` sigue en `HH/HL` sobre la demanda fresca y empuja contra el primer buy-side; oro ya recupero `4700.95`, pero sigue comprimido entre `4721.44` y la oferta de `4726.26-4734.67`.
+
+Tesis
+Sesgo constructivo en ambos, pero el trade limpio todavia no esta. `US30` es long-lean solo si `49734.35` defiende; en `XAUUSD` sigo necesitando defensa de `4721.44` con aceptacion arriba de `4726.26` o una barrida fallida arriba para pensar en short.
+
+Niveles
+XAUUSD -> Daily 4857.02 / 4654.86 | 4H 4753.54 / 4700.95 | 1H 4734.67 / 4715.97 | 5m 4726.26 / 4721.44
+US30 -> Daily 50523.30 / 49089.00 | 4H 50104.45 / 49477.40 | 1H 49794.40 / 49701.85 | 5m 49761.85 / 49734.35
+
+Accion
+WAIT. Foco limpio: `US30`, pero solo si `49734.35` retestea y aguanta; short solo si `49761.85` barre y falla. En oro no quiero chase ni compra en medio del rango.

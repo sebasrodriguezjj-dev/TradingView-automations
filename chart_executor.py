@@ -35,12 +35,30 @@ HEALTH_PATH = RUNTIME_DIR / "chart_runtime_state.json"
 OWNER_NAME = "SMART MONEY - GOOD MONEY Chart Runtime"
 DEFAULT_TIMEFRAME = "5"
 DEFAULT_INTERVAL_SECONDS = 10
+FORBIDDEN_AUTOMATION_SHAPE_OPTIONS = {
+    "lock",
+    "disableSelection",
+    "disableSave",
+}
 
 SEMANTIC_COLORS = {
-    "4H SUPPORT": "#089981",
-    "4H RESISTANCE": "#F23645",
+    "MONTHLY SUPPLY": "#7C3AED",
+    "MONTHLY DEMAND": "#0E7490",
+    "WEEKLY SUPPLY": "#C084FC",
+    "WEEKLY DEMAND": "#2DD4BF",
+    "DAILY SUPPLY": "#A855F7",
+    "DAILY DEMAND": "#0F766E",
+    "4H DEMAND": "#089981",
+    "4H SUPPLY": "#F23645",
+    "1H SUPPLY": "#FB7185",
+    "1H DEMAND": "#34D399",
+    "30M SUPPLY": "#EA580C",
+    "30M DEMAND": "#16A34A",
+    "15M SUPPLY": "#F59E0B",
+    "15M DEMAND": "#84CC16",
     "5M EXECUTION LONG": "#2157F3",
     "5M EXECUTION SHORT": "#FACC15",
+    "CHART NOTE": "#F59E0B",
     "ENTRY": "#2157F3",
     "SL": "#F23645",
     "TP1": "#089981",
@@ -53,35 +71,6 @@ SEMANTIC_COLORS = {
     "RANGE HIGH": "#FBBF24",
     "RANGE LOW": "#14B8A6",
 }
-
-SHAPE_COUNT_EXPRESSION = """(() => {
-  try {
-    const chart = window.TradingViewApi &&
-      window.TradingViewApi._activeChartWidgetWV &&
-      window.TradingViewApi._activeChartWidgetWV.value &&
-      window.TradingViewApi._activeChartWidgetWV.value();
-    if (!chart || !chart.getAllShapes) return { ok: false, reason: "chart api unavailable" };
-    return { ok: true, count: chart.getAllShapes().length };
-  } catch (e) {
-    return { ok: false, error: String(e) };
-  }
-})()"""
-
-CLEAR_ALL_SHAPES_EXPRESSION = """(() => {
-  try {
-    const chart = window.TradingViewApi &&
-      window.TradingViewApi._activeChartWidgetWV &&
-      window.TradingViewApi._activeChartWidgetWV.value &&
-      window.TradingViewApi._activeChartWidgetWV.value();
-    if (!chart || !chart.removeAllShapes || !chart.getAllShapes) {
-      return { ok: false, reason: "chart api unavailable" };
-    }
-    chart.removeAllShapes();
-    return { ok: true, count: chart.getAllShapes().length };
-  } catch (e) {
-    return { ok: false, error: String(e) };
-  }
-})()"""
 
 GATEWAY = TvGateway(owner_name=OWNER_NAME, log_path=LOG_PATH, workspace_dir=WORKSPACE_DIR)
 
@@ -120,22 +109,65 @@ def latest_bar_time() -> int:
     return int(bars[-1]["time"])
 
 
-def fallback_clear_via_ui() -> bool:
-    response = GATEWAY.try_tv(
-        ["ui", "click", "--by", "aria-label", "--value", "Remove objects"],
-        timeout=10,
-    )
-    if response and response.get("success"):
-        time.sleep(0.8)
-        GATEWAY.dismiss_modals()
-        GATEWAY.try_tv(["ui", "keyboard", "Enter"], timeout=5)
-        time.sleep(0.8)
-        return True
-    return False
+def build_editable_shape_options(
+    *,
+    shape: str,
+    overrides: dict[str, Any],
+    text: str | None = None,
+) -> str:
+    options: dict[str, Any] = {
+        "shape": shape,
+        "overrides": overrides,
+    }
+    if text is not None:
+        options["text"] = text
+
+    forbidden = sorted(FORBIDDEN_AUTOMATION_SHAPE_OPTIONS.intersection(options))
+    if forbidden:
+        raise RuntimeError(
+            "Automation-owned chart markings must remain savable and editable. "
+            f"Forbidden shape options detected: {', '.join(forbidden)}"
+        )
+
+    return json.dumps(options, ensure_ascii=True)
+
+
+def chart_api_expression(body: str) -> str:
+    return f"""(() => {{
+  try {{
+    const chart = window.TradingViewApi &&
+      window.TradingViewApi._activeChartWidgetWV &&
+      window.TradingViewApi._activeChartWidgetWV.value &&
+      window.TradingViewApi._activeChartWidgetWV.value();
+    if (!chart) {{
+      return {{ ok: false, reason: "chart api unavailable" }};
+    }}
+{body}
+  }} catch (e) {{
+    return {{ ok: false, error: String(e) }};
+  }}
+}})()"""
+
+
+def run_chart_ui_eval(expression: str, *, timeout: int = 15) -> dict[str, Any]:
+    response = GATEWAY.run_tv(["ui", "eval", expression], timeout=timeout)
+    result = response.get("result")
+    if not isinstance(result, dict):
+        raise RuntimeError(f"Chart API returned an unexpected result: {response}")
+    if not result.get("ok"):
+        raise RuntimeError(result.get("error") or result.get("reason") or "Chart API operation failed.")
+    return result
 
 
 def get_shape_count() -> int | None:
-    response = GATEWAY.try_tv(["ui", "eval", SHAPE_COUNT_EXPRESSION], timeout=10)
+    expression = chart_api_expression(
+        """    if (!chart.getAllShapes) {
+      return { ok: false, reason: "chart.getAllShapes unavailable" };
+    }
+    return { ok: true, count: chart.getAllShapes().length };
+"""
+    )
+    response = GATEWAY.try_tv(["ui", "eval", expression], timeout=10)
     if not response or not response.get("success"):
         return None
     result = response.get("result") or {}
@@ -145,15 +177,39 @@ def get_shape_count() -> int | None:
     return int(count) if isinstance(count, (int, float)) else None
 
 
-def clear_all_shapes_via_ui_eval() -> bool:
-    response = GATEWAY.try_tv(["ui", "eval", CLEAR_ALL_SHAPES_EXPRESSION], timeout=10)
-    if not response or not response.get("success"):
-        return False
-    result = response.get("result") or {}
-    if not result.get("ok"):
-        return False
-    count = result.get("count")
-    return isinstance(count, (int, float)) and int(count) == 0
+def wait_for_shape_count(expected_count: int, *, timeout_seconds: float = 8.0, poll_seconds: float = 0.25) -> bool:
+    deadline = time.time() + timeout_seconds
+    while time.time() < deadline:
+        count = get_shape_count()
+        if count == expected_count:
+            return True
+        time.sleep(poll_seconds)
+    return get_shape_count() == expected_count
+
+
+def clear_all_shapes_via_chart_api() -> None:
+    expression = chart_api_expression(
+        """    if (!chart.getAllShapes || !chart.removeEntity) {
+      return { ok: false, reason: "shape removal api unavailable" };
+    }
+    const shapes = Array.from(chart.getAllShapes());
+    for (const shape of shapes) {
+      const entityId = (shape && typeof shape === "object")
+        ? (shape.id ?? shape.entityId ?? shape.lineId ?? null)
+        : shape;
+      if (entityId === null || entityId === undefined) {
+        continue;
+      }
+      try {
+        chart.removeEntity(entityId);
+      } catch (removeError) {
+        return { ok: false, error: String(removeError), entityId };
+      }
+    }
+    return { ok: true, count: chart.getAllShapes().length };
+"""
+    )
+    run_chart_ui_eval(expression, timeout=15)
 
 
 def clear_owned_shapes(symbol: str, timeframe: str) -> None:
@@ -162,95 +218,114 @@ def clear_owned_shapes(symbol: str, timeframe: str) -> None:
     for _ in range(3):
         try:
             GATEWAY.wait_for_chart_ready(symbol, timeframe)
-            if clear_all_shapes_via_ui_eval():
-                return
-            GATEWAY.run_tv(["draw", "clear"], timeout=20)
-            time.sleep(0.6)
-            remaining = get_shape_count()
-            if remaining == 0:
+            clear_all_shapes_via_chart_api()
+            if wait_for_shape_count(0, timeout_seconds=4.0):
                 return
         except Exception as exc:
             clear_error = exc
         GATEWAY.dismiss_modals()
         time.sleep(1.5)
 
-    if fallback_clear_via_ui():
-        time.sleep(1.0)
-        remaining = get_shape_count()
-        if remaining == 0:
-            return
-
     raise clear_error or RuntimeError("Unable to clear automation-owned shapes from the chart.")
 
 
-def draw_horizontal_level(price: float, color: str, anchor_time: int) -> None:
-    overrides = json.dumps({"linecolor": color, "linewidth": 1})
-    GATEWAY.run_tv(
-        [
-            "draw",
-            "shape",
-            "--type",
-            "horizontal_line",
-            "--price",
-            f"{price}",
-            "--time",
-            str(anchor_time),
-            "--overrides",
-            overrides,
-        ],
-        timeout=15,
+def horizontal_line_overrides(color: str, *, font_size: int = 14) -> dict[str, Any]:
+    return {
+        "linecolor": color,
+        "linewidth": 1,
+        "textcolor": color,
+        "fontsize": font_size,
+        "horzLabelsAlign": "center",
+        "vertLabelsAlign": "middle",
+    }
+
+
+def trend_line_overrides(color: str, *, font_size: int = 14) -> dict[str, Any]:
+    return {
+        "linecolor": color,
+        "linewidth": 1,
+        "textcolor": color,
+        "fontsize": font_size,
+        "horzLabelsAlign": "center",
+        "vertLabelsAlign": "middle",
+    }
+
+
+def draw_horizontal_level(price: float, color: str, anchor_time: int, label: str) -> None:
+    point = json.dumps({"time": anchor_time, "price": price}, ensure_ascii=True)
+    options = build_editable_shape_options(
+        shape="horizontal_line",
+        overrides=horizontal_line_overrides(color),
+        text=label,
     )
-
-
-def draw_finite_level(price: float, color: str, start_time: int, end_time: int) -> None:
-    overrides = json.dumps({"linecolor": color, "linewidth": 1})
-    GATEWAY.run_tv(
-        [
-            "draw",
-            "shape",
-            "--type",
-            "trend_line",
-            "--price",
-            f"{price}",
-            "--time",
-            str(start_time),
-            "--price2",
-            f"{price}",
-            "--time2",
-            str(end_time),
-            "--overrides",
-            overrides,
-        ],
-        timeout=15,
+    expression = chart_api_expression(
+        f"""    const entityId = chart.createShape({point}, {options});
+    return {{ ok: true, entityId }};
+"""
     )
+    run_chart_ui_eval(expression, timeout=15)
 
 
-def draw_text_label(price: float, label: str, color: str, label_time: int) -> None:
-    overrides = json.dumps(
-        {
+def draw_finite_level(price: float, color: str, start_time: int, end_time: int, label: str) -> None:
+    points = json.dumps(
+        [
+            {"time": start_time, "price": price},
+            {"time": end_time, "price": price},
+        ],
+        ensure_ascii=True,
+    )
+    options = build_editable_shape_options(
+        shape="trend_line",
+        overrides=trend_line_overrides(color),
+        text=label,
+    )
+    expression = chart_api_expression(
+        f"""    const entityId = chart.createMultipointShape({points}, {options});
+    return {{ ok: true, entityId }};
+"""
+    )
+    run_chart_ui_eval(expression, timeout=15)
+
+
+def draw_text_label(price: float, label: str, color: str, label_time: int, font_size: int = 14) -> None:
+    point = json.dumps({"time": label_time, "price": price}, ensure_ascii=True)
+    options = build_editable_shape_options(
+        shape="text",
+        text=label,
+        overrides={
             "color": color,
-            "fontsize": 14,
+            "fontsize": font_size,
             "fillBackground": False,
             "drawBorder": False,
-        }
+        },
     )
-    GATEWAY.run_tv(
-        [
-            "draw",
-            "shape",
-            "--type",
-            "text",
-            "--price",
-            f"{price}",
-            "--time",
-            str(label_time),
-            "--text",
-            label,
-            "--overrides",
-            overrides,
-        ],
-        timeout=15,
+    expression = chart_api_expression(
+        f"""    const entityId = chart.createShape({point}, {options});
+    return {{ ok: true, entityId }};
+"""
     )
+    run_chart_ui_eval(expression, timeout=15)
+
+
+def draw_chart_note(price: float, label: str, color: str, label_time: int) -> None:
+    draw_text_label(
+        price=price,
+        label=label,
+        color=color,
+        label_time=label_time,
+        font_size=12,
+    )
+
+
+def expected_shape_count(state: dict[str, Any]) -> int:
+    levels = state.get("levels") or {}
+    count = 0
+    for group_name in ("htf", "execution_5m", "trade_entry", "chart_note"):
+        for raw_level in levels.get(group_name, []):
+            if raw_level is None or raw_level.get("enabled", True) is False:
+                continue
+            count += 1
+    return count
 
 
 def render_level_set(state: dict[str, Any], latest_time: int, dry_run: bool) -> list[str]:
@@ -258,8 +333,6 @@ def render_level_set(state: dict[str, Any], latest_time: int, dry_run: bool) -> 
     tf_seconds = timeframe_to_seconds(str(timeframe))
     finite_start = latest_time - tf_seconds
     finite_end = latest_time + (4 * tf_seconds)
-    finite_label_time = latest_time + (5 * tf_seconds)
-    htf_label_time = latest_time + (5 * tf_seconds)
     rendered: list[str] = []
 
     levels = state.get("levels") or {}
@@ -267,6 +340,7 @@ def render_level_set(state: dict[str, Any], latest_time: int, dry_run: bool) -> 
         ("htf", "infinite"),
         ("execution_5m", "finite"),
         ("trade_entry", "finite"),
+        ("chart_note", "note"),
     ]
 
     for group_name, default_style in ordered_groups:
@@ -274,27 +348,33 @@ def render_level_set(state: dict[str, Any], latest_time: int, dry_run: bool) -> 
             if raw_level is None or raw_level.get("enabled", True) is False:
                 continue
 
-            label = str(raw_level["label"])
+            label = str(raw_level.get("text") or raw_level["label"])
             price = float(raw_level["price"])
             semantic = str(raw_level.get("semantic", label))
             style = str(raw_level.get("style", default_style)).lower()
+            if group_name == "execution_5m":
+                # Fixed directive: 5m execution levels render as full horizontal
+                # lines across the chart while remaining execution-only in logic.
+                style = "infinite"
             color = str(raw_level.get("color") or SEMANTIC_COLORS.get(semantic, "#2157F3"))
             rendered.append(label)
 
             if dry_run:
                 continue
 
-            if style == "infinite":
-                draw_horizontal_level(price=price, color=color, anchor_time=latest_time)
-                draw_text_label(price=price, label=label, color=color, label_time=htf_label_time)
+            if group_name == "chart_note" or style == "note":
+                note_time = latest_time + (5 * tf_seconds)
+                draw_chart_note(price=price, label=label, color=color, label_time=note_time)
+            elif style == "infinite":
+                draw_horizontal_level(price=price, color=color, anchor_time=latest_time, label=label)
             else:
                 draw_finite_level(
                     price=price,
                     color=color,
                     start_time=finite_start,
                     end_time=finite_end,
+                    label=label,
                 )
-                draw_text_label(price=price, label=label, color=color, label_time=finite_label_time)
 
     return rendered
 
@@ -326,7 +406,15 @@ def clear_and_redraw_owned_state(state: dict[str, Any], dry_run: bool) -> list[s
         time.sleep(0.4)
         latest_time = latest_bar_time()
 
-    return render_level_set(state, latest_time=latest_time, dry_run=dry_run)
+    rendered = render_level_set(state, latest_time=latest_time, dry_run=dry_run)
+    if not dry_run:
+        target_count = expected_shape_count(state)
+        if not wait_for_shape_count(target_count, timeout_seconds=8.0):
+            actual_count = get_shape_count()
+            raise RuntimeError(
+                f"Rendered shape count mismatch for {symbol}: expected {target_count}, got {actual_count}."
+            )
+    return rendered
 
 
 def applied_state_path(symbol: str) -> Path:
@@ -397,6 +485,7 @@ def reconcile_symbol(state: dict[str, Any], force: bool = False, dry_run: bool =
             "dry_run": dry_run,
             "source_workflow": state.get("source_workflow"),
             "cleanup_scope": state.get("cleanup_scope"),
+            "refresh_reason": state.get("refresh_reason"),
         }
         if not dry_run:
             save_json(applied_path, result)
@@ -407,6 +496,9 @@ def reconcile_symbol(state: dict[str, Any], force: bool = False, dry_run: bool =
             last_success_at=now_iso(),
             screenshot=screenshot_path,
             rendered_labels=rendered,
+            expected_shape_count=expected_shape_count(state),
+            actual_shape_count=None if dry_run else get_shape_count(),
+            refresh_reason=state.get("refresh_reason"),
             last_error=None,
             last_failed_at=None,
         )

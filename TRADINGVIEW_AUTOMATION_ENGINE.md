@@ -1,4 +1,4 @@
-﻿# TradingView Automation Engine
+# TradingView Automation Engine
 
 ## Implementation Mode
 
@@ -29,7 +29,7 @@ Every automation must read that rules file together with:
 
 Those rules are now mandatory for:
 
-- label repositioning back to the right side on every workflow run
+- embedded centered line text on every automation-owned line draw in both workflow charts on every workflow run
 - explicit semantic colors instead of gray or default-neutral lines
 - 5m execution-line lifecycle management (`ACTIVE`, `STALE`, `INVALIDATED`)
 - opportunity timing-state management (`PRE-TRIGGER`, `ARMED`, `TRIGGERED`, `EXPIRED`)
@@ -37,8 +37,15 @@ Those rules are now mandatory for:
 - line-only execution markup for confirmed entries: `ENTRY`, `TP1`, `TP2`, `TP3`, and `SL` as short bounded lines instead of boxes
 - entry proposals must fit the user's risk model: preferred stop `60-80`, hard max `100`, with `TP1 60`, `TP2 80`, and `TP3 100`
 - if a stale 5m execution pair is replaced, remove the obsolete old 5m pair but preserve the HTF manual layer unless higher-timeframe structure itself has changed
-- HTF manual structure should usually keep a pair per symbol: `4H SUPPORT` plus `4H RESISTANCE`, both as infinite horizontal lines
+- HTF manual structure should now preserve one Daily context pair plus one 4H structural pair per symbol when both remain meaningful:
+  - `DAILY SUPPLY`
+  - `DAILY DEMAND`
+  - `4H DEMAND`
+  - `4H SUPPLY`
+- `Daily` stays context-only inside the HTF layer
+- `4H` stays the structural HTF layer
 - `5M EXECUTION LONG` lines must render in blue and `5M EXECUTION SHORT` lines must render in yellow across the whole automation stack
+- `DAILY SUPPLY` must render in purple and `DAILY DEMAND` must render in teal across the whole automation stack
 - transcript-derived refinements may strengthen timing, confirmation, and explanation, but they must never replace the existing strategy hierarchy or risk model
 
 If the rules file and older workflow wording ever conflict, the rules file wins for chart markings, 5m execution-line handling, and final action-state freshness.
@@ -65,6 +72,23 @@ Important interpretation rule:
 - whenever a workflow prompt says `draw`, `preserve`, `add`, `remove`, or `simplify` chart levels, treat that as updating the desired state JSON, not as issuing direct TradingView drawing commands from inside the automation
 - the desired state files are authoritative for automation-owned markings
 - the live chart is a rendered view and a verification surface, not the durable source of truth
+
+## Daily HTF Context Layer
+
+- `Daily` chart markings are now an approved context-only extension of the existing HTF layer.
+- Use only these Daily semantics:
+  - `DAILY SUPPLY`
+  - `DAILY DEMAND`
+- `Daily` lives inside the existing `levels.htf` array. Do not create a new desired-state block.
+- `Daily` and `4H` must render as infinite horizontal lines with their text embedded in the line itself.
+- `5m` must remain execution-only and now render as endless horizontal lines from left to right.
+- `Daily` does not create new setups.
+- `Daily` does not override `4H` or `5m`.
+- `Daily` may appear inside trader-facing `Niveles` only when it is part of the active preserved map.
+- Baseline workflows must set the Daily pair together with the 4H pair and the active 5m pair.
+- Reactive workflows should preserve the Daily pair unless the higher-timeframe thesis itself materially changed.
+- `End-of-Day Review` remains review-only and must not mutate desired state.
+- The chart executor must finish with a real line carrying embedded centered text per enabled level; `5m` text-only redraws are invalid.
 
 ## Market Runtime Layer
 
@@ -94,7 +118,7 @@ Important interpretation rule:
   - `market.quote`
   - timeframe `state`
   - OHLCV bars
-  - `D / 4H / 30m / 15m / 5m`
+- `M / W / D / 4H / 1H / 30m / 15m / 5m`
   - `derived_features` when available
 - do not inspect, request, reference, or interpret screenshots / PNG files for trading decisions
 - if a symbol is `FULL_DATA` or `PARTIAL_DATA` with `decision_allowed = true`, assess that symbol
@@ -124,6 +148,84 @@ Before finalizing any assessment:
   - trade permission
   - anti-chase discipline
   - desired-state level-selection quality
+
+Also read the runtime status files before finalizing any live assessment:
+
+- [market_runtime/market_runtime_state.json](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/market_runtime/market_runtime_state.json)
+- [market_runtime/market_watchdog_state.json](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/market_runtime/market_watchdog_state.json)
+
+Those files are operational only. They do not change the strategy. They only
+tell the workflows whether they are in:
+
+- normal fresh operation
+- symbol degradation
+- `workflow_stalled`
+- `recovery pending`
+- `recovery ready`
+
+## Workflow Recovery And Redraw Stabilization
+
+This layer is operational only. It does not change:
+
+- `Monthly / Weekly -> Daily / 4H -> 1H -> 30m -> 15m -> 5m`
+- risk rules
+- timing states
+- action states
+- chart ownership
+- desired-state architecture
+
+Rules for all live automations except `End-of-Day Review`:
+
+- treat `15 minutes` without a full valid structured assessment cycle as
+  `workflow_stalled`
+- if a workflow is stalled, do not keep treating the old execution map as fresh
+- if the runtime says `recovery_pending`, preserve prior maps and avoid
+  inventing a new redraw
+- if the runtime says `recovery_gate_status = ready`, the next eligible
+  workflow must perform a full reassess + redraw
+
+Workflow-required symbol sets:
+
+- New York dual-symbol workflows require both `XAUUSD` and `US30`
+- Asia gold workflows require `XAUUSD`; `US30` does not block the reassessment
+- `End-of-Day Review` remains review-only and never mutates chart state
+
+Mandatory reassess trigger even without hard invalidation:
+
+- if both active `5m` execution levels are structurally far from current price
+  and no longer define execution readiness, refresh the pair
+- use `refresh_reason = 5m_far_from_price`
+
+HTF rule:
+
+- re-evaluate `Daily / 4H` every live cycle
+- redraw HTF only if higher-timeframe structure materially changed
+- otherwise preserve HTF and refresh only the execution layer when needed
+
+Desired-state audit rule:
+
+- when a workflow mutates desired state, write one of:
+  - `stall_recovery`
+  - `5m_far_from_price`
+  - `htf_changed`
+  - `manual_reassessment`
+
+## Planning-Only Chart Note Exception
+
+The engine now allows one explicit visual exception:
+
+- `CHART NOTE`
+
+Rules:
+
+- use it only as pre-permission planning context
+- it is not active trade markup
+- it must never be confused with `ENTRY`
+- it must disappear when:
+  - real trade permission exists
+  - the idea expires
+  - the workflow refreshes away from that setup
+- `ENTRY / SL / TP1 / TP2 / TP3` still require valid risk permission
 
 ## Discord Layer
 
@@ -166,10 +268,14 @@ Notification objective:
 
 Current Discord delivery architecture:
 
-- each automation writes its Discord summary to the shared dispatch file:
-  - [dispatch.txt](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/discord_payloads/dispatch.txt)
+- each automation must enqueue its Discord summary through:
+  - [discord_enqueue.py](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/discord_enqueue.py)
+- the helper writes:
+  - a mirror file under `discord_payloads/<automation_id>.txt`
+  - a per-run event file under `discord_payloads/outbox/`
+  - a legacy `dispatch.txt` mirror only
 - the automations no longer send Discord directly from inside Codex
-- a local watcher runs outside the automation sandbox and detects updates to `dispatch.txt`
+- a local watcher runs outside the automation sandbox and consumes the outbox queue
 - that watcher is:
   - [discord_dispatch_watcher.py](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/discord_dispatch_watcher.py)
 - it is launched through:
@@ -178,6 +284,13 @@ Current Discord delivery architecture:
   - [discord_notifier.py](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/discord_notifier.py)
 
 This was done so all 8 flows use the same exact send path without depending on direct network access from inside each automation.
+
+Delivery rules:
+
+- one automation run should enqueue one event
+- dedupe is by `event_id`, not by identical message body
+- if the watcher was down, it should replay only the recent backlog window
+- `dispatch.txt` is no longer the authoritative transport layer
 
 Exact Discord config, helper behavior, payload paths, command pattern, and current message shape are documented here:
 
@@ -202,9 +315,13 @@ If New York changes between EDT and EST and Codex still lacks per-automation tim
 
 ## Timeframe Integration Standard
 
-The workflow now uses a four-layer timeframe hierarchy instead of jumping directly from `Daily / 4H` to `5m`.
+The workflow now uses a full timeframe-correlation hierarchy instead of jumping directly from HTF to `5m`.
 
-- `Daily` and `4H` define the directional framework and major supply / demand map.
+- `Monthly` and `Weekly` define macro supply / demand context, broad location, and risk pressure.
+- `Daily` and `4H` define the operational directional framework and major supply / demand map.
+- `1H` is the tactical correlation layer:
+  - confirm acceptance or rejection between `4H` and intraday structure
+  - identify transition, compression, or failed continuation before the `30m` read
 - `30m` is the structure bridge:
   - confirm whether the higher-timeframe idea is organizing into trend, compression, sweep, or rotation
   - validate whether key 4H levels are being accepted or rejected cleanly
@@ -228,7 +345,7 @@ Engine rule:
 - do use `15m` to decide whether a setup is mature enough to trade
 - do use `indication -> correction -> continuation` as a timing refinement inside the existing framework
 - do prefer confirmation after correction over chasing the first expansion candle
-- only promote `VALID LONG SETUP` or `VALID SHORT SETUP` when `30m`, `15m`, and `5m` are aligned, or when any mismatch is explicitly explained
+- only promote `VALID LONG SETUP` or `VALID SHORT SETUP` when `1H`, `30m`, `15m`, and `5m` build a coherent story, or when any mismatch is explicitly explained
 - do not mark a new 5m entry without stating the nearest liquidity above, the nearest liquidity below, and whether the setup is targeting, sweeping, or rejecting one of those pools
 - do classify each live idea as `PRE-TRIGGER`, `ARMED`, `TRIGGERED`, or `EXPIRED` so the workflow does not keep saying `WAIT` after the best retest already happened
 - if the setup is already `TRIGGERED`, the workflow must explicitly say whether the correct action is `manage if already in`, `do not chase`, or `wait for new retest`
@@ -253,7 +370,7 @@ The transcripts are a refinement source, not a replacement strategy.
   - `TRIGGERED`
   - `EXPIRED`
 - Promote only concepts that improve timing, confirmation, structure reading, or chart clarity without altering:
-  - `Daily / 4H -> 30m -> 15m -> 5m`
+- `Monthly / Weekly -> Daily / 4H -> 1H -> 30m -> 15m -> 5m`
   - the user's risk model
   - the line-only execution style
   - the anti-chase posture
@@ -266,7 +383,7 @@ Articuno is now an approved technical reinforcement layer, not a replacement met
 - Use [ARTICUNO_REINFORCEMENT_LAYER.md](C:/Users/sebas/Documents/Codex/2026-04-18-corre-la-herramienta-tv-health-check/ARTICUNO_REINFORCEMENT_LAYER.md) before finalizing any of the 9 automation assessments.
 - Apply it only as reinforcement.
 - Do not create new setups from Articuno concepts.
-- Do not override `Daily / 4H -> 30m -> 15m -> 5m`.
+- Do not override `Monthly / Weekly -> Daily / 4H -> 1H -> 30m -> 15m -> 5m`.
 - Do not override risk rules.
 - Do not override timing states.
 - Do not override desired-state chart ownership.
@@ -295,7 +412,7 @@ Chart-marking rule under Articuno:
 
 - do not add new drawing types
 - keep HTF infinite
-- keep 5m finite
+- keep 5m execution-only while rendering it as endless horizontal lines
 - keep semantic colors unchanged
 - use Articuno only to improve whether a level should be preserved, refreshed, simplified, invalidated, or left untouched
 
@@ -314,26 +431,27 @@ Prompt:
 ```text
 Use this shared continuity file as mandatory baseline memory: C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\SMART_MONEY_GOOD_MONEY_ENGINE_STATE.md
 
-Review the latest TradingView Structured Live State files for PEPPERSTONE:XAUUSD and FOREXCOM:US30. This is the baseline thesis for todayÃ¢â‚¬â„¢s New York workflow, so set context carefully and keep it practical. Use Daily and 4H to define direction. Use 30m to map session structure, 15m to validate setup quality, and 5m only for execution timing. Prioritize supply/demand, structure, breakout/retest, rejection, confirmation, and clean level interaction. RSI is secondary and must stay brief. If structure is mixed, explicitly say WAIT / NO CLEAR EDGE.
+Review the latest TradingView Structured Live State files for PEPPERSTONE:XAUUSD and FOREXCOM:US30. This is the baseline thesis for today's New York workflow, so set context carefully and keep it practical. Use Monthly and Weekly for macro supply/demand context. Use Daily and 4H to define the operational direction and HTF structure. Use 1H to validate tactical acceptance, rejection, or transition. Use 30m to map session structure, 15m to validate setup quality, and 5m only for execution timing. Prioritize supply/demand, structure, breakout/retest, rejection, confirmation, and clean level interaction. RSI is secondary and must stay brief. If structure is mixed, explicitly say WAIT / NO CLEAR EDGE.
 
 For each symbol, produce a Spanish report with:
+- MACRO CONTEXT: Monthly and Weekly supply/demand, broad location, and whether macro context supports, warns, or conflicts.
 - HIGHER-TIMEFRAME BIAS: Daily directional bias, 4H directional bias, whether they are aligned, strength of bias, and whether to prefer longs, shorts, or patience.
-- INTERMEDIATE STRUCTURE: what the 30m says about session structure, what the 15m says about setup quality, and whether those timeframes support or conflict with the Daily / 4H idea.
+- TACTICAL / INTERMEDIATE STRUCTURE: what 1H says about acceptance/rejection/transition, what the 30m says about session structure, what the 15m says about setup quality, and whether those timeframes support or conflict with the Daily / 4H idea.
 - LIQUIDITY MAP: nearest buy-side liquidity, nearest sell-side liquidity, whether price is more likely to target one first, and whether a 5m setup should wait for a sweep before execution.
 - KEY STRUCTURE: current structure, whether supply or demand is being respected, whether prior support became resistance or resistance became support, and any clear change of character or failure to change character.
-- MOST IMPORTANT LEVELS: 2 higher-timeframe 4H support/resistance levels, 2 execution levels on 5m, PDH, PDL, overnight high/low if visible, and the nearest clean buy-side and sell-side liquidity. Choose only the clearest actionable levels.
+- MOST IMPORTANT LEVELS: preserved Monthly/Weekly when clear, the preserved Daily pair when active, the preserved 4H pair, useful 1H supply/demand when it clarifies the map, 2 execution levels on 5m, PDH, PDL, overnight high/low if visible, and the nearest clean buy-side and sell-side liquidity. Choose only the clearest actionable levels.
 - RSI CONTEXT: current RSI value and whether it is overbought, oversold, or neutral, briefly.
 - EXECUTION READINESS: what must happen for a valid long, what must happen for a valid short, which liquidity event must happen first if any, what invalidates both sides, and what not to do right now. A 5m entry is only valid if it is either targeting a clear liquidity pool or confirming after a sweep / reclaim / rejection.
 - 3-LINE CONCLUSION IN SPANISH: what the market is doing now, what is more likely next if structure holds, and what to avoid right now.
 
 Chart actions:
 - Update the desired chart state for this workflow instead of drawing directly from the automation. The local chart executor will reconcile the chart.
-- Draw 4H higher-timeframe support and resistance lines.
-- Treat 4H higher-timeframe support and resistance as persistent infinite lines, not as short execution segments.
-- Keep a meaningful `4H SUPPORT` / `4H RESISTANCE` pair on the chart when both sides still matter.
+- Draw 4H higher-timeframe supply and demand lines.
+- Treat 4H higher-timeframe supply and demand as persistent infinite lines, not as short execution segments.
+- Keep one active `DAILY SUPPLY` / `DAILY DEMAND` pair on the chart when the HTF context is clear, plus a meaningful `4H DEMAND` / `4H SUPPLY` pair when both structural sides still matter.
 - Draw 5m execution lines only at liquidity-targeting or post-sweep execution zones.
-- Keep 5m execution lines short and finite so they stay visually distinct from HTF structure.
-- Use uppercase labels: 4H RESISTANCE, 4H SUPPORT, 5M EXECUTION SHORT, 5M EXECUTION LONG, PDH, PDL, ON HIGH, ON LOW.
+- Keep 5m execution lines as endless horizontal lines; they stay execution-only by logic, not by line length.
+- Use uppercase labels: DAILY SUPPLY, DAILY DEMAND, 4H SUPPLY, 4H DEMAND, 5M EXECUTION SHORT, 5M EXECUTION LONG, PDH, PDL, ON HIGH, ON LOW.
 
 After finishing the analysis, update the shared continuity file with todayÃ¢â‚¬â„¢s New York baseline thesis, the drawn levels for both symbols, the current preferred side, and a fresh log entry for this automation.
 
@@ -359,7 +477,7 @@ Review the latest TradingView Structured Live State files for PEPPERSTONE:XAUUSD
 - OPEN VALIDATION: whether the New York open is confirming or rejecting the higher-timeframe bias, whether price is accepting above or below key levels or rejecting them, and whether the open created a breakout, failed breakout, sweep, retest, or consolidation. State whether the move is clean or erratic.
 - STRUCTURE AND EXECUTION: the clearest 30m structure, the 15m setup-quality read, the 5m trigger state right now, whether a valid long setup is forming, whether a valid short setup is forming, whether the current 5m move is targeting liquidity or reacting after taking it, what exact confirmation is still missing, and what would invalidate the current idea.
 - OPPORTUNITY TIMING: classify the current execution opportunity as `PRE-TRIGGER`, `ARMED`, `TRIGGERED`, or `EXPIRED`. If it is already `TRIGGERED`, say clearly whether the correct action is `manage if already in`, `do not chase`, or `wait for new retest`.
-- LEVEL INTERACTION: which previously drawn levels are being respected, which are failing, whether PDH, PDL, ON HIGH, or ON LOW have been swept or reclaimed, whether the nearest liquidity has already been been taken or remains untouched, and whether price is reacting cleanly at 4H support/resistance or 5m execution levels.
+- LEVEL INTERACTION: which previously drawn levels are being respected, which are failing, whether PDH, PDL, ON HIGH, or ON LOW have been swept or reclaimed, whether the nearest liquidity has already been been taken or remains untouched, and whether price is reacting cleanly at 4H demand/resistance or 5m execution levels.
 - TRADING DECISION: Prefer LONGS, SHORTS, WAIT, or NO CLEAR EDGE; which symbol is cleaner right now; which symbol should be avoided; and the biggest trap at this moment.
 - 3-LINE CONCLUSION IN SPANISH: what the open is doing, what is tradable now if anything, and what to avoid right now.
 
@@ -367,7 +485,8 @@ Chart actions:
 - Update the desired chart state for this workflow instead of drawing directly from the automation. The local chart executor will reconcile the chart.
 - Preserve the relevant 4H and 5m levels from NY Open Levels.
 - Preserve the HTF layer even when refreshing the 5m execution map.
-- Keep preserved 4H levels as infinite lines and do not redraw them as short execution-style segments.
+- Keep preserved Daily and 4H levels as infinite lines and do not redraw them as short execution-style segments.
+- Preserve the Daily pair unless the higher-timeframe thesis itself materially changed.
 - Add a new 5m execution line only if the open created a clearer trigger zone tied to liquidity targeting or post-sweep rejection / reclaim.
 - Keep uppercase labels consistent.
 
@@ -414,6 +533,7 @@ Chart actions:
 - Update the desired chart state for this workflow instead of drawing directly from the automation. The local chart executor will reconcile the chart.
 - Preserve relevant levels from prior automations.
 - Preserve the HTF layer as infinite lines while refreshing the 5m map.
+- Preserve the Daily pair unless the higher-timeframe thesis itself materially changed.
 - Add a new 5m execution line only if price action has created a clearer trigger zone.
 - Keep uppercase labels consistent.
 
@@ -456,7 +576,8 @@ Chart actions:
 - Update the desired chart state for this workflow instead of drawing directly from the automation. The local chart executor will reconcile the chart.
 - Preserve relevant levels.
 - Remove only levels that are clearly no longer relevant.
-- Keep the HTF manual pair as infinite lines unless higher-timeframe structure itself invalidates one side.
+- Keep the HTF manual layer as infinite lines unless higher-timeframe structure itself invalidates one side.
+- Preserve the Daily pair unless the higher-timeframe thesis itself materially changed.
 - Add updated 5m execution lines only if necessary and tied to a clear liquidity objective or post-sweep reaction.
 - Preserve label consistency.
 
@@ -478,7 +599,7 @@ Prompt:
 ```text
 Use this shared continuity file as mandatory baseline memory: C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\SMART_MONEY_GOOD_MONEY_ENGINE_STATE.md
 
-Continue from the full New York workflow already stored in the shared continuity file. Do not reinvent the day. Reassess the original thesis using everything that has happened so far, plus the latest desired-state chart map and the latest TradingView Structured Live State payloads. Preserve the higher-timeframe hierarchy: Daily and 4H define context, 30m organizes the session structure, 15m filters setup quality, and 5m only refines execution.
+Continue from the full New York workflow already stored in the shared continuity file. Do not reinvent the day. Reassess the original thesis using everything that has happened so far, plus the latest desired-state chart map and the latest TradingView Structured Live State payloads. Preserve the higher-timeframe hierarchy: Monthly and Weekly define macro supply/demand context, Daily and 4H define operational context and HTF structure, 1H validates tactical acceptance/rejection/transition, 30m organizes the session structure, 15m filters setup quality, and 5m only refines execution.
 
 Review the latest TradingView Structured Live State files for PEPPERSTONE:XAUUSD and FOREXCOM:US30 and assess:
 - whether the original morning thesis is still alive
@@ -500,7 +621,7 @@ Then provide:
 Chart actions:
 - Update the desired chart state for this workflow instead of drawing directly from the automation. The local chart executor will reconcile the chart.
 - Preserve the relevant map.
-- Keep the HTF pair (`4H SUPPORT` / `4H RESISTANCE`) as infinite lines if still relevant.
+- Keep the HTF layer (`MONTHLY SUPPLY`, `MONTHLY DEMAND`, `WEEKLY SUPPLY`, `WEEKLY DEMAND`, `DAILY SUPPLY`, `DAILY DEMAND`, `4H DEMAND`, `4H SUPPLY`, `1H SUPPLY`, `1H DEMAND`) as infinite lines if still relevant.
 - Simplify clutter if too many short-term levels were added.
 - Keep only the levels that still matter, and limit hard cleanup to the 5m execution layer unless the HTF thesis itself changed.
 - Preserve label consistency.
@@ -548,7 +669,7 @@ Prompt:
 ```text
 Use this shared continuity file as mandatory baseline memory: C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\SMART_MONEY_GOOD_MONEY_ENGINE_STATE.md
 
-Review the latest TradingView Structured Live State files for PEPPERSTONE:XAUUSD. This is the baseline thesis for the Asia workflow. Use Daily and 4H to define direction. Use 30m to map session structure, 15m to validate setup quality, and 5m only for execution timing. Prioritize supply/demand, structure, breakout/retest, rejection, confirmation, and clean level interaction. RSI is secondary and must stay brief. If structure is mixed, explicitly say WAIT / NO CLEAR EDGE.
+Review the latest TradingView Structured Live State files for PEPPERSTONE:XAUUSD. This is the baseline thesis for the Asia workflow. Use Monthly and Weekly for macro supply/demand context. Use Daily and 4H to define operational direction and HTF structure. Use 1H to validate tactical acceptance, rejection, or transition. Use 30m to map session structure, 15m to validate setup quality, and 5m only for execution timing. Prioritize supply/demand, structure, breakout/retest, rejection, confirmation, and clean level interaction. RSI is secondary and must stay brief. If structure is mixed, explicitly say WAIT / NO CLEAR EDGE.
 
 Produce a Spanish pre-session report with:
 - Daily directional bias
@@ -561,7 +682,8 @@ Produce a Spanish pre-session report with:
 - current structure: trend continuation, breakout, failed breakout, retest, consolidation, or transition
 - whether supply or demand is being respected
 - whether price is entering Asia in expansion or in range conditions
-- 2 higher-timeframe 4H support/resistance levels
+- the preserved Daily pair when active
+- the preserved 4H pair
 - 2 execution levels on 5m
 - PDH and PDL
 - current range high and range low if clearly visible
@@ -576,11 +698,11 @@ Produce a Spanish pre-session report with:
 
 Chart actions:
 - Update the desired chart state for this workflow instead of drawing directly from the automation. The local chart executor will reconcile the chart.
-- Draw 4H higher-timeframe support and resistance lines.
-- Treat those 4H levels as infinite lines and keep a meaningful support/resistance pair when both sides still matter.
+- Draw 4H higher-timeframe supply and demand lines.
+- Treat those 4H levels as infinite lines and keep a meaningful supply/demand pair when both sides still matter.
 - Draw 5m execution lines only at liquidity-targeting or post-sweep execution zones.
-- Keep 5m execution lines short and finite so they stay visually distinct from HTF structure.
-- Use uppercase labels: 4H RESISTANCE, 4H SUPPORT, 5M EXECUTION SHORT, 5M EXECUTION LONG, PDH, PDL, RANGE HIGH, RANGE LOW.
+- Keep 5m execution lines as endless horizontal lines; they stay execution-only by logic, not by line length.
+- Use uppercase labels: DAILY SUPPLY, DAILY DEMAND, 4H SUPPLY, 4H DEMAND, 5M EXECUTION SHORT, 5M EXECUTION LONG, PDH, PDL, RANGE HIGH, RANGE LOW.
 
 After finishing the analysis, update the shared continuity file with the Asia baseline thesis for gold, the drawn levels, the preferred side or patience state, and a fresh log entry for this automation.
 
@@ -621,6 +743,7 @@ Chart actions:
 - Update the desired chart state for this workflow instead of drawing directly from the automation. The local chart executor will reconcile the chart.
 - Preserve relevant Asia levels.
 - Preserve the HTF layer as infinite lines while refreshing the 5m execution map.
+- Preserve the Daily pair unless the higher-timeframe thesis itself materially changed.
 - Add a new 5m execution line only if current price action creates a clearer trigger zone tied to liquidity targeting or post-sweep rejection / reclaim.
 - Preserve label consistency.
 
@@ -641,7 +764,7 @@ Prompt:
 ```text
 Use this shared continuity file as mandatory baseline memory: C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\SMART_MONEY_GOOD_MONEY_ENGINE_STATE.md
 
-This is a full live reassessment trigger for PEPPERSTONE:XAUUSD and FOREXCOM:US30. Preserve the existing strategy logic exactly: Daily and 4H define context, 30m organizes structure, 15m validates setup quality, and 5m is execution-only. Do not drift the strategy, the risk model, or the decision hierarchy.
+This is a full live reassessment trigger for PEPPERSTONE:XAUUSD and FOREXCOM:US30. Preserve the existing strategy logic exactly: Monthly and Weekly define macro supply/demand context, Daily and 4H define operational context and HTF structure, 1H validates tactical acceptance/rejection/transition, 30m organizes structure, 15m validates setup quality, and 5m is execution-only. Do not drift the strategy, the risk model, or the decision hierarchy.
 
 Before deciding anything:
 - read the shared continuity file
@@ -663,8 +786,10 @@ Then perform a full reassessment for XAUUSD and US30:
 Chart actions:
 - update the desired chart state instead of drawing directly
 - preserve the HTF layer as infinite lines
+- preserve the Daily pair unless the higher-timeframe thesis itself materially changed
 - rebuild the 5m execution layer only if the pair changed or the chart hygiene is broken
-- if a reassessment rebuild happens, the owned drawing layer must end with one clean line and one right-side label per owned level, with no duplicate generations and no interposed text over active candles
+- if a reassessment rebuild happens, the owned drawing layer must end with one clean line carrying centered embedded text per owned level, with no duplicate generations and no interposed legacy text over active candles
+- 5m text-only redraws are invalid; the chart runtime must render real endless horizontal 5m lines
 - keep `5M EXECUTION LONG` blue and `5M EXECUTION SHORT` yellow
 
 After finishing:

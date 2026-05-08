@@ -9,11 +9,17 @@ __pycache__/
 
 # Logs
 *.log
+*.pid.json
 
 # Runtime state / generated files
 *.lock
+tv_gateway_state.json
 chart_runtime/
 market_runtime/
+discord_payloads/outbox/
+discord_payloads/sent/
+discord_payloads/dropped/
+discord_payloads/invalid/
 
 # Extracted/generated assets
 pdf_extract/

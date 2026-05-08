@@ -1,14 +1,16 @@
 # SMART MONEY - GOOD MONEY Engine State
 
-Last updated by: NY Open Levels
-Last updated at: 2026-04-28T05:32:49.7710773-06:00
+Last updated by: Asia Setup Detector
+Last updated at: 2026-05-07T17:34:08.2813237-06:00
 
 ## Strategy Hierarchy
 
 - Trade only `PEPPERSTONE:XAUUSD` and `FOREXCOM:US30` around the New York open.
 - Trade only `PEPPERSTONE:XAUUSD` during Asia session.
-- Daily and 4H define the directional framework.
-- 30m is the structure bridge between HTF bias and intraday execution.
+- Monthly and Weekly define macro supply/demand context and broad location.
+- Daily and 4H define the operational directional framework, with 4H remaining the main structural HTF layer.
+- 1H is an important tactical correlation layer between HTF and intraday structure; it validates acceptance, rejection, transition, and quality.
+- 30m is the structure bridge between HTF / 1H bias and intraday execution.
 - 15m is the setup-quality filter before any execution decision.
 - 5m is execution-only.
 - A 5m entry must state the nearest buy-side liquidity, nearest sell-side liquidity, and whether price is targeting, sweeping, or rejecting one of those pools.
@@ -16,6 +18,7 @@ Last updated at: 2026-04-28T05:32:49.7710773-06:00
 - RSI is secondary.
 - If structure is mixed, say `WAIT / NO CLEAR EDGE`.
 - Lower-timeframe noise must not invalidate higher-timeframe context unless there is meaningful structural failure.
+- No timeframe creates standalone entries. The final goal remains a clean 5m execution only when the full timeframe correlation supports it.
 - On `PEPPERSTONE:XAUUSD`, risk must be designed before the entry is accepted.
 - On `PEPPERSTONE:XAUUSD`, never plan more than `100 pips` of risk.
 - On `PEPPERSTONE:XAUUSD`, the preferred stop range is usually `60-80 pips`; use the full `100 pips` only when the context clearly offers better `RR`.
@@ -45,7 +48,7 @@ Last updated at: 2026-04-28T05:32:49.7710773-06:00
   - chart clarity
 - Do not promote transcript content that would:
   - weaken the risk model
-  - override `Daily / 4H -> 30m -> 15m -> 5m`
+  - override `Monthly / Weekly -> Daily / 4H -> 1H -> 30m -> 15m -> 5m`
   - encourage chasing first impulse
   - turn the engine into a course-driven system
 - The main transcript-derived hard rules now approved by memory are:
@@ -81,7 +84,7 @@ Last updated at: 2026-04-28T05:32:49.7710773-06:00
   - Psychology anti-chase discipline
 - Articuno concepts may strengthen, weaken, or clarify an assessment.
 - Articuno concepts must never create standalone trade signals.
-- The strategy remains `Daily / 4H -> 30m -> 15m -> 5m`.
+- The strategy remains `Monthly / Weekly -> Daily / 4H -> 1H -> 30m -> 15m -> 5m`.
 - Articuno may improve which levels are selected, preserved, marked `STALE`, marked `INVALIDATED`, or sent to `desired_state`.
 - Articuno must not introduce new drawing types or alter `chart_executor` behavior.
 
@@ -109,6 +112,37 @@ Last updated at: 2026-04-28T05:32:49.7710773-06:00
   - `Historia -> Tesis -> Niveles -> Accion`
 - Discord should feel more energetic than reports, but it must preserve the same thesis, decision, levels, and timing state.
 - End-of-day should keep the same voice identity, but with a more reflective and coaching-oriented tone.
+
+## Macro, Daily, 4H, And 1H Context Layer
+
+- `Monthly`, `Weekly`, `Daily`, `4H`, and `1H` chart markings are approved context / structure extensions inside the existing desired-state architecture.
+- This does **not** change:
+  - strategy
+  - risk model
+  - timing states
+  - action states
+  - chart ownership model
+  - desired-state architecture
+  - communication identity
+- The strategy remains `Monthly / Weekly -> Daily / 4H -> 1H -> 30m -> 15m -> 5m`.
+- `Monthly` and `Weekly` remain macro context-only.
+- `Daily` remains operational context.
+- `4H` remains the structural HTF layer.
+- `1H` is a tactical correlation layer; it can confirm or warn, but it must not replace 30m / 15m / 5m execution maturity.
+- `5m` remains execution-only.
+- The chart runtime may now own one active `MONTHLY SUPPLY`, one active `MONTHLY DEMAND`, one active `WEEKLY SUPPLY`, one active `WEEKLY DEMAND`, one active `DAILY SUPPLY`, one active `DAILY DEMAND`, one active `4H DEMAND`, one active `4H SUPPLY`, and useful `1H SUPPLY` / `1H DEMAND` levels per symbol inside the existing `levels.htf` array.
+- Macro, Daily, 4H, and 1H levels must render as infinite horizontal lines with centered embedded line text.
+- The approved semantic colors are:
+  - `MONTHLY SUPPLY`: violet
+  - `MONTHLY DEMAND`: cyan
+  - `WEEKLY SUPPLY`: light purple
+  - `WEEKLY DEMAND`: aqua
+  - `DAILY SUPPLY`: purple
+  - `DAILY DEMAND`: teal
+- `Daily`, `Weekly`, and `Monthly` may strengthen the preserved HTF map and trader-facing `Niveles`, but they must never create standalone triggers or replace `4H` / `5m` logic.
+- `1H` may clarify tactical acceptance or rejection, but it must not promote a setup without 30m / 15m / 5m support.
+- Baseline workflows may set macro, Daily, 4H, 1H, and 5m levels; reactive workflows should preserve macro / HTF unless the thesis materially changed.
+- Fixed chart directive: `5m` remains execution-only in the strategy, but its chart rendering is now endless horizontal lines from left to right across the whole automation stack.
 
 ## Automation Runtime Layer
 
@@ -145,18 +179,51 @@ Last updated at: 2026-04-28T05:32:49.7710773-06:00
 - Reassessment rule:
   - a reassessment must preserve strategy logic and only refresh execution structure when price materially moved on
   - if the active `5m` pair changes, the owned drawing layer must be fully cleared and rebuilt from desired state
-  - a completed reassessment should leave one clean line and one right-side label per owned level, with no duplicate generations and no text interposed over active candles
+- a completed reassessment should leave one clean line with centered embedded text per owned level, with no duplicate generations and no stale detached text interposed over active candles
   - every reassessment must also classify the current opportunity timing as `PRE-TRIGGER`, `ARMED`, `TRIGGERED`, or `EXPIRED`
   - if the retest or reclaim already happened, do not keep the action state as `WAIT for retest`; explicitly downgrade it to `TRIGGERED / DO NOT CHASE` or `POST-TRIGGER / WAIT FOR NEW RETEST`
 - Manual trigger added:
   - `Live Reassessment Trigger` exists as the 9th automation and is intentionally paused by default so it can be launched manually with `play` whenever a full current-market reassessment and 5m realignment is needed for `PEPPERSTONE:XAUUSD` and `FOREXCOM:US30`
 - Strategy rule preserved:
-  - `Daily / 4H -> 30m -> 15m -> 5m` stays unchanged
+  - `Monthly / Weekly -> Daily / 4H -> 1H -> 30m -> 15m -> 5m` stays unchanged
+  - `Monthly` and `Weekly` chart context may be preserved inside the HTF layer as `MONTHLY SUPPLY` / `MONTHLY DEMAND` and `WEEKLY SUPPLY` / `WEEKLY DEMAND`, but only as macro context
+  - `Daily` chart context is preserved inside the HTF layer as `DAILY SUPPLY` / `DAILY DEMAND`, but only as operational context
+  - `1H` chart context may be preserved inside the HTF layer as `1H SUPPLY` / `1H DEMAND`, but only as tactical correlation
   - `HTF` remains infinite
-  - `5m` remains finite
+  - `5m` remains execution-only and now renders as endless horizontal lines
   - entries remain line-only
   - risk model remains `TP1 60`, `TP2 80`, `TP3 100`, preferred stop `60-80`, hard max `100`
   - color rule is now fixed: long-side execution lines blue, short-side execution lines yellow
+
+## Workflow Recovery And Redraw Stabilization
+
+- This is an approved operational layer only. It does **not** change strategy,
+  risk, timing states, action states, chart ownership, or desired-state
+  architecture.
+- `15 minutes` without a full valid structured assessment cycle now counts as
+  `workflow_stalled`.
+- When a workflow is stalled, the old execution map must no longer be treated
+  as a fresh operational map.
+- New York dual-symbol workflows require valid structured data for both
+  `PEPPERSTONE:XAUUSD` and `FOREXCOM:US30` before the next recovery-driven full
+  reassess + redraw.
+- Asia gold workflows require valid structured data for `PEPPERSTONE:XAUUSD`;
+  `FOREXCOM:US30` does not block the Asia reassessment.
+- `End-of-Day Review` remains review-only and must never mutate chart state.
+- A `5m` pair may now be refreshed even without hard invalidation when both
+  active execution levels are structurally far from price and no longer define
+  execution readiness.
+- `Monthly / Weekly / Daily / 4H / 1H` must be re-evaluated every live cycle, but HTF lines should be
+  redrawn only when higher-timeframe structure materially changed.
+- Desired-state refreshes should now record one operational `refresh_reason`:
+  - `stall_recovery`
+  - `5m_far_from_price`
+  - `htf_changed`
+  - `manual_reassessment`
+- The chart may now carry one planning-only `CHART NOTE` before trade
+  permission exists. It is non-executable, does not replace `ENTRY`, and must
+  disappear when the idea gets permission, expires, or is refreshed away.
+- The strategy remains `Monthly / Weekly -> Daily / 4H -> 1H -> 30m -> 15m -> 5m`.
 
 ## TradingView Structured Live State Migration
 
@@ -166,7 +233,7 @@ Last updated at: 2026-04-28T05:32:49.7710773-06:00
   - `market.quote`
   - timeframe `state`
   - OHLCV
-  - `D / 4H / 30m / 15m / 5m` payloads
+  - `M / W / D / 4H / 1H / 30m / 15m / 5m` payloads
 - Reinforcement-supporting derived features may include:
   - `liquidity`
   - `reaction_zones`
@@ -198,8 +265,8 @@ Last updated at: 2026-04-28T05:32:49.7710773-06:00
 - Do **not** draw risk or reward rectangles by default unless the user explicitly asks for boxes again.
 - For every manual execution markup, explicitly force a short finite span and never leave lines extending across the chart. Never rely on TradingView defaults.
 - After creating execution lines, immediately validate that they stayed short, bounded, visually compact, and correctly labeled before considering the markup finished.
-- `LONG` format: short bounded horizontal lines for `ENTRY`, `TP1`, `TP2`, `TP3`, and `SL`, each with its own right-side label.
-- `SHORT` format: short bounded horizontal lines for `ENTRY`, `TP1`, `TP2`, `TP3`, and `SL`, each with its own right-side label.
+- `LONG` format: short bounded horizontal lines for `ENTRY`, `TP1`, `TP2`, `TP3`, and `SL`, each carrying centered embedded text in the line.
+- `SHORT` format: short bounded horizontal lines for `ENTRY`, `TP1`, `TP2`, `TP3`, and `SL`, each carrying centered embedded text in the line.
 - `BE` should be added only when relevant, not by default.
 - The execution visual standard is now minimal and compact: no rectangles, no oversized geometry, no infinite execution lines, and no labels floating over active candles. This restriction applies to execution markup, not to the preserved HTF layer.
 - If any older wording in this file still mentions bounded boxes, box emulation, or rectangle-based entry markup, treat that wording as obsolete; the line-only standard above wins.
@@ -217,20 +284,84 @@ Last updated at: 2026-04-28T05:32:49.7710773-06:00
 - When proposing a new entry, the setup must fit both sides of the user's model: stop risk should usually fit inside `60-80`, may extend to `100` only with better `RR`, and the targets should naturally map to `TP1 60`, `TP2 80`, and `TP3 100`.
 
 - If the market materially changes and a new 5M EXECUTION LONG / 5M EXECUTION SHORT pair replaces the old one, remove the obsolete old 5m execution drawings before adding the refreshed pair.
-- That cleanup scope is limited to the 5m execution map. Do not remove preserved higher-timeframe manual levels such as 4H SUPPORT or 4H RESISTANCE when the task is only to refresh 5m execution.
-- The higher-timeframe manual layer should normally preserve a structural pair per symbol: at least one infinite 4H SUPPORT and one infinite 4H RESISTANCE whenever both remain meaningful.
+- That cleanup scope is limited to the 5m execution map. Do not remove preserved higher-timeframe manual levels such as 4H DEMAND or 4H SUPPLY when the task is only to refresh 5m execution.
+- The higher-timeframe manual layer should normally preserve a structural pair per symbol: at least one infinite 4H DEMAND and one infinite 4H SUPPLY whenever both remain meaningful.
 
 ## Workflow Marking Fix
 
 - The workflow now has a dedicated rules file at `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\WORKFLOW_MARKING_RULES.md`.
 - Every automation must read that file together with this shared memory before marking the chart.
-- Those rules now govern label repositioning to the right side, explicit color mapping, 5m execution-line lifecycle, and decision freshness.
+- Those rules now govern embedded centered line text, explicit color mapping, 5m execution-line lifecycle, and decision freshness.
+
+## Embedded Line Text Rendering
+
+- Automation-owned chart text for line draws now lives inside the line itself instead of in detached right-side labels.
+- This applies across all workflows and automations for:
+  - `DAILY SUPPLY`
+  - `DAILY DEMAND`
+  - `4H DEMAND`
+  - `4H SUPPLY`
+  - `5M EXECUTION LONG`
+  - `5M EXECUTION SHORT`
+  - line-based trade-entry markup such as `ENTRY`, `SL`, `TP1`, `TP2`, `TP3`
+- The required placement is centered in the line.
+- `CHART NOTE` remains the only non-line text exception when planning context is allowed.
+- If the rendered chart still shows old detached labels after this rule change, the runtime must fully redraw the owned layer so the old labels disappear.
 
 ## Active NY Workflow Context
 
 Session date: 2026-04-24
 Baseline automation: NY Open Levels
 Current workflow state: fresh local snapshots are available for both required symbols after the standard wait window, but every snapshot-referenced screenshot path is still missing on disk. The valid NY baseline therefore uses full structured market data with limited visual confidence. `PEPPERSTONE:XAUUSD` is now `WAIT / LONGS ONLY ON 4704.55 DEFENSE OR SHORTS ONLY ON 4724.84 SWEEP-REJECTION`, while `FOREXCOM:US30` is now `WAIT / LONG LEAN ONLY ON 49343.10 DEFENSE OR SHORTS ONLY ON 49432.45 REJECTION`.
+
+### Mid-Session Reassessment - Structured Live State Refresh
+
+- Run time: `2026-05-05T08:19:19.5345327-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Runtime gate: both symbols were `FULL_DATA` with `workflow_stalled = false` and `recovery_pending = false`, so this run used the normal dual-symbol reassessment path.
+- Higher-timeframe thesis:
+  - `XAUUSD`: Daily remains capped below `DAILY SUPPLY 4730.08` and `4H` remains corrective below `4H SUPPLY 4583.31`; the sweep to `4584.70` rejected and does not qualify as a material HTF change.
+  - `US30`: Daily still holds above `DAILY DEMAND 48465.90` while `4H` remains corrective below `4H SUPPLY 49429.90`; no HTF redraw is warranted.
+- Intermediate structure:
+  - `XAUUSD`: price reclaimed above `4574.69`, swept `4583.31`, and rotated back under `4576.31`; the first short reaction already printed, so the live question is retest quality, not fresh chase.
+  - `US30`: price swept below `49110.45` into `49005.90`, reclaimed the mid-range, and is now testing `49188.95` again, so the cleaner live long shelf must move higher than the old open defense.
+- Liquidity map:
+  - `XAUUSD`: nearest buy-side liquidity was `4574.69` and then the session high `4584.70`; nearest sell-side liquidity is `4561.59`. Buy-side above has already been swept and rejected.
+  - `US30`: nearest buy-side liquidity is `49188.45`; nearest sell-side liquidity is `49125.95`, with the deeper session sweep already printed at `49005.90`.
+- 5m execution lines remained `ACTIVE`:
+  - `PEPPERSTONE:XAUUSD` `5M EXECUTION SHORT 4576.31`
+  - `PEPPERSTONE:XAUUSD` `5M EXECUTION LONG 4561.59`
+  - `FOREXCOM:US30` `5M EXECUTION SHORT 49188.95`
+- 5m execution lines now `INVALIDATED`:
+  - `FOREXCOM:US30` `5M EXECUTION LONG 49110.45` was accepted through into `49005.90`, so it no longer qualifies as the primary live defense shelf.
+- 5m execution lines replaced:
+  - `FOREXCOM:US30` `5M EXECUTION LONG 49143.45` replaces `49110.45` as the nearest reclaimed demand shelf that still defines execution readiness.
+- Opportunity timing state:
+  - `XAUUSD`: short side `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`; long side `PRE-TRIGGER` unless `4561.59` defends again. Overall live opportunity: `TRIGGERED`.
+  - `US30`: short side `ARMED` while price is testing `49188.95`; long side returns to `PRE-TRIGGER` until `49143.45` holds and `49188.95` reclaims. Overall live opportunity: `ARMED`.
+- Redraw status:
+  - `XAUUSD`: `preserved`
+  - `US30`: `refreshed`
+- Refresh reason:
+  - `XAUUSD`: none; desired state was left untouched because the active bracket still defines the live decision.
+  - `US30`: `5m_far_from_price` on the execution layer only; HTF preserved.
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` plus the no-chase timing rule to keep `XAUUSD` honest as post-trigger and to avoid preserving the used-up `US30` long shelf as if it were still fresh.
+- Labels repositioned:
+  - requested right-side label anchoring for the preserved `XAUUSD` levels and for the refreshed `US30` execution pair, while preserving the existing semantic palette.
+- Levels recolored / removed / replaced:
+  - preserved all `Daily` and `4H` levels unchanged on both symbols.
+  - preserved `XAUUSD` `5M EXECUTION SHORT 4576.31` and `5M EXECUTION LONG 4561.59`.
+  - removed `US30` `5M EXECUTION LONG 49110.45` from the active map.
+  - added `US30` `5M EXECUTION LONG 49143.45`.
+- Trading decision right now:
+  - `XAUUSD`: `WAIT / SHORT TRIGGER ALREADY RAN / DO NOT CHASE / WAIT FOR NEW RETEST`
+  - `US30`: `WAIT / SHORT LEAN ONLY ON 49188.95 REJECTION / LONGS ONLY IF 49143.45 HOLDS AGAIN AND 49188.95 RECLAIMS`
+- Better symbol now:
+  - `FOREXCOM:US30` remains the cleaner live chart because the decision shelf is active now, while `XAUUSD` already paid the first short reaction and is between retest conditions.
+- Biggest trap still present:
+  - chasing `XAUUSD` after the rejection already ran, or buying `US30` directly into `49188.95` without reclaim.
+- Spanish thread update: Reassess normal con `FULL_DATA` en ambos. `XAUUSD` mantiene el mapa `4576.31 / 4561.59`; el short ya se activo y ahora no quiero chase, solo nuevo retest o defensa otra vez abajo. `US30` si necesita refresh parcial: `49110.45` ya no sirve como defensa principal despues del sweep a `49005.90`, asi que el mapa vivo queda `49188.95 / 49143.45`; el simbolo mas limpio sigue siendo `US30`, pero con paciencia y sin comprarle la tapa.
 
 ### NY Open Levels - Fresh Baseline With Limited Visual Confidence
 
@@ -242,8 +373,8 @@ Current workflow state: fresh local snapshots are available for both required sy
   - both symbols refreshed their structured JSON snapshots inside the required wait window
   - every referenced PNG path still resolves to a missing file under `market_runtime/screenshots`, so the market read is valid but the visual layer remains degraded
 - Higher-timeframe thesis:
-  - `XAUUSD`: `Daily` stays bearish below the preserved `4H RESISTANCE 4772.95`, but `4H` is bouncing hard from the preserved `4H SUPPORT 4664.11` after sweeping below `PDL 4664.11`, so the higher-timeframe read is recovery inside overhead supply, not a clean trend flip yet.
-  - `US30`: `Daily` and `4H` are rebuilding bullishly from the `49087.95-49343.10` rebound zone and are now pressing back toward the preserved `4H RESISTANCE 49531.60`, so the higher-timeframe read stays cleaner on the long side than `XAUUSD`.
+  - `XAUUSD`: `Daily` stays bearish below the preserved `4H SUPPLY 4772.95`, but `4H` is bouncing hard from the preserved `4H DEMAND 4664.11` after sweeping below `PDL 4664.11`, so the higher-timeframe read is recovery inside overhead supply, not a clean trend flip yet.
+  - `US30`: `Daily` and `4H` are rebuilding bullishly from the `49087.95-49343.10` rebound zone and are now pressing back toward the preserved `4H SUPPLY 49531.60`, so the higher-timeframe read stays cleaner on the long side than `XAUUSD`.
 - Intermediate structure:
   - `XAUUSD`: `30m` and `15m` show a sharp V-recovery from `4674.49-4677.75` into `4717.22`, but the move already reached the first overhead shelf and still needs a correction if bulls want a cleaner continuation entry.
   - `US30`: `30m` and `15m` reclaimed `49343.10` and expanded through `49420+`, but the first reclaim already triggered and price is now testing the immediate buy-side shelf at `49432.45`.
@@ -268,11 +399,11 @@ Current workflow state: fresh local snapshots are available for both required sy
   - used the promoted `indication -> correction -> continuation` filter and the no-chase rule from the timing addendum
   - no transcript material changed the strategy, risk model, or level hierarchy
 - Automation-owned levels updated in desired state:
-  - `XAUUSD: 4H RESISTANCE 4772.95, 4H SUPPORT 4664.11, 5M EXECUTION SHORT 4724.84, 5M EXECUTION LONG 4704.55`
-  - `US30: 4H RESISTANCE 49531.60, 4H SUPPORT 48885.65, 5M EXECUTION SHORT 49432.45, 5M EXECUTION LONG 49343.10`
+  - `XAUUSD: 4H SUPPLY 4772.95, 4H DEMAND 4664.11, 5M EXECUTION SHORT 4724.84, 5M EXECUTION LONG 4704.55`
+  - `US30: 4H SUPPLY 49531.60, 4H DEMAND 48885.65, 5M EXECUTION SHORT 49432.45, 5M EXECUTION LONG 49343.10`
 - Labels repositioned: requested a full symbol redraw on both symbols so the preserved `4H` pair and the refreshed `5m` pair finish with one clean right-side label per owned level.
 - Levels recolored / removed / replaced:
-  - preserved the semantic palette exactly: `4H SUPPORT` green, `4H RESISTANCE` red, `5M EXECUTION LONG` blue, `5M EXECUTION SHORT` yellow
+  - preserved the semantic palette exactly: `4H DEMAND` green, `4H SUPPLY` red, `5M EXECUTION LONG` blue, `5M EXECUTION SHORT` yellow
   - preserved both `4H` pairs unchanged because higher-timeframe structure did not fail
   - replaced the stale `XAUUSD` Asia pair `4704.55 / 4686.38` with the NY bracket `4724.84 / 4704.55`
   - replaced the stale `US30` pair `49343.10 / 49187.60` with the nearer live NY bracket `49432.45 / 49343.10`
@@ -294,7 +425,7 @@ Current workflow state: fresh local snapshots are available for both required sy
 - Symbol reviewed: `FOREXCOM:US30`
 - Snapshot source: fresh local market snapshot only; no direct TradingView read was used for the analysis path.
 - Data confidence: `FULL DATA / LIMITED VISUAL CONFIDENCE`
-- Higher-timeframe thesis: `Daily` and `4H` stay bullish above the preserved `4H SUPPORT 48885.65`, but the intraday tape is still damaged after failing below the earlier `49420.60 / 49368.60` bracket.
+- Higher-timeframe thesis: `Daily` and `4H` stay bullish above the preserved `4H DEMAND 48885.65`, but the intraday tape is still damaged after failing below the earlier `49420.60 / 49368.60` bracket.
 - Intermediate structure: `30m` and `15m` recovered from `48862.60` but then stalled under `49343.10`. On `5m`, the latest rebound printed lower highs after the bounce and the current price rotated back toward the lower end of the local range.
 - 5m execution lines now `ACTIVE`:
   - `FOREXCOM:US30` `5M EXECUTION SHORT 49343.10`
@@ -309,10 +440,10 @@ Current workflow state: fresh local snapshots are available for both required sy
   - `ARMED` only if price reaches `49187.60` and shows reclaim / rejection behavior on `5m`.
   - long thesis strengthens only if price reclaims `49343.10`; until then, do not treat the rebound as repaired.
 - Automation-owned levels updated in desired state:
-  - `US30: 4H RESISTANCE 49531.60, 4H SUPPORT 48885.65, 5M EXECUTION SHORT 49343.10, 5M EXECUTION LONG 49187.60`
+  - `US30: 4H SUPPLY 49531.60, 4H DEMAND 48885.65, 5M EXECUTION SHORT 49343.10, 5M EXECUTION LONG 49187.60`
 - Labels repositioned: requested a full symbol redraw so the preserved `4H` pair and the refreshed `5m` pair finish as one clean right-side label per owned level.
 - Levels recolored / removed / replaced:
-  - preserved the semantic palette exactly: `4H SUPPORT` green, `4H RESISTANCE` red, `5M EXECUTION LONG` blue, `5M EXECUTION SHORT` yellow.
+  - preserved the semantic palette exactly: `4H DEMAND` green, `4H SUPPLY` red, `5M EXECUTION LONG` blue, `5M EXECUTION SHORT` yellow.
   - preserved both `4H` levels unchanged because higher-timeframe structure did not fail.
   - replaced the stale `US30` `5m` pair `49420.60 / 49368.60` with the new live bracket `49343.10 / 49187.60`.
 - Trading decision right now:
@@ -404,7 +535,7 @@ Current workflow state: fresh local snapshots are available for both required sy
 - Run time: 2026-04-23T11:13:41-06:00
 - Symbol reviewed: `PEPPERSTONE:XAUUSD`
 - Snapshot source: fresh local market snapshot only; no direct TradingView read was used for the analysis path.
-- Higher-timeframe thesis: `4H` remains bearish below the preserved `4H RESISTANCE 4772.95`, while `4H SUPPORT 4692.49` remains the first major downside structure level.
+- Higher-timeframe thesis: `4H` remains bearish below the preserved `4H SUPPLY 4772.95`, while `4H DEMAND 4692.49` remains the first major downside structure level.
 - Intermediate structure: `30m` and `15m` rolled over from `4732.90 - 4734.64`, and `5m` lost momentum back into `4706-4712`. The earlier reclaim-defense reading no longer fits the tape; the market now favors waiting for a failed retest rather than buying the dip.
 - 5m execution lines now `ACTIVE`:
   - `PEPPERSTONE:XAUUSD` `5M EXECUTION SHORT 4724.84`
@@ -414,13 +545,13 @@ Current workflow state: fresh local snapshots are available for both required sy
 - 5m execution lines now `INVALIDATED`:
   - `PEPPERSTONE:XAUUSD` `5M EXECUTION LONG 4724.84` is no longer the clean active defense; that shelf now acts as the first underside short retest instead.
 - Automation-owned levels updated in desired state:
-  - `XAUUSD: 4H RESISTANCE 4772.95, 4H SUPPORT 4692.49, 5M EXECUTION SHORT 4724.84, 5M EXECUTION LONG 4706.05`
+  - `XAUUSD: 4H SUPPLY 4772.95, 4H DEMAND 4692.49, 5M EXECUTION SHORT 4724.84, 5M EXECUTION LONG 4706.05`
 - Reference levels used in the report only:
   - `better short retest zone 4732.90 - 4734.64`
   - `downside objectives 4692.49 / 4684.12`
 - Labels repositioned: requested a full symbol redraw so the preserved `4H` pair and the refreshed `5m` pair finish as one clean right-side label per owned level.
 - Levels recolored / removed / replaced:
-  - preserved the semantic palette exactly: `4H SUPPORT` green, `4H RESISTANCE` red, `5M EXECUTION LONG` blue, `5M EXECUTION SHORT` yellow.
+  - preserved the semantic palette exactly: `4H DEMAND` green, `4H SUPPLY` red, `5M EXECUTION LONG` blue, `5M EXECUTION SHORT` yellow.
   - preserved both `4H` levels unchanged because higher-timeframe structure did not fail.
   - replaced the stale `XAUUSD` `5m` pair `4753.46 / 4724.84` with the new short-oriented bracket `4724.84 / 4706.05`.
 - Trading decision right now:
@@ -435,7 +566,7 @@ Current workflow state: fresh local snapshots are available for both required sy
 - Run time: 2026-04-23T10:39:29-06:00
 - Symbol reviewed: `FOREXCOM:US30`
 - Snapshot source: fresh local market snapshot only; no direct TradingView read was used for the analysis path.
-- Higher-timeframe thesis: `Daily` and `4H` remain bullish above the preserved `4H SUPPORT 48885.65`, while price is still trading below the preserved `4H RESISTANCE 49531.60`.
+- Higher-timeframe thesis: `Daily` and `4H` remain bullish above the preserved `4H DEMAND 48885.65`, while price is still trading below the preserved `4H SUPPLY 49531.60`.
 - Intermediate structure: `30m` and `15m` are both in pullback after sweeping `49522.60`; the move is not a fresh breakout chase anymore, but it has not structurally failed the bullish higher-timeframe framework either.
 - 5m execution lines now `ACTIVE`:
   - `FOREXCOM:US30` `5M EXECUTION SHORT 49420.60`
@@ -446,10 +577,10 @@ Current workflow state: fresh local snapshots are available for both required sy
 - 5m execution lines now `INVALIDATED`:
   - none newly invalidated during this refresh; the old pair is stale rather than structurally broken.
 - Automation-owned levels updated in desired state:
-  - `US30: 4H RESISTANCE 49531.60, 4H SUPPORT 48885.65, 5M EXECUTION SHORT 49420.60, 5M EXECUTION LONG 49368.60`
+  - `US30: 4H SUPPLY 49531.60, 4H DEMAND 48885.65, 5M EXECUTION SHORT 49420.60, 5M EXECUTION LONG 49368.60`
 - Labels repositioned: requested a full symbol redraw so the preserved `4H` pair and the refreshed `5m` pair finish as one clean right-side label per owned level.
 - Levels recolored / removed / replaced:
-  - preserved the semantic palette exactly: `4H SUPPORT` green, `4H RESISTANCE` red, `5M EXECUTION LONG` blue, `5M EXECUTION SHORT` yellow.
+  - preserved the semantic palette exactly: `4H DEMAND` green, `4H SUPPLY` red, `5M EXECUTION LONG` blue, `5M EXECUTION SHORT` yellow.
   - preserved both `4H` levels unchanged because higher-timeframe structure did not fail.
   - replaced the stale `US30` `5m` pair `49234.15 / 49150.65` with the live hybrid long-oriented bracket `49420.60 / 49368.60`.
 - Trading decision right now:
@@ -480,14 +611,14 @@ Current workflow state: fresh local snapshots are available for both required sy
   - XAUUSD: `5M EXECUTION SHORT 4724.84` failed as an active short trigger because price reclaimed and accepted above it on `15m`; that same shelf now becomes the active long defense instead.
   - US30: `5M EXECUTION SHORT 49275.65` failed as the active short trigger because price reclaimed above it and is now pressing the higher `49353.60 / 49359.15` pool.
 - Automation-owned levels updated in desired state:
-  - XAUUSD: `4H RESISTANCE 4772.95`, `4H SUPPORT 4692.49`, `5M EXECUTION SHORT 4753.46`, `5M EXECUTION LONG 4724.84`
-  - US30: `4H RESISTANCE 49531.60`, `4H SUPPORT 48885.65`, `5M EXECUTION SHORT 49359.15`, `5M EXECUTION LONG 49260.15`
+  - XAUUSD: `4H SUPPLY 4772.95`, `4H DEMAND 4692.49`, `5M EXECUTION SHORT 4753.46`, `5M EXECUTION LONG 4724.84`
+  - US30: `4H SUPPLY 49531.60`, `4H DEMAND 48885.65`, `5M EXECUTION SHORT 49359.15`, `5M EXECUTION LONG 49260.15`
 - Reference levels used in the report only:
   - XAUUSD: `PDH 4772.39`, `PDL 4715.53`, `ON HIGH 4753.46`, `ON LOW 4684.12`
   - US30: `PDH 49624.10`, `PDL 49237.10`, `ON HIGH 49359.15`, `ON LOW 48950.60`
 - Labels repositioned: requested a full desired-state redraw for both symbols so the preserved `4H` pair and refreshed `5m` pair end as one clean right-side label per owned level.
 - Levels recolored / removed / replaced:
-  - Preserved the semantic palette exactly: `4H SUPPORT` green, `4H RESISTANCE` red, `5M EXECUTION LONG` blue, `5M EXECUTION SHORT` yellow.
+  - Preserved the semantic palette exactly: `4H DEMAND` green, `4H SUPPLY` red, `5M EXECUTION LONG` blue, `5M EXECUTION SHORT` yellow.
   - Preserved both `4H` pairs unchanged because higher-timeframe structure did not fail.
   - Replaced the XAUUSD `5m` pair `4724.84 / 4702.96` with `4753.46 / 4724.84`.
   - Replaced the US30 `5m` pair `49275.65 / 49237.10` with `49359.15 / 49260.15`.
@@ -512,8 +643,8 @@ Current workflow state: fresh local snapshots are available for both required sy
   - XAUUSD: `30m` is still rebounding from `4684.12`, `15m` is still holding the reclaim above `4724.84`, and `5m` is still targeting buy-side liquidity at `4738.64` and then `4753.46`. A valid long still needs `4724.84` to keep holding on retests, while a valid short still needs a cleaner rejection from `4753.46 / 4772.95`.
   - US30: `30m` rebounded from `49074.15`, but `15m` failed to hold the post-open breakout above `49260.15`; `5m` is now reacting after taking buy-side liquidity at `49359.15` and rotating toward sell-side `49150.65 / 49113.15`. A fresh long is not active until price reclaims `49234.15 / 49260.15`, and a fresh short only improves on an underside rejection at `49234.15`.
 - Level interaction:
-  - XAUUSD: `4H RESISTANCE 4772.95` and `5M EXECUTION SHORT 4753.46` remain the overhead decision points; `5M EXECUTION LONG 4724.84` is still being respected; `PDL 4715.53` held as intraday demand; `ON LOW 4684.12` was swept and rejected.
-  - US30: `5M EXECUTION SHORT 49359.15` was respected as the sweep high, but `5M EXECUTION LONG 49260.15` failed as the active defense; `PDL 49237.10` was lost; nearest sell-side liquidity `49150.65` is now the live downside objective while `4H SUPPORT 48885.65` still preserves the bigger bullish thesis.
+  - XAUUSD: `4H SUPPLY 4772.95` and `5M EXECUTION SHORT 4753.46` remain the overhead decision points; `5M EXECUTION LONG 4724.84` is still being respected; `PDL 4715.53` held as intraday demand; `ON LOW 4684.12` was swept and rejected.
+  - US30: `5M EXECUTION SHORT 49359.15` was respected as the sweep high, but `5M EXECUTION LONG 49260.15` failed as the active defense; `PDL 49237.10` was lost; nearest sell-side liquidity `49150.65` is now the live downside objective while `4H DEMAND 48885.65` still preserves the bigger bullish thesis.
 - Cleaner symbol now: `PEPPERSTONE:XAUUSD`
 - Avoid right now: `FOREXCOM:US30`
 - 5m execution lines now `ACTIVE`:
@@ -526,14 +657,14 @@ Current workflow state: fresh local snapshots are available for both required sy
   - XAUUSD: none newly invalidated during this validation; `4724.84` is still the live reclaim shelf and `4753.46` has not yet been tested cleanly.
   - US30: `5M EXECUTION LONG 49260.15` failed as the active long defense because price accepted back below it after the sweep into `49359.15`.
 - Automation-owned levels updated in desired state:
-  - XAUUSD: `4H RESISTANCE 4772.95`, `4H SUPPORT 4692.49`, `5M EXECUTION SHORT 4753.46`, `5M EXECUTION LONG 4724.84`
-  - US30: `4H RESISTANCE 49531.60`, `4H SUPPORT 48885.65`, `5M EXECUTION SHORT 49234.15`, `5M EXECUTION LONG 49150.65`
+  - XAUUSD: `4H SUPPLY 4772.95`, `4H DEMAND 4692.49`, `5M EXECUTION SHORT 4753.46`, `5M EXECUTION LONG 4724.84`
+  - US30: `4H SUPPLY 49531.60`, `4H DEMAND 48885.65`, `5M EXECUTION SHORT 49234.15`, `5M EXECUTION LONG 49150.65`
 - Reference levels used in the report only:
   - XAUUSD: `PDH 4772.39`, `PDL 4715.53`, `ON HIGH 4753.46`, `ON LOW 4684.12`
   - US30: `PDH 49624.10`, `PDL 49237.10`, `ON HIGH 49359.15`, `ON LOW 48950.60`
 - Labels repositioned: requested a full desired-state redraw for both symbols so the preserved `4H` pair and the current `5m` pair finish as one clean right-side label per owned level.
 - Levels recolored / removed / replaced:
-  - Preserved the semantic palette exactly: `4H SUPPORT` green, `4H RESISTANCE` red, `5M EXECUTION LONG` blue, `5M EXECUTION SHORT` yellow.
+  - Preserved the semantic palette exactly: `4H DEMAND` green, `4H SUPPLY` red, `5M EXECUTION LONG` blue, `5M EXECUTION SHORT` yellow.
   - Preserved both `4H` pairs unchanged because higher-timeframe structure did not fail.
   - Preserved the XAUUSD `5m` pair `4753.46 / 4724.84` because it still brackets the post-open reclaim cleanly.
   - Replaced the US30 `5m` pair `49359.15 / 49260.15` with `49234.15 / 49150.65` because the old long failed and the cleaner live decision shifted lower.
@@ -565,14 +696,14 @@ Current workflow state: fresh local snapshots are available for both required sy
   - XAUUSD: `5M EXECUTION LONG 4723.84` failed as support and was accepted through before the current rebound, so it cannot stay the active long defense.
   - US30: none newly invalidated during this baseline refresh; `49237.10` was broken earlier, but the current `5m` reclaim restored it as the active long defense for now.
 - Automation-owned levels updated in desired state:
-  - XAUUSD: `4H RESISTANCE 4772.95`, `4H SUPPORT 4692.49`, `5M EXECUTION SHORT 4724.84`, `5M EXECUTION LONG 4702.96`
-  - US30: `4H RESISTANCE 49531.60`, `4H SUPPORT 48885.65`, `5M EXECUTION SHORT 49275.65`, `5M EXECUTION LONG 49237.10`
+  - XAUUSD: `4H SUPPLY 4772.95`, `4H DEMAND 4692.49`, `5M EXECUTION SHORT 4724.84`, `5M EXECUTION LONG 4702.96`
+  - US30: `4H SUPPLY 49531.60`, `4H DEMAND 48885.65`, `5M EXECUTION SHORT 49275.65`, `5M EXECUTION LONG 49237.10`
 - Reference levels used in the report only:
   - XAUUSD: `PDH 4772.39`, `PDL 4715.53`, `ON HIGH 4753.46`, `ON LOW 4684.12`
   - US30: `PDH 49624.10`, `PDL 49237.10`, `ON HIGH 49321.60`, `ON LOW 48950.60`
 - Labels repositioned: requested a full desired-state redraw for both symbols so the preserved `4H` pair and refreshed `5m` pair end as one clean right-side label per owned level.
 - Levels recolored / removed / replaced:
-  - Preserved the semantic palette exactly: `4H SUPPORT` green, `4H RESISTANCE` red, `5M EXECUTION LONG` blue, `5M EXECUTION SHORT` yellow.
+  - Preserved the semantic palette exactly: `4H DEMAND` green, `4H SUPPLY` red, `5M EXECUTION LONG` blue, `5M EXECUTION SHORT` yellow.
   - Preserved both `4H` pairs unchanged because higher-timeframe structure did not fail.
   - Replaced the XAUUSD `5m` pair `4750.05 / 4723.84` with `4724.84 / 4702.96`.
   - Replaced the US30 `5m` short `49335.15` with `49275.65` and preserved `49237.10` as the active long defense after the reclaim.
@@ -596,8 +727,8 @@ Current workflow state: fresh local snapshots are available for both required sy
   - XAUUSD: `STALE SNAPSHOT / DEGRADED`; no fresh setup decision can be promoted without a local runtime refresh.
   - US30: `STALE SNAPSHOT / DEGRADED`; no fresh setup decision can be promoted without a local runtime refresh.
 - Key level context preserved from the last valid desired state:
-  - XAUUSD: `4H RESISTANCE 4772.95`, `4H SUPPORT 4692.49`, `5M EXECUTION SHORT 4753.46`, `5M EXECUTION LONG 4724.84`
-  - US30: `4H RESISTANCE 49531.60`, `4H SUPPORT 48885.65`, `5M EXECUTION SHORT 49234.15`, `5M EXECUTION LONG 49150.65`
+  - XAUUSD: `4H SUPPLY 4772.95`, `4H DEMAND 4692.49`, `5M EXECUTION SHORT 4753.46`, `5M EXECUTION LONG 4724.84`
+  - US30: `4H SUPPLY 49531.60`, `4H DEMAND 48885.65`, `5M EXECUTION SHORT 49234.15`, `5M EXECUTION LONG 49150.65`
 - 5m execution lines now `ACTIVE`:
   - XAUUSD: preserved prior active pair `4753.46 / 4724.84` because this degraded run could not re-evaluate live structure.
   - US30: preserved prior active pair `49234.15 / 49150.65` because this degraded run could not re-evaluate live structure.
@@ -641,7 +772,7 @@ Current workflow state: fresh local snapshots are available for both required sy
   - US30: none newly invalidated during this reassessment; `49237.10` was swept hard but reclaimed, so it stays the active long defense instead of being removed.
 - Labels repositioned: no new label drift was detected in the runtime-owned layer; both symbols already showed one clean right-side label per owned level, and XAUUSD will be re-anchored again automatically during the redraw caused by the refreshed short line.
 - Levels recolored / removed / replaced:
-  - Preserved the semantic palette exactly: `4H SUPPORT` green, `4H RESISTANCE` red, `5M EXECUTION LONG` blue, `5M EXECUTION SHORT` yellow.
+  - Preserved the semantic palette exactly: `4H DEMAND` green, `4H SUPPLY` red, `5M EXECUTION LONG` blue, `5M EXECUTION SHORT` yellow.
   - Preserved both `4H` pairs unchanged because higher-timeframe structure did not fail.
   - Replaced the XAUUSD `5m` short `4740.44` with `4750.05` and kept `4723.84` as the active long defense after the sweep-and-reclaim sequence.
   - Preserved the US30 `5m` pair `49335.15 / 49237.10` unchanged because it still brackets the live decision cleanly after the reclaim.
@@ -673,7 +804,7 @@ Current workflow state: fresh local snapshots are available for both required sy
   - US30: `5M EXECUTION LONG 49335.15` failed as support and was accepted through on `30m / 15m`.
 - Labels repositioned: requested a full owned-layer redraw for both symbols because the rendered automation labels were still embedded on-chart instead of ending as one clean right-side label per owned level.
 - Levels recolored / removed / replaced:
-  - Preserved the semantic palette exactly: `4H SUPPORT` green, `4H RESISTANCE` red, `5M EXECUTION LONG` blue, `5M EXECUTION SHORT` yellow.
+  - Preserved the semantic palette exactly: `4H DEMAND` green, `4H SUPPLY` red, `5M EXECUTION LONG` blue, `5M EXECUTION SHORT` yellow.
   - Preserved both `4H` pairs unchanged because higher-timeframe structure did not fail.
   - Replaced the old XAUUSD `5m` pair `4750.48 / 4740.44` with `4740.44 / 4723.84`.
   - Replaced the old US30 `5m` pair `49407.10 / 49335.15` with `49335.15 / 49237.10`.
@@ -704,11 +835,11 @@ Current workflow state: fresh local snapshots are available for both required sy
   - XAUUSD: legacy rebound-long map `4718.00 / 4696.85` remains invalidated from the prior stop-out and stays non-tradable.
   - US30: none newly invalidated during this baseline refresh; the old pair was stale, not freshly broken.
 - Levels drawn on chart:
-  - XAUUSD: `4H RESISTANCE 4772.95`, `4H SUPPORT 4692.49`, `5M EXECUTION SHORT 4763.44`, `5M EXECUTION LONG 4748.40`, `PDH 4832.90`, `PDL 4668.52`, `ON HIGH 4772.39`, `ON LOW 4715.53`
-  - US30: `4H RESISTANCE 49531.60`, `4H SUPPORT 48885.65`, `5M EXECUTION SHORT 49310.15`, `5M EXECUTION LONG 49420.65`, `PDH 49848.10`, `PDL 49034.60`, `ON HIGH 49480.15`, `ON LOW 49335.15`
+  - XAUUSD: `4H SUPPLY 4772.95`, `4H DEMAND 4692.49`, `5M EXECUTION SHORT 4763.44`, `5M EXECUTION LONG 4748.40`, `PDH 4832.90`, `PDL 4668.52`, `ON HIGH 4772.39`, `ON LOW 4715.53`
+  - US30: `4H SUPPLY 49531.60`, `4H DEMAND 48885.65`, `5M EXECUTION SHORT 49310.15`, `5M EXECUTION LONG 49420.65`, `PDH 49848.10`, `PDL 49034.60`, `ON HIGH 49480.15`, `ON LOW 49335.15`
 - Labels repositioned: refreshed all active `4H`, `5M`, `PDH`, `PDL`, `ON HIGH`, and `ON LOW` labels for both symbols back toward the live right-side area of the chart.
 - Levels recolored / removed / replaced:
-  - Applied explicit semantic colors across both symbols: `4H SUPPORT` green, `4H RESISTANCE` red, `5M EXECUTION LONG` blue, `5M EXECUTION SHORT` yellow, `PDH` red, `PDL` green, `ON HIGH` amber, `ON LOW` teal.
+  - Applied explicit semantic colors across both symbols: `4H DEMAND` green, `4H SUPPLY` red, `5M EXECUTION LONG` blue, `5M EXECUTION SHORT` yellow, `PDH` red, `PDL` green, `ON HIGH` amber, `ON LOW` teal.
   - Removed the existing manual drawings for each symbol through TradingView's remove-drawings UI path because the direct drawing-delete API was unavailable on this page instance.
   - Rebuilt the full New York baseline manually so stale `5m` pairs no longer dominate the chart while the HTF layer stays preserved.
 - Trading decision right now:
@@ -751,11 +882,11 @@ Current workflow state: fresh local snapshots are available for both required sy
   - XAUUSD: baseline long `4748.40` failed as support and lost acceptance on `15m / 5m`.
   - US30: none freshly invalidated; the defended long at `49420.65` remains active.
 - Levels refreshed in desired state:
-  - XAUUSD: kept `4H RESISTANCE 4772.95` and `4H SUPPORT 4692.49`; replaced the stale `5m` pair with `4750.48 / 4715.53`.
-  - US30: updated the HTF pair to `4H RESISTANCE 49531.60` and `4H SUPPORT 48885.65`; replaced the stale short `49310.15` with the nearer rejection shelf `49480.15` while keeping `5M EXECUTION LONG 49420.65`.
+  - XAUUSD: kept `4H SUPPLY 4772.95` and `4H DEMAND 4692.49`; replaced the stale `5m` pair with `4750.48 / 4715.53`.
+  - US30: updated the HTF pair to `4H SUPPLY 49531.60` and `4H DEMAND 48885.65`; replaced the stale short `49310.15` with the nearer rejection shelf `49480.15` while keeping `5M EXECUTION LONG 49420.65`.
 - Labels repositioned: refreshed the desired state for all active `4H` and `5M` labels on both symbols so the local runtime can re-anchor them to the current right-side area.
 - Levels recolored / removed / replaced:
-  - Preserved the explicit semantic palette through desired state ownership: `4H SUPPORT` green, `4H RESISTANCE` red, `5M EXECUTION LONG` blue, and `5M EXECUTION SHORT` yellow.
+  - Preserved the explicit semantic palette through desired state ownership: `4H DEMAND` green, `4H SUPPLY` red, `5M EXECUTION LONG` blue, and `5M EXECUTION SHORT` yellow.
   - Removed obsolete `5m` execution ideas from the desired map instead of stacking old and new generations on the chart.
   - Left manual trade-entry markup untouched because this run remained setup-detection only.
 - Trading decision right now:
@@ -805,7 +936,7 @@ Current workflow state: fresh local snapshots are available for both required sy
   - US30: preserved the HTF pair at `49531.60 / 48885.65`; replaced the active `5m` pair with `49539.65 / 49480.15` so the executor stops treating the already-accepted breakout shelf as the live short.
 - Labels repositioned: refreshed desired state metadata for all active `4H` and `5M` levels on both symbols so the local runtime can re-anchor the right-side labels on the next apply cycle.
 - Levels recolored / removed / replaced:
-  - Preserved the explicit semantic palette through desired state ownership: `4H SUPPORT` green, `4H RESISTANCE` red, `5M EXECUTION LONG` blue, and `5M EXECUTION SHORT` yellow.
+  - Preserved the explicit semantic palette through desired state ownership: `4H DEMAND` green, `4H SUPPLY` red, `5M EXECUTION LONG` blue, and `5M EXECUTION SHORT` yellow.
   - Removed only the invalidated US30 short-fade idea at `49480.15` from the active execution layer.
   - Left XAUUSD unchanged because the same active pair still matches the live structure.
 - Trading decision right now:
@@ -856,14 +987,14 @@ Current workflow state: fresh local snapshots are available for both required sy
   - XAUUSD: none newly invalidated during this reassessment; the issue is freshness, not structural failure.
   - US30: `5M EXECUTION SHORT 49539.65` is invalidated as the active short-fade idea because price accepted above it and turned that zone into support.
 - Remaining levels that matter:
-  - XAUUSD: `4H RESISTANCE 4772.95`, `4H SUPPORT 4692.49`, `5M EXECUTION SHORT 4750.48`, `5M EXECUTION LONG 4740.44`
-  - US30: `4H RESISTANCE 49531.60`, `4H SUPPORT 48885.65`, `5M EXECUTION SHORT 49531.60`, `5M EXECUTION LONG 49624.10`, `PDH 49848.10`
+  - XAUUSD: `4H SUPPLY 4772.95`, `4H DEMAND 4692.49`, `5M EXECUTION SHORT 4750.48`, `5M EXECUTION LONG 4740.44`
+  - US30: `4H SUPPLY 49531.60`, `4H DEMAND 48885.65`, `5M EXECUTION SHORT 49531.60`, `5M EXECUTION LONG 49624.10`, `PDH 49848.10`
 - Levels refreshed in desired state:
   - XAUUSD: preserved the HTF pair and replaced the stale downside reclaim level `4715.53` with the nearer live sweep / reclaim shelf at `4740.44`.
   - US30: preserved the HTF pair, replaced the invalidated short-fade `49539.65` with the clearer breakdown shelf at `49531.60`, and promoted `49624.10` as the live breakout trigger.
 - Labels repositioned: refreshed desired state metadata for all active `4H` and `5M` levels on both symbols so the runtime can re-anchor the labels to the current right-side area.
 - Levels recolored / removed / replaced:
-  - Preserved the explicit semantic palette through desired state ownership: `4H SUPPORT` green, `4H RESISTANCE` red, `5M EXECUTION LONG` blue, and `5M EXECUTION SHORT` yellow.
+  - Preserved the explicit semantic palette through desired state ownership: `4H DEMAND` green, `4H SUPPLY` red, `5M EXECUTION LONG` blue, and `5M EXECUTION SHORT` yellow.
   - Removed the stale `5M EXECUTION LONG 4715.53` from the active XAUUSD map and the invalidated `5M EXECUTION SHORT 49539.65` from the active US30 map.
   - Left the higher-timeframe pair intact on both symbols because the `4H` thesis did not change.
 - Trading decision right now:
@@ -934,10 +1065,10 @@ Current workflow state: fresh local snapshots are available for both required sy
 - Run time: 2026-04-21T13:05:00.0000000-06:00
 - Problem found: an earlier cleanup removed higher-timeframe manual lines together with the obsolete 5m execution pair.
 - Fix applied: the cleanup rule is now explicitly scoped to 5M EXECUTION LONG and 5M EXECUTION SHORT only.
-- HTF line standard now: preserve a meaningful 4H SUPPORT / 4H RESISTANCE pair per symbol whenever both sides still matter, and draw those HTF lines as infinite horizontal lines.
+- HTF line standard now: preserve a meaningful 4H DEMAND / 4H SUPPLY pair per symbol whenever both sides still matter, and draw those HTF lines as infinite horizontal lines.
 - HTF restoration applied:
-  - XAUUSD: 4H RESISTANCE 4772.95, 4H SUPPORT 4692.49
-  - US30: 4H RESISTANCE 49483.10, 4H SUPPORT 49152.10
+  - XAUUSD: 4H SUPPLY 4772.95, 4H DEMAND 4692.49
+  - US30: 4H SUPPLY 49483.10, 4H DEMAND 49152.10
 - 5m layer kept active:
   - XAUUSD: 5M EXECUTION SHORT 4708.55, 5M EXECUTION LONG 4714.89
   - US30: 5M EXECUTION SHORT 49257.60, 5M EXECUTION LONG 49333.60
@@ -952,8 +1083,8 @@ Current workflow state: fresh local snapshots are available for both required sy
 - Nearest buy-side liquidity above: `4750.35`, then `4757.51 - 4761.54`, then `4772.95`.
 - Nearest sell-side liquidity below: `4735.76`, then `4728.85`, then `4715.53`.
 - 4H lines kept active:
-  - `4H RESISTANCE 4772.95`
-  - `4H SUPPORT 4692.49`
+  - `4H SUPPLY 4772.95`
+  - `4H DEMAND 4692.49`
 - 5m execution lines now active:
   - `5M EXECUTION SHORT 4750.35`
   - `5M EXECUTION LONG 4735.76`
@@ -979,7 +1110,7 @@ Current workflow state: fresh local snapshots are available for both required sy
   - XAUUSD: stale pre-open stack and duplicates at `4822.30`, `4814.20`, `4805.69`, `4779.50`, `4759.24`, plus duplicate `PDH / PDL` marks that no longer represented the active map.
   - US30: stale `49462.50` resistance label, duplicate `PDH / PDL` marks, and the extra duplicate `49362.10` line.
 - Levels adjusted:
-  - US30: `49483.10` was relabeled from `4H RESISTANCE` to `4H SUPPORT` after live acceptance above the prior cap.
+  - US30: `49483.10` was relabeled from `4H SUPPLY` to `4H DEMAND` after live acceptance above the prior cap.
 - Levels added: None. No new manual 5m execution line was needed because XAUUSD still has no cleaner trigger than the bracket, and US30 already has a clear active stack without adding more clutter.
 - Chart action: Cleaned XAUUSD down to the active bracket map, refreshed the US30 role-flip at `49483.10`, preserved the existing US30 manual trade box, and left the workflow focused on `FOREXCOM:US30` as the cleaner execution chart.
 
@@ -1100,7 +1231,7 @@ Current workflow state: fresh local snapshots are available for both required sy
 - ON HIGH / ON LOW: `49346.65` / `49040.10`
 - Levels currently respected: `49483.10` is being treated as reclaimed support, `49423.10` keeps acting as the nearest intraday shelf, and the deeper stack at `49362.10 / 49232.60` still has not failed.
 - Levels currently failing: bears have not produced a meaningful failure; the only thing that would weaken the continuation map is losing the reclaimed `49483.10` support and then failing the next pullback stack.
-- Latest execution note: Prefer longs on acceptance above `49483.10` or on a clean retest that keeps `49423.10 / 49362.10` intact. Avoid shorting directly into a reclaimed 4H support while Daily and 4H are aligned up.
+- Latest execution note: Prefer longs on acceptance above `49483.10` or on a clean retest that keeps `49423.10 / 49362.10` intact. Avoid shorting directly into a reclaimed 4H demand while Daily and 4H are aligned up.
 - Live check status: `VALID LONG SETUP`.
 - Live check note: The original reclaim above `49362.10` already did its job, and the live continuation now depends on whether `49483.10` holds as flipped support. As long as `49423.10 / 49362.10 / 49232.60` keep holding in that order, the bullish thesis remains confirmed rather than merely hopeful.
 
@@ -1150,8 +1281,8 @@ Current workflow state: `PEPPERSTONE:XAUUSD` enters Asia after a bearish NY expa
   - if a rejection from `4704.55` already runs away without retest, classify the short as `TRIGGERED / DO NOT CHASE`.
 - Labels repositioned: requested a full symbol redraw so the preserved `4H` pair and refreshed `5m` pair finish as one clean right-side label per owned level.
 - Levels recolored / removed / replaced:
-  - preserved the semantic palette exactly: `4H SUPPORT` green, `4H RESISTANCE` red, `5M EXECUTION LONG` blue, `5M EXECUTION SHORT` yellow.
-  - replaced the old `4H SUPPORT 4692.49` with `4H SUPPORT 4664.11` because price already traded through the prior shelf and yesterday's low is now the cleaner higher-timeframe defense.
+  - preserved the semantic palette exactly: `4H DEMAND` green, `4H SUPPLY` red, `5M EXECUTION LONG` blue, `5M EXECUTION SHORT` yellow.
+  - replaced the old `4H DEMAND 4692.49` with `4H DEMAND 4664.11` because price already traded through the prior shelf and yesterday's low is now the cleaner higher-timeframe defense.
   - replaced the stale / invalidated `5m` pair `4724.84 / 4706.05` with the current live bracket `4704.55 / 4686.38`.
 - Decision freshness:
   - Daily and `4H` lean the same way, but the market is entering Asia inside a compact lower bracket instead of at a fresh trigger.
@@ -1162,7 +1293,7 @@ Current workflow state: `PEPPERSTONE:XAUUSD` enters Asia after a bearish NY expa
   - the higher-timeframe pressure still points down while `4704.55` caps rebounds.
   - price is already too close to the lower liquidity pocket to force fresh shorts in the middle.
   - the only acceptable long is a sweep / reclaim from `4686.38` or `4664.11`, not anticipation.
-- Chart action: refreshed the XAUUSD desired state for the Asia workflow so the runtime preserves `4H RESISTANCE 4772.95`, promotes `4H SUPPORT 4664.11`, replaces the stale `5m` pair with `4704.55 / 4686.38`, and repositions labels without touching `US30`.
+- Chart action: refreshed the XAUUSD desired state for the Asia workflow so the runtime preserves `4H SUPPLY 4772.95`, promotes `4H DEMAND 4664.11`, replaces the stale `5m` pair with `4704.55 / 4686.38`, and repositions labels without touching `US30`.
 - Spanish thread update: `XAUUSD` ya quedo revisado para Asia con sesgo bajista moderado bajo `4772.95`. El mapa nuevo queda en `4H 4772.95 / 4664.11` y `5M 4704.55 / 4686.38`, asi que Asia luce mejor para paciencia: short solo en rechazo bajo `4704.55` y long solo si hay sweep y reclaim de `4686.38 / 4664.11`.
 
 ## End-of-Day Review Context
@@ -1241,8 +1372,8 @@ Current workflow state: `PEPPERSTONE:XAUUSD` enters Asia after a bearish NY expa
 - Current preferred side: `WAIT`
 - Cleaner symbol for the New York baseline: `FOREXCOM:US30`
 - Levels now drawn:
-  - XAUUSD: `4H RESISTANCE 4772.95`, `4H SUPPORT 4644.34`, `5M EXECUTION SHORT 4709.19`, `5M EXECUTION LONG 4668.52`, `PDH 4827.76`, `PDL 4737.07`, `ON HIGH 4832.90`, `ON LOW 4772.63`
-  - US30: `4H RESISTANCE 49483.10`, `4H SUPPORT 48885.65`, `5M EXECUTION SHORT 49232.60`, `5M EXECUTION LONG 49192.60`, `PDH 49531.60`, `PDL 48885.65`, `ON HIGH 49787.15`, `ON LOW 49416.60`
+  - XAUUSD: `4H SUPPLY 4772.95`, `4H DEMAND 4644.34`, `5M EXECUTION SHORT 4709.19`, `5M EXECUTION LONG 4668.52`, `PDH 4827.76`, `PDL 4737.07`, `ON HIGH 4832.90`, `ON LOW 4772.63`
+  - US30: `4H SUPPLY 49483.10`, `4H DEMAND 48885.65`, `5M EXECUTION SHORT 49232.60`, `5M EXECUTION LONG 49192.60`, `PDH 49531.60`, `PDL 48885.65`, `ON HIGH 49787.15`, `ON LOW 49416.60`
 - `5m` execution lines now `ACTIVE`:
   - XAUUSD: `5M EXECUTION SHORT 4709.19`, `5M EXECUTION LONG 4668.52`
   - US30: `5M EXECUTION SHORT 49232.60`, `5M EXECUTION LONG 49192.60`
@@ -1254,8 +1385,8 @@ Current workflow state: `PEPPERSTONE:XAUUSD` enters Asia after a bearish NY expa
   - US30: the prior continuation-long idea above `49483.10` is invalid as an active execution trigger until price reclaims the broken shelf.
 - Labels repositioned: all active `4H`, `5M`, `PDH`, `PDL`, `ON HIGH`, and `ON LOW` tags were recreated on the current right side of the chart for both symbols.
 - Levels recolored / removed / replaced:
-  - XAUUSD: replaced the stale upper `5m` pair with the near-price `4709.19 / 4668.52` map; recolored the preserved manual layer to the explicit rules palette; moved `4H RESISTANCE` down to `4772.95` and `4H SUPPORT` down to `4644.34`.
-  - US30: finished the interrupted manual redraw, replaced the stale `49761.65` short with `49232.60`, added `49192.60` as the active long reclaim line, shifted `4H RESISTANCE` to `49483.10`, and reset the full manual layer to explicit semantic colors.
+  - XAUUSD: replaced the stale upper `5m` pair with the near-price `4709.19 / 4668.52` map; recolored the preserved manual layer to the explicit rules palette; moved `4H SUPPLY` down to `4772.95` and `4H DEMAND` down to `4644.34`.
+  - US30: finished the interrupted manual redraw, replaced the stale `49761.65` short with `49232.60`, added `49192.60` as the active long reclaim line, shifted `4H SUPPLY` to `49483.10`, and reset the full manual layer to explicit semantic colors.
 - Decision freshness:
   - XAUUSD: higher-timeframe context is still mixed while the intraday tape is bearish, but the active short needs a bounce first, so the correct call is `WAIT / BEARISH LEAN`, not an immediate short.
   - US30: higher-timeframe bias is still bullish, but current execution readiness is not there while price sits under the reclaim shelf, so the correct call is `WAIT`, not `VALID LONG SETUP`.
@@ -1286,7 +1417,7 @@ Current workflow state: `PEPPERSTONE:XAUUSD` enters Asia after a bearish NY expa
   - XAUUSD: `5M EXECUTION LONG 4668.52` after the rebound already traveled too far away from the sweep low to keep that line as the primary active trigger.
 - `5m` execution lines now `INVALIDATED`:
   - XAUUSD: `5M EXECUTION SHORT 4709.19` because price reclaimed and accepted back through the old failed-retest shelf.
-- Labels repositioned: active `4H RESISTANCE`, `4H SUPPORT`, `PDH`, `PDL`, `ON HIGH`, and `ON LOW` tags were rebuilt on the current right side together with the fresh `5M EXECUTION SHORT` and `5M EXECUTION LONG` labels.
+- Labels repositioned: active `4H SUPPLY`, `4H DEMAND`, `PDH`, `PDL`, `ON HIGH`, and `ON LOW` tags were rebuilt on the current right side together with the fresh `5M EXECUTION SHORT` and `5M EXECUTION LONG` labels.
 - Levels recolored / removed / replaced:
   - Removed the obsolete `5m` execution pair at `4709.19 / 4668.52` from the active map.
   - Replaced it with the near-price `4741.54 / 4720.25` pair using the explicit yellow / blue execution colors.
@@ -1436,6 +1567,7 @@ Current workflow state: `PEPPERSTONE:XAUUSD` enters Asia after a bearish NY expa
 - 2026-04-22 End-of-day: Daily + `4H` alignment is only useful while the intraday reclaim / support shelf survives. US30 showed that aligned bullish HTF can still fail intraday once the first continuation shelf is lost, while XAUUSD showed that mixed Daily vs `4H` can still trade cleanly if `30m / 15m` keep rejecting under the cap.
 - 2026-04-22 End-of-day: sweeps that fail to reclaim the active continuation shelf tend to revert hard. US30's loss of `49237.10` after already losing `49335.15` turned the long defense into invalidation, while XAUUSD's break of `4723.84` only rewarded traders who already had the failed-retest fade and punished late breakdown chasing into `4694.07 / 4692.49`.
 - 2026-04-22 Live reassessment follow-through: once US30 trades back through the active long shelf and keeps printing `15m / 30m` closes below it, that former long trigger is invalidated even if Daily and `4H` remain bullish. The cleaner refresh is to demote that shelf into the new short / reclaim line and lower the active long to the next defended support near `49335.15`.
+- 2026-04-29 End-of-day operational: if a TradingView Structured Live State file still advertises `fresh` or `FULL_DATA` after its `as_of` and `fresh_until` are already expired, the workflow must treat it as `DATA_DEGRADED` and preserve the prior map; freshness comes from the timestamp window, not the stale status label.
 - 2026-04-20 NY pre-open: US30 was cleaner than XAUUSD because its 5m structure aligned with 4H continuation, while XAUUSD sat directly under supply with mixed Daily / 4H context.
 - 2026-04-20 NY pre-open: Mixed Daily vs 4H structure forced patience on both symbols, but US30 still offered the better continuation map if 49264.15 held as accepted breakout.
 - 2026-04-20 Bias Integrity Check: both NY theses survived the pre-open fluctuations, but US30 remained cleaner because it held above 49192.15 / 49115.15 after already probing through 49264.15, while XAUUSD still needs a true break of 4822.30.
@@ -1764,8 +1896,8 @@ Current workflow state: `PEPPERSTONE:XAUUSD` enters Asia after a bearish NY expa
   - preserve the earlier New York baseline plus the standing `Active Setup Detector` interpretation instead of weakening or invalidating bias from split cycles
   - the higher-timeframe directional ideas remain the last valid read, but conviction is reduced until the runtime restores one common fresh cycle
 - Important conditions preserved:
-  - `XAUUSD`: keep the NY map centered on `5M EXECUTION SHORT 4724.84` and `5M EXECUTION LONG 4704.55` under the preserved `4H RESISTANCE 4772.95` and `4H SUPPORT 4664.11`
-  - `US30`: keep the NY map centered on `5M EXECUTION SHORT 49432.45` and `5M EXECUTION LONG 49343.10` under the preserved `4H RESISTANCE 49531.60` and `4H SUPPORT 48885.65`
+  - `XAUUSD`: keep the NY map centered on `5M EXECUTION SHORT 4724.84` and `5M EXECUTION LONG 4704.55` under the preserved `4H SUPPLY 4772.95` and `4H DEMAND 4664.11`
+  - `US30`: keep the NY map centered on `5M EXECUTION SHORT 49432.45` and `5M EXECUTION LONG 49343.10` under the preserved `4H SUPPLY 49531.60` and `4H DEMAND 48885.65`
 - Liquidity / structure note:
   - no new liquidity-taken or structure-failure verdict was committed in this run because the integrity window itself never became valid
   - do not treat isolated one-symbol refreshes as proof that the morning directional case is either broken or freshly confirmed
@@ -1810,7 +1942,7 @@ Current workflow state: `PEPPERSTONE:XAUUSD` enters Asia after a bearish NY expa
   - the required NY baseline could not be rebuilt because the structured live input set was not trustworthy for either symbol at the current run time
   - the supporting visual layer also remained unavailable because `market_runtime/screenshots` was still empty on disk
 - New York baseline handling:
-  - no new Daily / 4H -> 30m -> 15m -> 5m assessment was committed in this run
+  - no new Monthly / Weekly -> Daily / 4H -> 1H -> 30m -> 15m -> 5m assessment was committed in this run
   - preserve the last valid NY baseline from `2026-04-24` instead of forcing a new open thesis from expired data
 - `5m` execution lines:
   - no new `ACTIVE / STALE / INVALIDATED` reclassification was committed because the live input set never returned to a valid state
@@ -1952,8 +2084,8 @@ Current workflow state: `PEPPERSTONE:XAUUSD` enters Asia after a bearish NY expa
   - preserve the earlier New York baseline plus the standing `Active Setup Detector` interpretation instead of weakening or invalidating bias from day-old data
   - the higher-timeframe directional ideas remain the last valid read, but conviction stays reduced until the runtime restores fresh structured snapshots
 - Important conditions preserved:
-  - `XAUUSD`: keep the NY map centered on `5M EXECUTION SHORT 4724.84` and `5M EXECUTION LONG 4704.55` under the preserved `4H RESISTANCE 4772.95` and `4H SUPPORT 4664.11`
-  - `US30`: keep the NY map centered on `5M EXECUTION SHORT 49432.45` and `5M EXECUTION LONG 49343.10` under the preserved `4H RESISTANCE 49531.60` and `4H SUPPORT 48885.65`
+  - `XAUUSD`: keep the NY map centered on `5M EXECUTION SHORT 4724.84` and `5M EXECUTION LONG 4704.55` under the preserved `4H SUPPLY 4772.95` and `4H DEMAND 4664.11`
+  - `US30`: keep the NY map centered on `5M EXECUTION SHORT 49432.45` and `5M EXECUTION LONG 49343.10` under the preserved `4H SUPPLY 49531.60` and `4H DEMAND 48885.65`
 - Liquidity / structure note:
   - no new liquidity-taken or structure-failure verdict was committed in this run because the integrity pass never regained valid live inputs
   - do not treat the expired `2026-04-27` snapshots as proof that the morning directional case is either broken or freshly confirmed
@@ -2031,4 +2163,5071 @@ Current workflow state: `PEPPERSTONE:XAUUSD` enters Asia after a bearish NY expa
 - Spanish thread update: `Mid-session reassessment` cerro en `STALE SNAPSHOT / DEGRADED`. `XAUUSD` siguio `degraded` desde `2026-04-27T06:13:39-06:00`, `US30` siguio con bandera `fresh` pero con snapshot vencido desde `2026-04-27T06:14:20-06:00`, y despues de la espera obligatoria no hubo refresh ni PNGs reales. Se preserva el mapa de `XAUUSD 4724.84 / 4704.55` y `US30 49432.45 / 49343.10`; los longs previos siguen `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`, los shorts siguen `PRE-TRIGGER`, y la accion correcta por ahora es `WAIT`.
 
 - 2026-04-28 | automation: Mid-Session Reassessment | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the run closed degraded because `XAUUSD` remained `degraded` with an expired `2026-04-27T06:13:39-06:00` snapshot, `US30` still carried an expired `2026-04-27T06:14:20-06:00` snapshot despite its stale `fresh` status flag, neither symbol refreshed during the required wait window, and the snapshot-referenced `5m` PNG paths still resolved to missing files; no fresh mid-session reassessment was committed, so the desired-state maps stay preserved as XAUUSD `4724.84 / 4704.55` and US30 `49432.45 / 49343.10` while the prior timing reads remain in force | key drawn levels: XAUUSD `4H 4772.95 / 4664.11`, `5m 4724.84 / 4704.55`; US30 `4H 49531.60 / 48885.65`, `5m 49432.45 / 49343.10` | action state: `STALE SNAPSHOT / DEGRADED` | main lesson: `Mid-Session Reassessment` still needs fresh structured snapshots for both required symbols; if the runtime does not refresh in time, preserve the last valid map and do not manufacture a continuation / reversal / dead-range verdict from expired data.
+
+### Live Reassessment Trigger - Fresh Structured Rebuild On 2026-04-28
+
+- Run time: `2026-04-28T12:43:24.5629490-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Snapshot source: latest TradingView Structured Live State JSON only; no screenshots, no direct TradingView read, no PNG interpretation.
+- Runtime result: finished `FULL_DATA`
+- Freshness check:
+  - `PEPPERSTONE:XAUUSD` arrived with `status = FULL_DATA`, `decision_allowed = true`, and `as_of = 2026-04-28T12:31:53-06:00`
+  - `FOREXCOM:US30` arrived with `status = FULL_DATA`, `decision_allowed = true`, and `as_of = 2026-04-28T12:32:22-06:00`
+- Higher-timeframe thesis:
+  - `XAUUSD`: `Daily` still trades bearish below the preserved `4H SUPPLY 4772.95`, and the old `4H DEMAND 4664.11` is no longer valid because price already traded through it and based instead from `4554.76`
+  - `US30`: the broader `Daily / 4H` recovery above `4H DEMAND 48885.65` is weakened, not broken, after failing from `49391.45` and losing the old `49343.10` reclaim shelf
+- Intermediate structure:
+  - `XAUUSD`: `30m / 15m` bounced from `4554.76` into the `4599.93-4601.73` supply shelf, and the latest `5m` sequence already swept and rejected that upper liquidity
+  - `US30`: `30m / 15m` rolled back into `LH / LL` under `49220+` supply, and price is now pressing `49095.40` support with the first reclaim shelf sitting at `49197.40`
+- Liquidity map:
+  - `XAUUSD`: nearest buy-side liquidity is `4597.83-4599.93`; nearest sell-side liquidity is `4592.03`; the tape already swept above and rejected back below the upper pool
+  - `US30`: nearest buy-side liquidity is `49197.40`; nearest sell-side liquidity is `49095.90-49095.40`; the tape is still targeting / testing that lower pool
+- `5m` execution lines now `ACTIVE`:
+  - `PEPPERSTONE:XAUUSD` `5M EXECUTION SHORT 4599.93`
+  - `PEPPERSTONE:XAUUSD` `5M EXECUTION LONG 4592.03`
+  - `FOREXCOM:US30` `5M EXECUTION SHORT 49197.40`
+  - `FOREXCOM:US30` `5M EXECUTION LONG 49095.40`
+- `5m` execution lines now `STALE`:
+  - none
+- `5m` execution lines now `INVALIDATED`:
+  - `PEPPERSTONE:XAUUSD` `5M EXECUTION SHORT 4724.84` is no longer live because the whole market already repriced far below that shelf
+  - `PEPPERSTONE:XAUUSD` `5M EXECUTION LONG 4704.55` is invalidated as current defense because price accepted through it and through the old `4H DEMAND 4664.11`
+  - `FOREXCOM:US30` `5M EXECUTION SHORT 49432.45` is invalidated because it is no longer the live reclaim / rejection shelf near price
+  - `FOREXCOM:US30` `5M EXECUTION LONG 49343.10` is invalidated because price accepted back below it and migrated to a lower live defense
+- Opportunity timing state:
+  - `XAUUSD` current opportunity: `TRIGGERED`
+  - `XAUUSD` short side: `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST` because the `5m` rejection from `4599.93-4601.73` already fired
+  - `XAUUSD` long side: `PRE-TRIGGER` until `4592.03` is swept and reclaimed cleanly
+  - `US30` current opportunity: `ARMED`
+  - `US30` long side: `ARMED` while `49095.40` is being defended, and it flips to `TRIGGERED` only if `5m` reclaims back above `49124.90` and holds
+  - `US30` short side: `PRE-TRIGGER` until `49197.40` retests and rejects
+- Trading decision:
+  - `XAUUSD`: `WAIT / SHORT ALREADY TRIGGERED / DO NOT CHASE`
+  - `US30`: `WAIT / LONG DEFENSE ARMED AT 49095.40`
+  - cleaner symbol: `US30`
+  - symbol to avoid: `XAUUSD` for fresh entries unless a new retest forms
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to avoid treating the first `XAUUSD` bounce from `4554.76` as an automatic long
+  - used the same timing layer to keep `US30` in `ARMED`, not `TRIGGERED`, until the defense actually reclaims local `5m` structure
+- Articuno reinforcement:
+  - `XAUUSD`: liquidity above already paid, rejection quality is real, and the main job now is anti-chase discipline rather than forcing a late short
+  - `US30`: the defense is live, but one support touch is not enough by itself; the level still needs reclaim quality before it earns execution
+- Chart actions:
+  - both symbols required `full_symbol_redraw` because the active `5m` pair changed materially
+  - desired state now owns `XAUUSD 4599.93 / 4592.03` and `US30 49197.40 / 49095.40`
+  - `XAUUSD` higher-timeframe support was replaced from `4664.11` to `4554.76`; the preserved `4H SUPPLY 4772.95` remains intact
+  - `US30` preserved the higher-timeframe pair `4H SUPPLY 49531.60` and `4H DEMAND 48885.65`
+- Labels repositioned:
+  - both desired-state files now request a clean full redraw so the runtime re-anchors every kept label to the right side and removes any older duplicate execution generation
+- Levels recolored / removed / replaced:
+  - preserved the semantic palette exactly: `4H DEMAND` green, `4H SUPPLY` red, `5M EXECUTION LONG` blue, `5M EXECUTION SHORT` yellow
+  - removed the obsolete NY `5m` pairs for both symbols and replaced them with the current live bracket
+- Trader-facing report:
+  - `XAUUSD`
+  - `Historia:` la historia ahora mismo es que oro reboto desde `4554.76`, llego a `4599.93-4601.73`, barrio liquidez arriba y ya dejo rechazo en `5m`
+  - `Tesis:` eso sigue favoreciendo shorts en retest mientras no recupere `4599.93`, pero el trigger correcto ya salio y ahora perseguirlo seria llegar tarde; el long limpio solo vuelve si `4592.03` se barre y se recupera
+  - `Niveles:` `4H SUPPLY 4772.95` | `4H DEMAND 4554.76` | `5M EXECUTION SHORT 4599.93` | `5M EXECUTION LONG 4592.03`
+  - `Accion:` `TRIGGERED / DO NOT CHASE`. Si ya estas dentro del short, gestionar. Si estas flat, esperar nuevo retest o una barrida/reclaim real de `4592.03`
+  - `US30`
+  - `Historia:` la historia ahora mismo es que `US30` perdio `49343.10`, cayo hasta `49095.40`, y ahora esta intentando defender ese piso mientras la primera oferta seria queda en `49197.40`
+  - `Tesis:` eso todavia no es long limpio, pero si la defensa de `49095.40` aguanta y recupera `49124.90` en `5m`, el setup pasa de paciencia a activacion; si no recupera, sigue mandando la presion bajista intradia
+  - `Niveles:` `4H SUPPLY 49531.60` | `4H DEMAND 48885.65` | `5M EXECUTION SHORT 49197.40` | `5M EXECUTION LONG 49095.40`
+  - `Accion:` `ARMED / WAIT`. Long solo con defensa real de `49095.40` y reclaim de `5m`; short solo si `49197.40` retestea y rechaza
+- Spanish thread update: `Live reassessment trigger` encontro data fresca y rehizo el mapa. `XAUUSD` invalido el par viejo `4724.84 / 4704.55` y ahora queda con `4599.93 / 4592.03`; el short ya esta `TRIGGERED / DO NOT CHASE`. `US30` invalido `49432.45 / 49343.10` y ahora queda con `49197.40 / 49095.40`; el long esta `ARMED`, no ejecutado, mientras no recupere `49124.90`. El mapa fue refrescado en ambos simbolos y la accion correcta por ahora es `WAIT`, con `US30` mas limpio que oro.
+- Discord summary written to dispatch:
+  - `[LIVE REASSESSMENT TRIGGER]`
+  - `Historia`
+  - `La historia ahora mismo es que oro reboto desde 4554.76 hasta 4599.93-4601.73 y ya dejo rechazo en 5m, mientras US30 perdio 49343.10, cayo a 49095.40, y ahora esta intentando defender ese piso.`
+  - `Tesis`
+  - `Eso deja XAUUSD con el short ya TRIGGERED y tarde para chase; solo sirve un retest nuevo. US30 queda mas limpio, pero sigue ARMED, no ejecutado: necesita defensa real de 49095.40 y reclaim en 5m antes de validar long.`
+  - `Niveles`
+  - `XAUUSD -> 4H 4772.95 / 4554.76 | 5m 4599.93 / 4592.03`
+  - `US30 -> 4H 49531.60 / 48885.65 | 5m 49197.40 / 49095.40`
+  - `Accion`
+  - `XAUUSD -> TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`
+  - `US30 -> ARMED / WAIT FOR 49095.40 DEFENSE + 5m RECLAIM`
+  - `Mas limpio: US30. Trampa: vender tarde oro o comprar US30 sin reclaim.`
+
+- 2026-04-28 | automation: Live Reassessment Trigger | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: both symbols refreshed with `FULL_DATA`, the old NY `5m` pairs were invalidated, and the live map was rebuilt from current structured liquidity; `XAUUSD` now holds `5m 4599.93 / 4592.03` under the preserved `4H SUPPLY 4772.95` with support reset to `4554.76`, while `US30` now holds `5m 49197.40 / 49095.40` inside the broader `4H 49531.60 / 48885.65` range | key drawn levels: XAUUSD `4H 4772.95 / 4554.76`, `5m 4599.93 / 4592.03`; US30 `4H 49531.60 / 48885.65`, `5m 49197.40 / 49095.40` | action state: XAUUSD `WAIT / SHORT ALREADY TRIGGERED / DO NOT CHASE`, US30 `WAIT / LONG DEFENSE ARMED AT 49095.40` | main lesson: once fresh structured live state returns after a degraded carry-forward, do not preserve broken morning shelves; rebuild the execution bracket around the nearest live liquidity and say clearly whether the trigger is still ahead or already gone.
+
+### NY Open Levels - Structured Baseline Refresh On 2026-04-28
+
+- Run time: `2026-04-28T12:52:19.8592021-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Snapshot source: latest TradingView Structured Live State JSON only; no screenshots, no direct TradingView read, no PNG interpretation.
+- Runtime result: finished `FULL_DATA`
+- Live-state timestamps:
+  - `PEPPERSTONE:XAUUSD` latest available structured state carried `status = stale`, but `data_confidence = FULL_DATA`, `decision_allowed = true`, and `as_of = 2026-04-28T12:31:53-06:00`; the workflow used that latest structured payload as the valid analysis source.
+  - `FOREXCOM:US30` latest available structured state carried `status = fresh`, `data_confidence = FULL_DATA`, `decision_allowed = true`, and `as_of = 2026-04-28T12:32:22-06:00`.
+- Higher-timeframe bias:
+  - `XAUUSD`: `Daily` stays bearish below the preserved `4H SUPPLY 4772.95`, while `4H` is still rebounding from `4554.76` but has not repaired the broader bearish damage yet; bias strength stays `moderate bearish` and the preferred side remains patience or shorts on clean retest rejection.
+  - `US30`: the broader `Daily` recovery above `4H DEMAND 48885.65` still exists, but `4H` and intraday structure are weakened after the failure from `49391.45`; bias strength stays `mixed to weak bullish HTF / bearish intraday`, so patience matters more than forcing the first long.
+- Intermediate structure:
+  - `XAUUSD`: `30m` is a bounce into supply and `15m` is still organized enough to respect `4599.93-4601.73` as the live cap; that supports the higher-timeframe short retest idea more than a fresh momentum long.
+  - `US30`: `30m` and `15m` keep printing `LH / LL` under `49220+` supply, but price is sitting on the `49095.40` defense shelf; that keeps the long idea alive only as a reclaim setup, not as a blind bid.
+- Liquidity map:
+  - `XAUUSD`: nearest buy-side liquidity is `4597.83-4599.93` and then the session high `4601.73`; nearest sell-side liquidity is `4592.03` and then `4557.29`. The upper pool has already been swept once, so any fresh short must come from rejection quality, not chase.
+  - `US30`: nearest buy-side liquidity is `49197.40` and then `49219.90`; nearest sell-side liquidity is `49095.40` and then `PDL 49026.90`. The tape is still testing the lower pool first, so the long needs defense plus reclaim before it deserves execution.
+- Key structure:
+  - `XAUUSD`: supply is still being respected around `4599.93-4601.73`; the old `4664.11` support already failed and the live `4H` base remains `4554.76`.
+  - `US30`: the earlier `49343.10` reclaim shelf already failed; now the active structure is `49095.40` support versus `49197.40` first reclaim / rejection shelf.
+- Most important levels:
+  - `XAUUSD`: `4H SUPPLY 4772.95` | `4H DEMAND 4554.76` | `5M EXECUTION SHORT 4599.93` | `5M EXECUTION LONG 4592.03` | `PDH 4730.08` | `PDL 4667.18`
+  - `US30`: `4H SUPPLY 49531.60` | `4H DEMAND 48885.65` | `5M EXECUTION SHORT 49197.40` | `5M EXECUTION LONG 49095.40` | `PDH 49359.40` | `PDL 49026.90`
+- RSI context:
+  - `XAUUSD`: `15m RSI ~60.71`; firm-neutral, but secondary only.
+  - `US30`: `15m RSI ~38.14`; neutral-bearish, but secondary only.
+- Execution readiness:
+  - `XAUUSD`: valid short only if `4599.93-4601.73` rejects cleanly again; valid long only if `4592.03` is swept and reclaimed. Do not trade the middle of the bracket, and do not treat the prior short impulse as a fresh chase entry.
+  - `US30`: valid long only if `49095.40` keeps defending and `5m` reclaims `49124.90`; valid short only if `49197.40` retests and rejects. Do not buy the first touch without reclaim.
+- `5m` execution lines now `ACTIVE`:
+  - `PEPPERSTONE:XAUUSD` `5M EXECUTION SHORT 4599.93`
+  - `PEPPERSTONE:XAUUSD` `5M EXECUTION LONG 4592.03`
+  - `FOREXCOM:US30` `5M EXECUTION SHORT 49197.40`
+  - `FOREXCOM:US30` `5M EXECUTION LONG 49095.40`
+- `5m` execution lines now `STALE`:
+  - none
+- `5m` execution lines now `INVALIDATED`:
+  - none in this workflow; the current live bracket stayed valid and closer to price than any older alternative.
+- Opportunity timing state:
+  - `XAUUSD`: short side stays `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`; long side stays `PRE-TRIGGER` until `4592.03` is swept and reclaimed.
+  - `US30`: long side stays `ARMED` while `49095.40` is being defended, but it still needs the `49124.90` reclaim to flip to `TRIGGERED`; short side stays `PRE-TRIGGER` until `49197.40` retests and rejects.
+- Trading decision:
+  - `XAUUSD`: `WAIT / SHORTS ONLY ON 4599.93 REJECTION`
+  - `US30`: `WAIT / LONG DEFENSE ARMED AT 49095.40`
+  - cleaner symbol: `US30`
+  - symbol to avoid: `XAUUSD` for fresh entries unless a new rejection retest forms.
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to keep `XAUUSD` from being repackaged as a fresh short just because it is back near supply.
+  - used the same timing filter to keep `US30` as `ARMED`, not `TRIGGERED`, until the defense shelf actually reclaims local `5m` structure.
+- Articuno reinforcement:
+  - `XAUUSD`: liquidity above has already been touched, the supply shelf still has structural function, and the right discipline is anti-chase patience.
+  - `US30`: support quality is real enough to watch, but one defense touch alone is not participation confirmation; reclaim quality still decides whether the long is tradable.
+- Chart actions:
+  - refreshed both desired-state files under `ny-open-levels` with the same `HTF` and `5m` levels so the chart runtime can perform a clean redraw and re-anchor labels to the right side.
+  - preserved the automation-owned map as `XAUUSD 4599.93 / 4592.03` and `US30 49197.40 / 49095.40`; no new level prices were introduced.
+- Labels repositioned:
+  - both symbols were queued for redraw so every preserved label can return to the current right side with one clean generation.
+- Levels recolored / removed / replaced:
+  - none; semantic palette stayed unchanged and no level prices were removed or replaced in this workflow.
+- Trader-facing report:
+  - `XAUUSD`
+  - `Historia:` la historia ahora mismo es que oro sigue rebotando desde `4554.76`, pero ese rebote sigue chocando con la oferta `4599.93-4601.73` y todavia no cambia el marco bajista de fondo.
+  - `Tesis:` eso sigue favoreciendo shorts en retest mientras no recupere `4599.93`, pero no quiero chase porque el impulso corto ya trabajo una vez; el long limpio solo vuelve si `4592.03` se barre y se recupera.
+  - `Niveles:` `4H SUPPLY 4772.95` | `4H DEMAND 4554.76` | `5M EXECUTION SHORT 4599.93` | `5M EXECUTION LONG 4592.03`
+  - `Accion:` `WAIT / SHORTS ONLY ON 4599.93 REJECTION`. Si no hay rechazo limpio, paciencia; si pierde `4592.03`, no adivinar el long.
+  - `US30`
+  - `Historia:` la historia ahora mismo es que `US30` ya dejo atras `49343.10`, se quedo trabajando la defensa `49095.40`, y todavia no ha recuperado la primera franja que cambia el ritmo en `49124.90`.
+  - `Tesis:` eso no invalida el long por completo, pero tampoco lo confirma; el setup bueno sigue siendo defensa real de `49095.40` mas reclaim de `5m`, mientras que el short solo gana calidad si `49197.40` retestea y rechaza.
+  - `Niveles:` `4H SUPPLY 49531.60` | `4H DEMAND 48885.65` | `5M EXECUTION SHORT 49197.40` | `5M EXECUTION LONG 49095.40`
+  - `Accion:` `WAIT / LONG DEFENSE ARMED AT 49095.40`. Long solo con reclaim; sin eso, no comprar soporte por reflejo.
+- Spanish thread update: `NY Open Levels` se refresco con Structured Live State y mantuvo el mapa actual. `XAUUSD` sigue con `4599.93 / 4592.03`, favoreciendo shorts solo en rechazo limpio y sin chase; `US30` mantiene `49197.40 / 49095.40`, con el long todavia `ARMED` mientras no recupere `49124.90`. No hubo cambio de precios en el mapa, pero si se forzo redraw para re-anclar etiquetas; el simbolo mas limpio sigue siendo `US30`.
+- Discord summary written to dispatch:
+  - `[NY OPEN LEVELS]`
+  - `Historia`
+  - `La historia ahora mismo es que oro sigue rebotando dentro de un marco 4H bajista, pero otra vez esta pegado a la oferta 4599.93-4601.73, mientras US30 sigue presionando 49095.40 despues del breakdown y todavia no recupera 49124.90.`
+  - `Tesis`
+  - `Eso deja XAUUSD favoreciendo shorts en retest mientras no recupere 4599.93, pero no quiero chase si no aparece rechazo limpio otra vez. US30 queda mas limpio porque la defensa de 49095.40 sigue viva, pero el long solo existe si 5m reclama 49124.90 antes de abrir espacio hacia 49197.40.`
+  - `Niveles`
+  - `XAUUSD -> 4H 4772.95 / 4554.76 | 5m 4599.93 / 4592.03`
+  - `US30 -> 4H 49531.60 / 48885.65 | 5m 49197.40 / 49095.40`
+- `Accion`
+- `XAUUSD -> WAIT / SHORTS ONLY ON 4599.93 REJECTION / DO NOT CHASE`
+- `US30 -> WAIT / LONG DEFENSE ARMED AT 49095.40 / RECLAIM 49124.90 FIRST`
+- `Mas limpio: US30. Trampa: vender oro tarde o comprar US30 sin reclaim.`
+
+- 2026-04-28 | automation: NY Open Levels | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: both symbols were analyzed from the latest TradingView Structured Live State with `FULL_DATA` and the current live bracket stayed valid, so the workflow preserved `XAUUSD 4599.93 / 4592.03` under `4H 4772.95 / 4554.76` and `US30 49197.40 / 49095.40` inside `4H 49531.60 / 48885.65`; no new prices were added, but both desired-state files were refreshed to re-anchor labels and keep the owned layer clean | key drawn levels: XAUUSD `4H 4772.95 / 4554.76`, `5m 4599.93 / 4592.03`; US30 `4H 49531.60 / 48885.65`, `5m 49197.40 / 49095.40` | action state: XAUUSD `WAIT / SHORTS ONLY ON 4599.93 REJECTION`, US30 `WAIT / LONG DEFENSE ARMED AT 49095.40` | main lesson: when the live bracket still matches current liquidity, preserve the pair, refresh label hygiene, and keep the action honest instead of inventing a new setup.
+
+### Asia Setup Detector - Structured Live State Expired On 2026-04-28
+
+- Run time: `2026-04-28T17:33:08.3618720-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD` for trade decision, `FOREXCOM:US30` for freshness preservation only.
+- Snapshot source: latest TradingView Structured Live State JSON only; no screenshots, no direct TradingView read, no PNG interpretation.
+- Runtime result: finished `DATA_DEGRADED`
+- Freshness check:
+  - `PEPPERSTONE:XAUUSD` latest structured state was `as_of = 2026-04-28T12:58:13-06:00`; at workflow time it was `04:34:55.3618720` old, well beyond the `30s` contract.
+  - `FOREXCOM:US30` latest structured state was `as_of = 2026-04-28T12:58:42-06:00`; at workflow time it was `04:34:26.3618720` old, also beyond the `30s` contract.
+- Degraded reason:
+  - `XAUUSD`, the only Asia trade-decision symbol, did not have a fresh structured payload, so the workflow cannot promote a new Asia setup.
+  - `US30` freshness does not block the gold read when `XAUUSD` is fresh, but both symbols are stale here, so both maps stay preserved.
+- `5m` execution lines:
+  - no new `ACTIVE / STALE / INVALIDATED` reclassification was committed because the live input set was outside the structured freshness window.
+  - preserved desired-state pair for `XAUUSD`: `4599.93 / 4592.03`
+  - preserved desired-state pair for `US30`: `49197.40 / 49095.40`
+- Opportunity timing state:
+  - not refreshed in this run because `XAUUSD` data is degraded.
+  - preserve the last valid `XAUUSD` timing read: short side `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`; long side `PRE-TRIGGER` until `4592.03` is swept and reclaimed cleanly.
+  - preserve the last valid `US30` timing read: long side `ARMED` at `49095.40` pending `49124.90` reclaim; short side `PRE-TRIGGER` until `49197.40` retests and rejects.
+- Transcript-derived refinement usage:
+  - no new timing promotion was applied in this run.
+  - preserved the standing `indication -> correction -> continuation` and anti-chase guidance only as the interpretation layer behind the last valid timing reads.
+- Labels repositioned: none in this run because desired state was preserved unchanged.
+- Levels recolored / removed / replaced: none; both desired-state JSON files were left untouched.
+- Trader-facing report:
+  - `XAUUSD`
+  - `Historia:` la historia ahora mismo es que el ultimo mapa valido de oro sigue comprimido entre `4599.93` y `4592.03`, pero ese read ya no es operable como lectura nueva porque el Structured Live State que lo soporta vencio hace mas de cuatro horas.
+  - `Tesis:` eso no autoriza inventar un Asia setup nuevo. Se preserva la tesis valida previa: oferta en `4599.93` para fade si aparece rechazo fresco y defensa larga solo si `4592.03` se barre y se recupera, pero con data vencida la accion correcta sigue siendo paciencia.
+  - `Niveles:` `4H SUPPLY 4772.95` | `4H DEMAND 4554.76` | `5M EXECUTION SHORT 4599.93` | `5M EXECUTION LONG 4592.03`
+  - `Accion:` `WAIT / DATA_DEGRADED`. Si ya venias siguiendo el short previo, sigue siendo `DO NOT CHASE`; si estas flat, esperar un Structured Live State fresco antes de revalidar cualquier trigger de Asia.
+- Spanish thread update: `Asia Setup Detector` no encontro Structured Live State fresco para oro. `XAUUSD` llega con ultimo `as_of 2026-04-28T12:58:13-06:00`, fuera de la ventana de `30s`, asi que no se crea setup nuevo y se preserva el mapa actual `4599.93 / 4592.03`; la lectura valida mas reciente sigue siendo short previo `TRIGGERED / DO NOT CHASE` y long `PRE-TRIGGER`, pero la accion correcta ahora es `WAIT`.
+- Discord summary written to dispatch:
+  - `[🌙 ASIA SETUP DETECTOR]`
+  - `🚦 **Estado**`
+  - `🟡 XAUUSD → WAIT / DATA_DEGRADED`
+  - `⚙️ **Activacion**`
+  - `Nivel clave: 4599.93 / 4592.03 preservado`
+  - `Trigger: N/A por Structured Live State vencido`
+  - `Falta: refresh fresco para revalidar rechazo en 4599.93 o sweep/reclaim de 4592.03`
+  - `✅ **Decision**`
+  - `Sesgo tactico: FADE / RANGE PRESERVADO`
+  - `Accion: ESPERAR`
+  - `🛑 Invalida: no inventar setup nuevo mientras XAUUSD siga fuera de la ventana de 30s`
+
+- 2026-04-28 | automation: Asia Setup Detector | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `DATA_DEGRADED` because the latest structured state for `XAUUSD` was still `2026-04-28T12:58:13-06:00` and `US30` was `2026-04-28T12:58:42-06:00`, both far beyond the `30s` freshness contract at the `2026-04-28T17:33:08.3618720-06:00` run time; no new Asia setup was promoted, so the desired-state maps stay preserved as XAUUSD `4599.93 / 4592.03` and US30 `49197.40 / 49095.40` while the last valid timing reads remain in force | key drawn levels: XAUUSD `4H 4772.95 / 4554.76`, `5m 4599.93 / 4592.03`; US30 `4H 49531.60 / 48885.65`, `5m 49197.40 / 49095.40` | action state: `DATA_DEGRADED / PRESERVE PRIOR MAP / WAIT` | main lesson: Asia logic can ignore US30 for the trade decision, but it cannot bypass stale `XAUUSD` structured data; when gold itself is outside the freshness window, preserve the map and do not manufacture a new trigger.
+
+### End-of-Day Review - Structured Live State Expired On 2026-04-29
+
+- Run time: `2026-04-29T06:20:43.4400230-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Snapshot source: latest TradingView Structured Live State JSON only; no screenshots, no direct TradingView read, no PNG interpretation.
+- Runtime result: finished `DATA_DEGRADED`
+- Freshness check:
+  - `PEPPERSTONE:XAUUSD` latest structured state remained `as_of = 2026-04-28T12:58:13-06:00`; at workflow time it was `17:22:30.4400230` old, far beyond the `30s` contract.
+  - `FOREXCOM:US30` latest structured state remained `as_of = 2026-04-28T12:58:42-06:00`; at workflow time it was `17:22:01.4400230` old, also beyond the `30s` contract.
+  - both files still advertise `data_confidence = FULL_DATA` and `decision_allowed = true`, but the freshness contract overrides that because the payload timestamps are expired.
+- Degraded reason:
+  - both required symbols are outside the structured freshness window, so `End-of-Day Review` must preserve the prior map and finish degraded instead of manufacturing a close verdict from expired data.
+- Session review:
+  - no new close verdict was committed from this run because the latest valid market evidence is still the April 28 intraday chain, not a fresh end-of-day state.
+  - preserve the last valid April 28 read: `XAUUSD` had the short side already `TRIGGERED / DO NOT CHASE` under `4599.93-4601.73`, while `US30` remained the cleaner symbol with long defense `ARMED` at `49095.40` pending the `49124.90` reclaim.
+  - this run does not re-confirm whether `US30` kept that cleaner edge into the close; continuity remains an intraday carry-forward, not a settlement verdict.
+- Strategy learning:
+  - the trading lesson does not change: once the trigger already fired, do not relabel the same shelf as fresh just because price later hovers near it.
+  - the operational lesson for tomorrow is stricter now: if a live-state file keeps an old `fresh` flag after the timestamp expires, trust `as_of` and `fresh_until` plus the `30s` contract, not the stale status label.
+- Multi-day intelligence:
+  - add one operational observation only: a degraded close can happen even when the JSON still says `fresh`; the timestamp window is the real freshness authority before any end-of-day conclusion is written.
+  - continuity remains limited for April 28 settlement behavior because the last valid two-symbol read was intraday, not at the close.
+- `5m` execution lines:
+  - no new `ACTIVE / STALE / INVALIDATED` reclassification was committed because both symbols are outside the freshness window.
+  - preserved desired-state pair for `XAUUSD`: `4599.93 / 4592.03`
+  - preserved desired-state pair for `US30`: `49197.40 / 49095.40`
+- Opportunity timing state:
+  - not refreshed in this run because the close review finished degraded.
+  - keep the last valid timing reads in force:
+    - `XAUUSD`: short side `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`; long side `PRE-TRIGGER` until `4592.03` is swept and reclaimed cleanly.
+    - `US30`: long side `ARMED` at `49095.40` pending `49124.90` reclaim; short side `PRE-TRIGGER` until `49197.40` retests and rejects.
+- Transcript-derived refinement usage:
+  - no new refinement was promoted in this run.
+  - preserved the standing `indication -> correction -> continuation` and anti-chase guidance only as the interpretation layer behind the last valid timing reads.
+- Labels repositioned: none; `End-of-Day Review` remains review-only and no desired-state mutation was warranted.
+- Levels recolored / removed / replaced: none; both desired-state JSON files were left untouched.
+- Trader-facing report:
+  - `Historia:` la historia del dia queda incompleta como cierre porque el ultimo Structured Live State valido no llego al final de la sesion. Lo ultimo confiable dejo a oro reaccionando bajo `4599.93-4601.73` con el short ya trabajado, y a `US30` defendiendo `49095.40` pero sin confirmar todavia el reclaim que activaba continuation.
+  - `Tesis:` eso deja la leccion correcta en paciencia y honestidad de timing. `XAUUSD` no era para perseguir despues del trigger, y `US30` seguia siendo el chart mas limpio solo mientras la defensa de `49095.40` siguiera viva; este review no autoriza decir que esa ventaja sobrevivio al cierre.
+  - `Niveles:` `XAUUSD -> 4H 4772.95 / 4554.76 | 5m 4599.93 / 4592.03` ; `US30 -> 4H 49531.60 / 48885.65 | 5m 49197.40 / 49095.40`
+  - `Accion:` `DATA_DEGRADED / PRESERVE PRIOR MAP / WAIT`. No cambiar el mapa, no inventar setup de cierre, y usar la proxima ventana fresca para revalidar si `US30` siguio limpio o si ambos quedaron sin edge.
+- Spanish thread update: `End-of-day` cierra en `DATA_DEGRADED`. Los ultimos Structured Live State siguen en `2026-04-28T12:58:13-06:00` para `XAUUSD` y `2026-04-28T12:58:42-06:00` para `US30`, ambos fuera de la ventana de `30s`, asi que se preserva el mapa `XAUUSD 4599.93 / 4592.03` y `US30 49197.40 / 49095.40`. Lo que si queda claro es la leccion: no perseguir el trigger viejo y no confiar en un flag `fresh` si el timestamp ya vencio.
+- Discord summary written to dispatch:
+  - `[END-OF-DAY REVIEW]`
+  - `Historia`
+  - `La historia del cierre no pudo revalidarse con Structured Live State fresco. Lo ultimo valido dejo a XAUUSD debajo de 4599.93-4601.73 con el short ya trabajado, y a US30 defendiendo 49095.40 pero sin el reclaim que activaba continuation.`
+  - `Tesis`
+  - `Eso mantiene la misma leccion del dia: no chase despues del trigger y no llamar fresh a un mapa cuyo timestamp ya vencio. US30 seguia siendo el chart mas limpio en la ultima lectura valida, pero el cierre no quedo confirmado.`
+  - `Niveles`
+  - `XAUUSD -> 4H 4772.95 / 4554.76 | 5m 4599.93 / 4592.03`
+  - `US30 -> 4H 49531.60 / 48885.65 | 5m 49197.40 / 49095.40`
+  - `Accion`
+  - `DATA_DEGRADED / PRESERVE PRIOR MAP / WAIT`
+  - `Leccion: validar as_of y fresh_until antes de confiar en un estado fresh.`
+
+- 2026-04-29 | automation: End-of-Day Review | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `DATA_DEGRADED` because the latest TradingView Structured Live State files were still `2026-04-28T12:58:13-06:00` for `XAUUSD` and `2026-04-28T12:58:42-06:00` for `US30`, both far outside the `30s` freshness contract at the `2026-04-29T06:20:43.4400230-06:00` run time; no new close verdict was committed, so the desired-state maps stay preserved as XAUUSD `4599.93 / 4592.03` and US30 `49197.40 / 49095.40` while the last valid timing reads remain in force | key drawn levels: XAUUSD `4H 4772.95 / 4554.76`, `5m 4599.93 / 4592.03`; US30 `4H 49531.60 / 48885.65`, `5m 49197.40 / 49095.40` | action state: `DATA_DEGRADED / PRESERVE PRIOR MAP / WAIT` | main lesson: end-of-day review must validate the timestamp window itself; if `as_of` and `fresh_until` are expired, preserve the prior map even if the JSON still says `fresh` or `FULL_DATA`.
+
+### NY Open Levels - Structured Live State Expired On 2026-04-29
+
+- Run time: `2026-04-29T06:20:39.7892370-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Snapshot source: latest TradingView Structured Live State JSON only; no screenshots, no direct TradingView read, no PNG interpretation.
+- Runtime result: finished `DATA_DEGRADED`
+- Freshness check:
+  - `PEPPERSTONE:XAUUSD` latest structured state was `as_of = 2026-04-28T12:58:13-06:00`; at workflow time it was `17.37h` old, far beyond the `30s` contract.
+  - `FOREXCOM:US30` latest structured state was `as_of = 2026-04-28T12:58:42-06:00`; at workflow time it was `17.37h` old, also far beyond the `30s` contract.
+- Degraded reason:
+  - both required symbols are outside the structured freshness window, so this baseline workflow cannot promote a new New York thesis from expired market state.
+  - preserve the prior NY map and do not mutate desired state until a fresh runtime cycle arrives.
+- `5m` execution lines:
+  - no new `ACTIVE / STALE / INVALIDATED` reclassification was committed because both symbols are outside the freshness window.
+  - preserved desired-state pair for `XAUUSD`: `4599.93 / 4592.03`
+  - preserved desired-state pair for `US30`: `49197.40 / 49095.40`
+- Opportunity timing state:
+  - not refreshed in this run because both symbols are degraded.
+  - preserve the last valid `XAUUSD` timing read: short side `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`; long side `PRE-TRIGGER` until `4592.03` is swept and reclaimed.
+  - preserve the last valid `US30` timing read: long side `ARMED` at `49095.40` pending `49124.90` reclaim; short side `PRE-TRIGGER` until `49197.40` retests and rejects.
+- Transcript-derived refinement usage:
+  - no new timing promotion was applied in this run.
+  - preserved the standing `indication -> correction -> continuation` and anti-chase discipline behind the last valid NY read.
+- Articuno reinforcement:
+  - no new level-selection change was allowed because stale structured data cannot justify a fresh desired-state mutation.
+  - reinforcement stayed limited to anti-chase discipline and preserve-prior-map behavior.
+- Chart actions:
+  - none; both desired-state JSON files were left untouched because no fresh structured payload was available to justify a chart mutation.
+  - preserved the automation-owned map as `XAUUSD 4599.93 / 4592.03` and `US30 49197.40 / 49095.40`.
+- Labels repositioned: none in this run because desired state was preserved unchanged.
+- Levels recolored / removed / replaced: none; semantic palette stayed unchanged and no level prices were removed or replaced.
+- Trader-facing report:
+  - `XAUUSD`
+  - `Historia:` la historia ahora mismo es que el ultimo mapa valido de oro sigue comprimido entre `4599.93` y `4592.03`, pero para la corrida de hoy ese read ya llega vencido porque el Structured Live State mas reciente sigue fechado en `2026-04-28T12:58:13-06:00`.
+  - `Tesis:` eso no autoriza recalcular el baseline NY ni inventar un setup nuevo. Se preserva la ultima tesis valida: oferta en `4599.93` para fade si aparece rechazo fresco y defensa larga solo si `4592.03` se barre y se recupera.
+  - `Niveles:` `4H SUPPLY 4772.95` | `4H DEMAND 4554.76` | `5M EXECUTION SHORT 4599.93` | `5M EXECUTION LONG 4592.03`
+  - `Accion:` `WAIT / DATA_DEGRADED`. Si ya venias siguiendo el short previo, sigue siendo `DO NOT CHASE`; si estas flat, esperar Structured Live State fresco antes de revalidar NY.
+  - `US30`
+  - `Historia:` la historia ahora mismo es que el ultimo mapa valido de `US30` sigue defendiendo `49095.40` contra la primera oferta en `49197.40`, pero la lectura tambien llega vencida para hoy porque el Structured Live State mas reciente sigue en `2026-04-28T12:58:42-06:00`.
+  - `Tesis:` eso deja intacta la ultima idea valida, no una idea nueva: defensa larga solo si `49095.40` aguanta y `5m` reclama `49124.90`; short solo si `49197.40` retestea y rechaza.
+  - `Niveles:` `4H SUPPLY 49531.60` | `4H DEMAND 48885.65` | `5M EXECUTION SHORT 49197.40` | `5M EXECUTION LONG 49095.40`
+  - `Accion:` `WAIT / DATA_DEGRADED`. El ultimo simbolo mas limpio seguia siendo `US30`, pero hoy no toca ejecutar sin refresh fresco.
+- Spanish thread update: `NY Open Levels` encontro los dos Structured Live State vencidos para la corrida del `2026-04-29`. `XAUUSD` preserva `4599.93 / 4592.03` y `US30` preserva `49197.40 / 49095.40`; no se movio el desired state, no se invento setup nuevo, y la accion correcta queda `WAIT / DATA_DEGRADED` hasta que ambos vuelvan a entrar en la ventana de `30s`.
+- Discord summary written to dispatch:
+  - `[NY OPEN LEVELS]`
+  - `Historia`
+  - `La historia ahora mismo es que no hay Structured Live State fresco para esta corrida: XAUUSD sigue con ultimo as_of 2026-04-28T12:58:13-06:00 y US30 con 2026-04-28T12:58:42-06:00, ambos ya vencidos para el baseline NY de 2026-04-29.`
+  - `Tesis`
+  - `Eso no autoriza recalcular el open ni mover el mapa. Se preserva la ultima lectura valida: XAUUSD mantiene 4599.93 / 4592.03 dentro de un marco 4H bajista y US30 mantiene 49197.40 / 49095.40 con la defensa larga pendiente; el ultimo simbolo mas limpio sigue siendo US30, pero hoy la accion correcta es esperar data fresca.`
+  - `Niveles`
+  - `XAUUSD -> 4H 4772.95 / 4554.76 | 5m 4599.93 / 4592.03`
+  - `US30 -> 4H 49531.60 / 48885.65 | 5m 49197.40 / 49095.40`
+  - `Accion`
+  - `DATA_DEGRADED / PRESERVE PRIOR MAP / WAIT`
+  - `No inventar setup nuevo hasta que ambos simbolos vuelvan a la ventana de 30s.`
+
+- 2026-04-29 | automation: NY Open Levels | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `DATA_DEGRADED` because the latest structured state for `XAUUSD` was still `2026-04-28T12:58:13-06:00` and `US30` was `2026-04-28T12:58:42-06:00`, both around `17.37h` beyond the `30s` freshness contract at the `2026-04-29T06:20:39.7892370-06:00` run time; no new NY baseline was promoted, so the desired-state maps stay preserved as XAUUSD `4599.93 / 4592.03` and US30 `49197.40 / 49095.40` while the last valid timing reads remain in force | key drawn levels: XAUUSD `4H 4772.95 / 4554.76`, `5m 4599.93 / 4592.03`; US30 `4H 49531.60 / 48885.65`, `5m 49197.40 / 49095.40` | action state: `DATA_DEGRADED / PRESERVE PRIOR MAP / WAIT` | main lesson: NY baseline logic cannot bootstrap from expired structured live state; when both symbols are outside the freshness window, preserve the map and wait for a fresh runtime cycle.
+
+### Post Open Validation - Data Degraded / Prior NY Map Preserved
+
+- Run time: `2026-04-29T06:49:20.1636599-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime result: finished `DATA_DEGRADED / PRESERVE PRIOR MAP`
+- Freshness check:
+  - `PEPPERSTONE:XAUUSD` latest structured state stayed at `as_of = 2026-04-28T12:58:13-06:00` with `fresh_until = 2026-04-28T12:58:43-06:00`
+  - `FOREXCOM:US30` latest structured state stayed at `as_of = 2026-04-28T12:58:42-06:00` with `fresh_until = 2026-04-28T12:59:12-06:00`
+  - both files still carry `data_confidence = FULL_DATA`, but both timestamps are far outside the `30s` freshness contract for the `2026-04-29T06:49:20.1636599-06:00` run time, so the post-open branch cannot promote a fresh validation verdict from them
+- Post-open validation status:
+  - no new `validated / rejected / weakened / partially confirmed` verdict was committed for either symbol in this run
+  - preserve the standing `2026-04-29` NY baseline result instead of pretending the old `2026-04-28` tape is a fresh New York open read
+- Structure and execution:
+  - no new `30m / 15m / 5m` quality update was committed because both structured inputs were expired by contract
+  - keep the last valid execution logic in force:
+    - `XAUUSD` short thesis remains tied to fresh rejection into `4599.93`, while the long thesis still needs a real sweep-reclaim of `4592.03`
+    - `US30` long thesis remains tied to `49095.40` defense plus `49124.90` reclaim, while the short thesis still needs a fresh retest-rejection of `49197.40`
+- `5m` execution lines:
+  - no new `ACTIVE / STALE / INVALIDATED` reclassification was committed because stale structured timestamps cannot justify a new lifecycle call
+  - preserved desired-state pair for `XAUUSD`: `4599.93 / 4592.03`
+  - preserved desired-state pair for `US30`: `49197.40 / 49095.40`
+- Opportunity timing state:
+  - not refreshed from live data in this run because both symbols are outside the freshness window
+  - preserve the last valid timing reads:
+    - `XAUUSD` short side: `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`
+    - `XAUUSD` long side: `PRE-TRIGGER` until `4592.03` is swept and reclaimed cleanly
+    - `US30` long side: `ARMED` at `49095.40` pending `49124.90` reclaim
+    - `US30` short side: `PRE-TRIGGER` until `49197.40` retests and rejects
+- Level interaction:
+  - no new respect / failure / sweep / reclaim verdict was committed for `4599.93`, `4592.03`, `49197.40`, or `49095.40` in this run
+  - do not treat the expired `2026-04-28` payload as proof of what the `2026-04-29` open confirmed or rejected
+- Trading decision:
+  - `XAUUSD`: `WAIT / DATA_DEGRADED`
+  - `US30`: `WAIT / DATA_DEGRADED`
+  - cleaner symbol now: `NONE` with valid current data
+  - symbol to avoid now: `BOTH`
+  - biggest trap: forcing a post-open confirmation/rejection verdict from expired structured timestamps and then chasing a setup that may already be gone
+- Transcript-derived refinement usage:
+  - no new timing promotion was applied in this run
+  - preserved the standing `indication -> correction -> continuation` filter and anti-chase discipline only as reinforcement behind the last valid map
+- Articuno reinforcement:
+  - no new level-selection change was allowed because stale structured data cannot justify a new desired-state mutation
+  - reinforcement stayed limited to thesis clarity, trigger honesty, and anti-chase discipline
+- Chart actions:
+  - none; both desired-state JSON files were left untouched because no fresh structured payload was available to justify a chart mutation
+  - preserved the automation-owned map as `XAUUSD 4599.93 / 4592.03` and `US30 49197.40 / 49095.40`
+- Trader-facing report:
+  - `XAUUSD`
+  - `Historia:` la historia ahora mismo es que oro sigue teniendo como ultima referencia valida la compresion entre `4599.93` y `4592.03`, pero ese read no sirve para validar el open de hoy porque el Structured Live State mas reciente sigue anclado en `2026-04-28T12:58:13-06:00`.
+  - `Tesis:` eso no autoriza decir que el open confirmo ni rechazo nada hoy. La ultima tesis valida sigue igual: short solo si `4599.93` vuelve a rechazar fresco; long solo si `4592.03` se barre y se recupera.
+  - `Niveles:` `4H SUPPLY 4772.95` | `4H DEMAND 4554.76` | `5M EXECUTION SHORT 4599.93` | `5M EXECUTION LONG 4592.03`
+  - `Accion:` `WAIT / DATA_DEGRADED`. Si ya venias del short previo, gestionar; si estas flat, `DO NOT CHASE` y esperar retest nuevo con data fresca.
+  - `US30`
+  - `Historia:` la historia ahora mismo es que `US30` sigue teniendo como ultimo mapa valido la defensa de `49095.40` contra la oferta `49197.40`, pero tampoco se puede usar para validar el open de hoy porque el Structured Live State mas reciente sigue en `2026-04-28T12:58:42-06:00`.
+  - `Tesis:` la idea valida no cambia, pero tampoco se renueva: long solo si `49095.40` sigue defendiendo y `5m` reclama `49124.90`; short solo si `49197.40` retestea y rechaza con lectura fresca.
+  - `Niveles:` `4H SUPPLY 49531.60` | `4H DEMAND 48885.65` | `5M EXECUTION SHORT 49197.40` | `5M EXECUTION LONG 49095.40`
+  - `Accion:` `WAIT / DATA_DEGRADED`. El ultimo read limpio seguia favoreciendo a `US30`, pero para esta corrida no hay permiso para ejecutarlo sin refresh fresco.
+- Spanish thread update: `Post open validation` no pudo decir si `XAUUSD` o `US30` validaron o rechazaron el sesgo pre-market porque ambos Structured Live State siguen vencidos para la corrida del `2026-04-29`. Se preserva `XAUUSD 4599.93 / 4592.03` y `US30 49197.40 / 49095.40`; hoy no hay simbolo limpio para ejecutar y la accion correcta sigue siendo `WAIT / DATA_DEGRADED`.
+
+- 2026-04-29 | automation: Post Open Validation | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `DATA_DEGRADED` because the latest structured state for `XAUUSD` was still `2026-04-28T12:58:13-06:00` and `US30` was `2026-04-28T12:58:42-06:00`, both far outside the `30s` freshness contract at the `2026-04-29T06:49:20.1636599-06:00` run time; no new post-open validation verdict was committed, so the desired-state maps stay preserved as XAUUSD `4599.93 / 4592.03` and US30 `49197.40 / 49095.40` while the last valid timing reads remain in force | key drawn levels: XAUUSD `4H 4772.95 / 4554.76`, `5m 4599.93 / 4592.03`; US30 `4H 49531.60 / 48885.65`, `5m 49197.40 / 49095.40` | action state: `DATA_DEGRADED / PRESERVE PRIOR MAP / WAIT` | main lesson: post-open validation cannot certify confirmation or rejection from expired structured timestamps; when both symbols are outside the freshness window, preserve the prior NY map and keep timing honesty explicit.
+
+### Active Setup Detector - Data Degraded / Prior NY Map Preserved
+
+- Run time: `2026-04-29T07:02:25.4233653-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime result: finished `DATA_DEGRADED / PRESERVE PRIOR MAP`
+- Freshness check:
+  - `PEPPERSTONE:XAUUSD` latest structured state stayed at `as_of = 2026-04-28T12:58:13-06:00` with `fresh_until = 2026-04-28T12:58:43-06:00`; that payload was about `18.07h` old at this run time
+  - `FOREXCOM:US30` latest structured state stayed at `as_of = 2026-04-28T12:58:42-06:00` with `fresh_until = 2026-04-28T12:59:12-06:00`; that payload was about `18.06h` old at this run time
+  - both files still carry `data_confidence = FULL_DATA` and `decision_allowed = true` inside JSON, but both timestamps are far outside the `30s` freshness contract, so both symbols must be treated as `DATA_DEGRADED` for this workflow run
+- Active setup status:
+  - no new `VALID LONG SETUP / VALID SHORT SETUP / WAIT / NO CLEAR EDGE` verdict was committed for either symbol because both structured inputs are stale by contract
+  - preserve the standing `2026-04-29` NY baseline plus post-open validation result instead of promoting a fresh setup decision from expired data
+- Structure and execution:
+  - no new `30m / 15m / 5m` quality update was committed because both structured inputs were expired by contract
+  - keep the last valid execution logic in force:
+    - `XAUUSD` short thesis remains tied to fresh rejection into `4599.93`, while the long thesis still needs a real sweep-reclaim of `4592.03`
+    - `US30` long thesis remains tied to `49095.40` defense plus `49124.90` reclaim, while the short thesis still needs a fresh retest-rejection of `49197.40`
+- `5m` execution lines:
+  - no new `ACTIVE / STALE / INVALIDATED` reclassification was committed because stale structured timestamps cannot justify a new lifecycle call
+  - preserved desired-state pair for `XAUUSD`: `4599.93 / 4592.03`
+  - preserved desired-state pair for `US30`: `49197.40 / 49095.40`
+- Opportunity timing state:
+  - not refreshed from live data in this run because both symbols are outside the freshness window
+  - preserve the last valid timing reads:
+    - `XAUUSD` current opportunity: short side `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`
+    - `XAUUSD` long side: `PRE-TRIGGER` until `4592.03` is swept and reclaimed cleanly
+    - `US30` current opportunity: long side `ARMED` at `49095.40` pending `49124.90` reclaim
+    - `US30` short side: `PRE-TRIGGER` until `49197.40` retests and rejects
+- Level interaction:
+  - no new respect / failure / sweep / reclaim verdict was committed for `4599.93`, `4592.03`, `49197.40`, or `49095.40` in this run
+  - do not treat the expired `2026-04-28` payload as proof of what the `2026-04-29` active setup did or did not confirm
+- Trading decision:
+  - `XAUUSD`: `WAIT / DATA_DEGRADED`
+  - `US30`: `WAIT / DATA_DEGRADED`
+  - cleaner symbol now: `NONE` with valid current data
+  - symbol to avoid now: `BOTH`
+  - biggest trap: forcing an active-setup verdict from expired structured timestamps and then chasing inherited levels as if they were live
+- Transcript-derived refinement usage:
+  - no new timing promotion was applied in this run
+  - preserved the standing `indication -> correction -> continuation` filter and anti-chase discipline only as reinforcement behind the last valid map
+- Articuno reinforcement:
+  - no new level-selection change was allowed because stale structured data cannot justify a new desired-state mutation
+  - reinforcement stayed limited to thesis clarity, trigger honesty, and anti-chase discipline
+- Chart actions:
+  - none; both desired-state JSON files were left untouched because no fresh structured payload was available to justify a chart mutation
+  - preserved the automation-owned map as `XAUUSD 4599.93 / 4592.03` and `US30 49197.40 / 49095.40`
+- Labels repositioned: none; desired state was preserved unchanged
+- Levels recolored / removed / replaced: none; both desired-state JSON files were left untouched
+- Trader-facing report:
+  - `XAUUSD`
+  - `Historia:` la historia ahora mismo es que oro sigue cargando como ultimo mapa valido la compresion entre `4599.93` y `4592.03`, pero esta corrida no recibio tape fresco para saber si ese trigger ya corrio otra vez o si ya paso.
+  - `Tesis:` eso favorece paciencia, no una activacion nueva. El short heredado sigue `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`; el long sigue `PRE-TRIGGER` y solo vuelve si `4592.03` se barre y se recupera con data fresca.
+  - `Niveles:` `4H SUPPLY 4772.95` | `4H DEMAND 4554.76` | `5M EXECUTION SHORT 4599.93` | `5M EXECUTION LONG 4592.03`
+  - `Accion:` `WAIT / DATA_DEGRADED`. Si ya venias del short previo, gestionar. Si estas flat, `DO NOT CHASE` y esperar retest nuevo con lectura fresca.
+  - `US30`
+  - `Historia:` la historia ahora mismo es que `US30` mantiene como ultimo mapa valido la defensa de `49095.40` contra la oferta `49197.40`, pero tampoco hay lectura fresca para saber si esa defensa sigue viva hoy.
+  - `Tesis:` la idea valida no cambia, pero tampoco se renueva. El long heredado sigue `ARMED` solo si `49095.40` sigue defendiendo y `5m` reclama `49124.90`; el short sigue `PRE-TRIGGER` hasta que `49197.40` retestee y rechace con data fresca.
+  - `Niveles:` `4H SUPPLY 49531.60` | `4H DEMAND 48885.65` | `5M EXECUTION SHORT 49197.40` | `5M EXECUTION LONG 49095.40`
+  - `Accion:` `WAIT / DATA_DEGRADED`. `US30` sigue siendo la mejor idea heredada, pero para esta corrida no hay permiso para ejecutarla sin refresh fresco.
+- Spanish thread update: `Active setup detector` no pudo promover setup nuevo porque ambos Structured Live State siguen vencidos para la corrida del `2026-04-29`. Se preserva `XAUUSD 4599.93 / 4592.03` y `US30 49197.40 / 49095.40`; el short heredado de oro sigue `TRIGGERED / DO NOT CHASE`, el long heredado de `US30` sigue `ARMED`, pero hoy la accion correcta sigue siendo `WAIT / DATA_DEGRADED`.
+- Discord summary written to dispatch:
+  - `[ACTIVE SETUP DETECTOR]`
+  - `Historia`
+  - `La historia ahora mismo es que no hay tape vivo para activar setup nuevo: XAUUSD sigue con el ultimo Structured Live State en 4599.93 / 4592.03 y US30 mantiene 49197.40 / 49095.40, pero ambos payloads siguen anclados en 2026-04-28 y ya estan fuera de la ventana de 30s para esta corrida.`
+  - `Tesis`
+  - `Eso obliga a preservar el mapa, no a inventar activacion. XAUUSD mantiene el short heredado ya TRIGGERED y tarde para chase; US30 mantiene el long heredado ARMED, pero solo en el mapa previo, no para ejecutar sin refresh fresco.`
+  - `Niveles`
+  - `XAUUSD -> 4H 4772.95 / 4554.76 | 5m 4599.93 / 4592.03`
+  - `US30 -> 4H 49531.60 / 48885.65 | 5m 49197.40 / 49095.40`
+  - `Accion`
+  - `DATA_DEGRADED / PRESERVE PRIOR MAP / WAIT`
+- `Mas limpio con data valida: ninguno. Trampa: perseguir oro o comprar US30 sin refresh fresco + reclaim real.`
+
+- 2026-04-29 | automation: Active Setup Detector | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `DATA_DEGRADED` because the latest structured state for `XAUUSD` was still `2026-04-28T12:58:13-06:00` and `US30` was `2026-04-28T12:58:42-06:00`, both around `18.06h` beyond the `30s` freshness contract at the `2026-04-29T07:02:25.4233653-06:00` run time; no new active setup verdict was committed, so the desired-state maps stay preserved as XAUUSD `4599.93 / 4592.03` and US30 `49197.40 / 49095.40` while the last valid timing reads remain in force | key drawn levels: XAUUSD `4H 4772.95 / 4554.76`, `5m 4599.93 / 4592.03`; US30 `4H 49531.60 / 48885.65`, `5m 49197.40 / 49095.40` | action state: `DATA_DEGRADED / PRESERVE PRIOR MAP / WAIT` | main lesson: the active-setup branch must not upgrade inherited levels into live setups when structured timestamps are outside the freshness window.
+
+### Bias Integrity Check - Data Degraded / Prior NY Bias Preserved
+
+- Run time: `2026-04-29T07:22:55.0918234-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime result: finished `DATA_DEGRADED / PRESERVE PRIOR MAP`
+- Freshness check:
+  - `PEPPERSTONE:XAUUSD` latest structured state stayed at `as_of = 2026-04-28T12:58:13-06:00` with `fresh_until = 2026-04-28T12:58:43-06:00`; that payload was about `18.41h` old at this run time
+  - `FOREXCOM:US30` latest structured state stayed at `as_of = 2026-04-28T12:58:42-06:00` with `fresh_until = 2026-04-28T12:59:12-06:00`; that payload was about `18.40h` old at this run time
+  - both files still carry `data_confidence = FULL_DATA` and `decision_allowed = true` inside JSON, but both timestamps are far outside the `30s` freshness contract, so both symbols must be treated as `DATA_DEGRADED` for this workflow run
+- Bias integrity status:
+  - no new `BIAS INTACT / BIAS WEAKENED / BIAS INVALIDATED` verdict was committed for either symbol because both structured inputs are stale by contract
+  - preserve the standing `2026-04-29` NY baseline, post-open validation, and active-setup chain instead of manufacturing bias damage or recovery from expired data
+- Structural conditions still holding in the preserved map:
+  - `XAUUSD`: the last valid directional idea still sits below preserved `4H SUPPLY 4772.95`; short focus remains tied to fresh rejection into `4599.93`, while the opposite-side long still requires a true sweep-reclaim of `4592.03`
+  - `US30`: the last valid directional idea still sits around `49095.40` defense versus `49197.40` supply; `4H DEMAND 48885.65` and `4H SUPPLY 49531.60` remain the preserved HTF frame
+- Failed conditions / liquidity:
+  - no fresh failure, sweep, or untapped-liquidity verdict was committed in this run because stale data cannot certify what the `2026-04-29` tape actually confirmed or broke
+  - preserve prior liquidity logic only: `XAUUSD` still needs fresh rejection into `4599.93` for shorts or a sweep-reclaim of `4592.03` for longs; `US30` still needs `49095.40` defense plus `49124.90` reclaim for longs or a `49197.40` retest-rejection for shorts
+- `5m` execution lines:
+  - no new `ACTIVE / STALE / INVALIDATED` reclassification was committed because stale structured timestamps cannot justify a new lifecycle call
+  - preserved desired-state pair for `XAUUSD`: `4599.93 / 4592.03`
+  - preserved desired-state pair for `US30`: `49197.40 / 49095.40`
+- Opportunity timing state:
+  - not refreshed from live data in this run because both symbols are outside the freshness window
+  - preserve the last valid timing reads:
+    - `XAUUSD` short side: `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`
+    - `XAUUSD` long side: `PRE-TRIGGER` until `4592.03` is swept and reclaimed cleanly
+    - `US30` long side: `ARMED` at `49095.40` pending `49124.90` reclaim
+    - `US30` short side: `PRE-TRIGGER` until `49197.40` retests and rejects
+- Trading decision:
+  - `XAUUSD`: `WAIT / DATA_DEGRADED`
+  - `US30`: `WAIT / DATA_DEGRADED`
+  - cleaner symbol now: `NONE` with valid current data
+  - what to stop assuming now: do not assume the preserved bias is still live just because the map still exists; without fresh Structured Live State, there is no permission to call either bias intact, weakened, or invalidated for today
+- Transcript-derived refinement usage:
+  - no new timing promotion was applied in this run
+  - preserved the standing `indication -> correction -> continuation` filter only as continuity behind the last valid map
+- Articuno reinforcement:
+  - no new level-selection change was allowed because stale structured data cannot justify a new desired-state mutation
+  - reinforcement stayed limited to thesis clarity, trigger honesty, and anti-chase discipline
+- Chart actions:
+  - none; both desired-state JSON files were left untouched because no fresh structured payload was available to justify a chart mutation
+  - preserved the automation-owned map as `XAUUSD 4599.93 / 4592.03` and `US30 49197.40 / 49095.40`
+- Labels repositioned: none; desired state was preserved unchanged
+- Levels recolored / removed / replaced: none; both desired-state JSON files were left untouched
+- Trader-facing report:
+  - `XAUUSD`
+  - `Historia:` la historia ahora mismo es que oro sigue cargando el ultimo sesgo valido debajo de `4599.93`, pero para esta corrida no hay permiso para decir si ese short sigue intacto o si ya se gasto porque el Structured Live State mas reciente sigue fechado en `2026-04-28T12:58:13-06:00`.
+  - `Tesis:` eso obliga a preservar el mapa, no a reinterpretarlo. La idea original no se invalida con data vencida, pero tampoco se confirma: short solo si `4599.93` vuelve a rechazar fresco; long solo si `4592.03` se barre y se recupera.
+  - `Niveles:` `4H SUPPLY 4772.95` | `4H DEMAND 4554.76` | `5M EXECUTION SHORT 4599.93` | `5M EXECUTION LONG 4592.03`
+  - `Accion:` `WAIT / DATA_DEGRADED`. Si ya venias del short previo, gestionar; si estas flat, `DO NOT CHASE` y esperar retest nuevo con lectura fresca.
+  - `US30`
+  - `Historia:` la historia ahora mismo es que `US30` sigue sosteniendo como ultimo mapa valido la defensa de `49095.40` contra la oferta `49197.40`, pero tampoco hay tape fresco para saber si ese sesgo aguanto o si el mercado ya cambio desde ayer.
+  - `Tesis:` el plan original se preserva, pero con conviccion reducida por falta de refresh. Long solo si `49095.40` sigue defendiendo y `5m` reclama `49124.90`; short solo si `49197.40` retestea y rechaza con data fresca.
+  - `Niveles:` `4H SUPPLY 49531.60` | `4H DEMAND 48885.65` | `5M EXECUTION SHORT 49197.40` | `5M EXECUTION LONG 49095.40`
+  - `Accion:` `WAIT / DATA_DEGRADED`. Si no estas dentro, no conviertas un mapa heredado en una entrada nueva.
+- Spanish thread update: `Bias integrity check` no puede decir hoy si `XAUUSD` o `US30` siguen intactos, debilitados o invalidados porque ambos Structured Live State siguen vencidos para la corrida del `2026-04-29`. Se preserva `XAUUSD 4599.93 / 4592.03` y `US30 49197.40 / 49095.40`; el plan original no se rompe con data vieja, pero la conviccion baja y la accion correcta sigue siendo `WAIT / DATA_DEGRADED`.
+- Discord summary written to dispatch:
+  - `[BIAS INTEGRITY CHECK]`
+  - `Historia`
+  - `La historia ahora mismo es que no hay refresh vivo para auditar el sesgo: XAUUSD sigue con as_of 2026-04-28T12:58:13-06:00 y US30 con as_of 2026-04-28T12:58:42-06:00, ambos ya fuera de la ventana de 30s para esta corrida.`
+  - `Tesis`
+  - `Eso no rompe el mapa, pero tampoco deja revalidarlo. XAUUSD mantiene 4599.93 / 4592.03 y US30 mantiene 49197.40 / 49095.40; el plan original se preserva, pero sin permiso para subir conviccion ni inventar dano estructural.`
+  - `Niveles`
+  - `XAUUSD -> 4H 4772.95 / 4554.76 | 5m 4599.93 / 4592.03`
+  - `US30 -> 4H 49531.60 / 48885.65 | 5m 49197.40 / 49095.40`
+  - `Accion`
+  - `DATA_DEGRADED / PRESERVE PRIOR MAP / WAIT`
+  - `Foco: ninguno con data valida. No persigas el mapa heredado.`
+
+- 2026-04-29 | automation: Bias Integrity Check | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `DATA_DEGRADED` because the latest structured state for `XAUUSD` was still `2026-04-28T12:58:13-06:00` and `US30` was `2026-04-28T12:58:42-06:00`, both around `18.4h` beyond the `30s` freshness contract at the `2026-04-29T07:22:55.0918234-06:00` run time; no new integrity verdict was committed, so the desired-state maps stay preserved as XAUUSD `4599.93 / 4592.03` and US30 `49197.40 / 49095.40` while the last valid timing reads remain in force | key drawn levels: XAUUSD `4H 4772.95 / 4554.76`, `5m 4599.93 / 4592.03`; US30 `4H 49531.60 / 48885.65`, `5m 49197.40 / 49095.40` | action state: `DATA_DEGRADED / PRESERVE PRIOR MAP / WAIT` | main lesson: bias integrity cannot upgrade or downgrade a thesis from expired structured timestamps; when both symbols are outside the freshness window, preserve the prior NY map and reduce conviction instead of inventing a new verdict.
+
+### Mid-Session Reassessment - Data Degraded / Prior NY Map Preserved
+
+- Run time: `2026-04-29T08:16:57.4844348-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime result: finished `DATA_DEGRADED / PRESERVE PRIOR MAP`
+- Freshness check:
+  - after the required brief wait, `PEPPERSTONE:XAUUSD` still showed `as_of = 2026-04-28T12:58:13-06:00` with `fresh_until = 2026-04-28T12:58:43-06:00`; that payload was about `19.31h` old at this run time
+  - after the same wait, `FOREXCOM:US30` still showed `as_of = 2026-04-28T12:58:42-06:00` with `fresh_until = 2026-04-28T12:59:12-06:00`; that payload was about `19.30h` old at this run time
+  - both files still carry `data_confidence = FULL_DATA` and `decision_allowed = true` inside JSON, but both timestamps are far outside the `30s` freshness contract, so both symbols must be treated as `DATA_DEGRADED` for this workflow run
+- Morning thesis status:
+  - the original morning thesis is not invalidated by this run, but it is also not re-confirmed; preserve the existing `2026-04-29` NY chain instead of manufacturing a fresh mid-session read from expired structured data
+  - whether the best opportunity already passed cannot be upgraded from live data in this run; only the last valid timing states are permitted to carry forward
+- Session state:
+  - whether the open evolved into continuation, reversal, or dead range was not refreshed in this run because both structured inputs are stale by contract
+  - cleaner symbol now: `NONE` with valid current data; the prior preserved cleaner read still points to `US30`, but that preference was not revalidated here
+  - momentum versus patience: `PATIENCE`
+- Best remaining opportunity:
+  - none can be promoted while both symbols are stale; preserve the prior map and wait for fresh structured confirmation before treating any remaining move as tradable
+- Untouched liquidity / obvious liquidity:
+  - no fresh verdict was committed on whether the remaining move is still toward untouched liquidity or whether the obvious liquidity was already taken, because expired data cannot certify what the `2026-04-29` tape did after the earlier preserved map
+- Biggest trap still present:
+  - treating the inherited `XAUUSD` short as a fresh setup after it was already classified `TRIGGERED`
+  - treating the inherited `US30` long as executable without a fresh `49095.40` defense plus `49124.90` reclaim
+- What not to chase now:
+  - do not chase `XAUUSD` short extension away from `4599.93`
+  - do not buy `US30` just because `49095.40` exists in the prior map without fresh structured confirmation
+- `5m` execution lines:
+  - no new `ACTIVE / STALE / INVALIDATED` reclassification was committed because stale structured timestamps cannot justify a new lifecycle call
+  - preserved desired-state pair for `XAUUSD`: `4599.93 / 4592.03`
+  - preserved desired-state pair for `US30`: `49197.40 / 49095.40`
+- Opportunity timing state:
+  - not refreshed from live data in this run because both symbols are outside the freshness window
+  - preserve the last valid timing reads:
+    - `XAUUSD` current opportunity: short side `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`
+    - `XAUUSD` long side: `PRE-TRIGGER` until `4592.03` is swept and reclaimed cleanly
+    - `US30` current opportunity: long side `ARMED` at `49095.40` pending `49124.90` reclaim
+    - `US30` short side: `PRE-TRIGGER` until `49197.40` retests and rejects
+- Trading decision:
+  - `XAUUSD`: `WAIT / DATA_DEGRADED`
+  - `US30`: `WAIT / DATA_DEGRADED`
+  - better symbol now: `NONE` with valid current data
+  - focus now: `PATIENCE / NO TRADE`
+- Transcript-derived refinement usage:
+  - no new timing promotion was applied in this run
+  - preserved the standing `indication -> correction -> continuation` filter only as continuity behind the anti-chase decision
+- Articuno reinforcement:
+  - no new level-selection change was allowed because stale structured data cannot justify a desired-state mutation
+  - reinforcement stayed limited to thesis clarity, trigger honesty, desired-state preservation, and anti-chase discipline
+- Chart actions:
+  - none; both desired-state JSON files were left untouched because no fresh structured payload was available to justify a chart mutation
+  - preserved the automation-owned map as `XAUUSD 4599.93 / 4592.03` and `US30 49197.40 / 49095.40`
+- Labels repositioned: none; desired state was preserved unchanged
+- Levels recolored / removed / replaced: none; both desired-state JSON files were left untouched
+- Trader-facing report:
+  - `XAUUSD`
+  - `Historia:` la historia ahora mismo es que oro sigue cargando el ultimo mapa valido entre `4599.93` y `4592.03`, pero para esta corrida no hay permiso para decir si ese short ya siguio, si ya se agotó o si aparecio una correccion nueva porque el Structured Live State mas reciente sigue fechado en `2026-04-28T12:58:13-06:00`.
+  - `Tesis:` eso favorece paciencia, no reinterpretacion. El short heredado sigue `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`; el long sigue `PRE-TRIGGER` y solo vuelve si `4592.03` se barre y se recupera con data fresca.
+  - `Niveles:` `4H SUPPLY 4772.95` | `4H DEMAND 4554.76` | `5M EXECUTION SHORT 4599.93` | `5M EXECUTION LONG 4592.03`
+  - `Accion:` `WAIT / DATA_DEGRADED`. Si ya venias del short previo, gestionar; si estas flat, no persigas y espera retest nuevo con lectura fresca.
+  - `US30`
+  - `Historia:` la historia ahora mismo es que `US30` sigue sosteniendo como ultimo mapa valido la defensa de `49095.40` contra la oferta en `49197.40`, pero tampoco hay tape fresco para saber si esa defensa aguanto, si el reclaim llego o si la oportunidad ya paso.
+  - `Tesis:` la idea valida no cambia, pero tampoco se renueva. El long heredado sigue `ARMED` solo si `49095.40` sigue defendiendo y `5m` reclama `49124.90`; el short sigue `PRE-TRIGGER` hasta que `49197.40` retestee y rechace con data fresca.
+  - `Niveles:` `4H SUPPLY 49531.60` | `4H DEMAND 48885.65` | `5M EXECUTION SHORT 49197.40` | `5M EXECUTION LONG 49095.40`
+  - `Accion:` `WAIT / DATA_DEGRADED`. `US30` era la mejor idea heredada, pero para esta corrida no hay permiso para ejecutarla sin refresh fresco.
+- Spanish thread update: `Mid-session reassessment` no pudo revalidar el plan del dia porque ambos Structured Live State siguen vencidos para la corrida del `2026-04-29`. Se preserva `XAUUSD 4599.93 / 4592.03` y `US30 49197.40 / 49095.40`; el short heredado de oro sigue `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`, el long heredado de `US30` sigue `ARMED`, y la accion correcta por ahora es `WAIT / DATA_DEGRADED / PACIENCIA`.
+- Discord summary written to dispatch:
+  - `[MID-SESSION REASSESSMENT]`
+  - `Historia`
+  - `La historia ahora mismo es que el dia sigue cargando el ultimo mapa valido de XAUUSD en 4599.93 / 4592.03 y de US30 en 49197.40 / 49095.40, pero esta corrida no recibio un Structured Live State vivo: XAUUSD sigue con as_of 2026-04-28T12:58:13-06:00 y US30 con as_of 2026-04-28T12:58:42-06:00, ambos fuera de la ventana de 30s.`
+  - `Tesis`
+  - `Eso no deja decidir si el open siguio en continuacion, reversal o rango hoy. Se preserva la cadena NY previa: el short de oro sigue heredado como TRIGGERED y tarde para chase; el long de US30 sigue heredado como ARMED, pero nada de eso se ejecuta sin refresh fresco.`
+  - `Niveles`
+  - `XAUUSD -> 4H 4772.95 / 4554.76 | 5m 4599.93 / 4592.03`
+  - `US30 -> 4H 49531.60 / 48885.65 | 5m 49197.40 / 49095.40`
+  - `Accion`
+  - `DATA_DEGRADED / PRESERVE PRIOR MAP / WAIT`
+  - `Enfoque: PACIENCIA. Trampa: vender tarde oro o comprar US30 sin refresh + reclaim real.`
+
+- 2026-04-29 | automation: Mid-Session Reassessment | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `DATA_DEGRADED` because the latest structured state for `XAUUSD` was still `2026-04-28T12:58:13-06:00` and `US30` was `2026-04-28T12:58:42-06:00`, both about `19.3h` beyond the `30s` freshness contract at the `2026-04-29T08:16:57.4844348-06:00` run time; no fresh mid-session reassessment was committed, so the desired-state maps stay preserved as XAUUSD `4599.93 / 4592.03` and US30 `49197.40 / 49095.40` while the last valid timing reads remain in force | key drawn levels: XAUUSD `4H 4772.95 / 4554.76`, `5m 4599.93 / 4592.03`; US30 `4H 49531.60 / 48885.65`, `5m 49197.40 / 49095.40` | action state: `DATA_DEGRADED / PRESERVE PRIOR MAP / WAIT` | main lesson: mid-session reassessment cannot certify continuation, reversal, or dead-range evolution from expired structured timestamps; when both symbols stay outside the freshness window after the mandatory wait, preserve the prior NY map and keep the anti-chase timing states explicit.
+
+### NY Open Levels - Fresh Baseline / HTF Changed + 5m Refreshed
+
+- Run time: `2026-04-29T11:07:00.6305596-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `all_symbols_valid = true`
+  - both symbols carried `FULL_DATA` with `decision_allowed = true`
+- Refresh result:
+  - this run finished as a full live reassessment + redraw with `refresh_reason = htf_changed`
+  - both old `5m` execution pairs were also structurally far from price and no longer defined execution readiness:
+    - `XAUUSD` old pair `4599.93 / 4592.03` sat well above current price `4542.83`
+    - `US30` old pair `49197.40 / 49095.40` sat well above current price `48812.40`
+  - the prior HTF support shelves also failed:
+    - `XAUUSD` lost the preserved `4554.76` support and now treats it as flip resistance
+    - `US30` lost the preserved `49075.90-49095.40` demand shelf and now trades below it
+- Higher-timeframe thesis:
+  - `XAUUSD`: `Daily` and `4H` are aligned bearish. The opening-range breakdown held, price failed back under `4554.76`, and the live map now favors retest shorts into nearby supply instead of preserving the old higher shelf.
+  - `US30`: `Daily` and `4H` are aligned bearish after the break under `49075.90-49095.40`. The opening-range breakdown held and the tape remains heavy below the broken support shelf.
+- Intermediate structure:
+  - `XAUUSD`: `30m` bounced from `4510.31` into `4564.98` and then rolled back over; `15m` now prints lower highs under fresh supply, so the intraday structure supports the bearish HTF idea.
+  - `US30`: `30m` sold off hard from the open and is now compressing below fresh supply; `15m` remains weak and does not yet show a clean reclaim that would support longs.
+- Liquidity map:
+  - `XAUUSD`: nearest buy-side liquidity is `4546.98`; nearest sell-side liquidity is `4542.30`, with cleaner downside draw still sitting at session low `4530.86` and daily low `4510.31`
+  - `US30`: nearest buy-side liquidity is `48845.40`; nearest sell-side liquidity is `48797.40`, with cleaner downside draw still sitting at session low `48730.40`
+- `5m` execution lifecycle:
+  - `XAUUSD`:
+    - `STALE / INVALIDATED`: `5M EXECUTION SHORT 4599.93`, `5M EXECUTION LONG 4592.03`
+    - new active pair: `5M EXECUTION SHORT 4551.60` and `5M EXECUTION LONG 4530.86`
+  - `US30`:
+    - `STALE / INVALIDATED`: `5M EXECUTION SHORT 49197.40`, `5M EXECUTION LONG 49095.40`
+    - new active pair: `5M EXECUTION SHORT 48871.40` and `5M EXECUTION LONG 48730.40`
+- Opportunity timing state:
+  - `XAUUSD` short side: `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST` after the first `4551.60-4554.76` rejection already printed
+  - `XAUUSD` long side: `PRE-TRIGGER` until `4530.86` is swept and reclaimed cleanly
+  - `US30` short side: `PRE-TRIGGER` until `48871.40` retests and rejects cleanly
+  - `US30` long side: `PRE-TRIGGER` until `48730.40` is swept and reclaimed
+- Trading decision:
+  - `XAUUSD`: `WAIT / SHORT BIAS`
+  - `US30`: `WAIT / SHORT BIAS`
+  - cleaner symbol now: `XAUUSD`
+  - symbol to avoid forcing: `US30`
+  - what not to do now: do not chase either breakdown from the lows; both require a cleaner retest or sweep first
+- Transcript-derived refinement usage:
+  - preserved the standing `indication -> correction -> continuation` filter
+  - no fresh idea was created from transcript material; it only reinforced waiting for the correction shelf before execution
+- Articuno reinforcement:
+  - `SMC`: both old execution pairs already sat behind price, so they lost live liquidity value
+  - `Supply/Demand`: `4551.60` on gold and `48871.40` on US30 are cleaner short shelves than the preserved prior map
+  - `Price Action`: both symbols remain bearish, but the clean trade is the retest, not the chase
+  - `Psychology`: `WAIT FOR NEW RETEST`
+- Chart actions:
+  - updated both desired-state JSON files
+  - full redraw scope kept because HTF changed and the active `5m` pairs changed
+  - labels repositioned through desired-state refresh on all kept levels
+  - replaced levels:
+    - `XAUUSD` HTF `4772.95 / 4554.76` -> `4554.76 / 4510.31`; `5m` `4599.93 / 4592.03` -> `4551.60 / 4530.86`
+    - `US30` HTF `49531.60 / 48885.65` -> `49075.90 / 48730.40`; `5m` `49197.40 / 49095.40` -> `48871.40 / 48730.40`
+- Trader-facing report:
+  - `XAUUSD`
+  - `Historia:` la historia ahora mismo es que oro rompio el opening range a la baja, perdio `4554.76` y el rebote a `4564.98` ya fue vendido de nuevo. Ahora mismo el tape sigue pesado debajo de `4551.60` y la siguiente liquidez clara sigue mas abajo en `4530.86`.
+  - `Tesis:` eso favorece shorts, pero no vender en el piso. El nivel bueno ahora es el retest a `4551.60` o un reclaim fallido de `4554.76`; el long solo existe si `4530.86` se barre y se recupera.
+  - `Niveles:` `DAILY SUPPLY 4730.08` | `DAILY DEMAND 4510.31` | `4H SUPPLY 4554.76` | `4H DEMAND 4510.31` | `5M EXECUTION SHORT 4551.60` | `5M EXECUTION LONG 4530.86`
+  - `Accion:` `WAIT / SHORT BIAS`. El short ya disparo una vez y no quiero chase; si vuelve a `4551.60-4554.76` y rechaza, ahi si. Si barre `4530.86` y reclama, recien ahi miro long tactico.
+  - `US30`
+  - `Historia:` la historia ahora mismo es que `US30` tambien rompio el opening range a la baja, perdio `49075.90-49095.40` y sigue aceptando por debajo de esa demanda rota. El rebote actual es debil y sigue atrapado debajo de `48871.40`.
+  - `Tesis:` eso mantiene sesgo bajista, pero el punto limpio no es vender donde ya viene extendido. El short bueno seria un retest con rechazo en `48871.40`; el long solo vuelve si `48730.40` barre liquidez y se recupera con estructura.
+  - `Niveles:` `DAILY SUPPLY 49359.40` | `DAILY DEMAND 48730.40` | `4H SUPPLY 49075.90` | `4H DEMAND 48730.40` | `5M EXECUTION SHORT 48871.40` | `5M EXECUTION LONG 48730.40`
+  - `Accion:` `WAIT / SHORT BIAS`. Mientras no recupere `48871.40` con fuerza y no haga el retest limpio, no quiero forzar nada en medio del ruido.
+- Spanish thread update: `NY Open Levels` ya quedo refrescado con data valida. `XAUUSD` y `US30` siguen bajistas, pero el mapa viejo ya no servia: oro ahora queda en `4551.60 / 4530.86` y `US30` en `48871.40 / 48730.40`. El simbolo mas limpio ahora es `XAUUSD`, y la accion correcta sigue siendo `WAIT` hasta retest o sweep limpio.
+- Discord summary written to dispatch:
+  - `[NY OPEN LEVELS]`
+  - `Historia`
+  - `La historia ahora mismo es que ambos ya rompieron el opening range a la baja y el mapa viejo quedo atras: oro perdio \`4554.76\` y ahora trabaja debajo de \`4551.60\`; US30 perdio \`49075.90-49095.40\` y sigue pesado debajo de \`48871.40\`.`
+  - `Tesis`
+  - `Eso obliga refresh real, no preservacion. Daily y 4H ahora favorecen shorts en ambos, pero el trade limpio no es chasear el breakdown: XAU solo me interesa en retest/rechazo \`4551.60\`; US30 solo en retest/rechazo \`48871.40\`. Los longs quedan para sweep-reclaim de \`4530.86\` y \`48730.40\`.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4554.76 / 4510.31 | 5m 4551.60 / 4530.86`
+  - `US30 -> Daily 49359.40 / 48730.40 | 4H 49075.90 / 48730.40 | 5m 48871.40 / 48730.40`
+  - `Accion`
+  - `HTF_CHANGED / REFRESHED MAP / WAIT`
+  - `Foco: XAUUSD mas limpio. Trampa: chasear breakdowns lejos del retest.`
+
+- 2026-04-29 | automation: NY Open Levels | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: fresh structured live state was valid again for both symbols at `2026-04-29T11:07:00.6305596-06:00`, so the workflow executed a full reassess + redraw instead of preserving the stale chain; both old `5m` pairs were structurally far from price and both prior HTF support shelves had failed, so the desired-state maps were refreshed with `refresh_reason = htf_changed` to XAUUSD `4H 4554.76 / 4510.31`, `5m 4551.60 / 4530.86`, and US30 `4H 49075.90 / 48730.40`, `5m 48871.40 / 48730.40` | action state: `WAIT / SHORT BIAS / DO NOT CHASE` | main lesson: when fresh data returns after the market has already traded through the preserved support shelf, treat the old execution map as stale, flip the broken support into resistance when structure supports it, and rebuild the execution pair around the current retest shelf instead of chasing the move already in progress.
+
+### Live Reassessment Trigger - Fresh Structured Preserve On 2026-04-29
+
+- Run time: `2026-04-29T13:03:09.934680-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `all_symbols_valid = true`
+  - last full valid runtime cycle: `2026-04-29T13:02:58-06:00`
+  - fresh structured reads used for the reassessment:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-04-29T13:03:00-06:00` | `fresh_until = 2026-04-29T13:03:30-06:00`
+    - `FOREXCOM:US30` `as_of = 2026-04-29T13:02:44-06:00` | `fresh_until = 2026-04-29T13:03:14-06:00`
+- Refresh result:
+  - this run finished `FULL_DATA / PRESERVED MAP`
+  - no `refresh_reason` was written because the desired-state maps remained operational and no chart mutation was required
+  - both active `5m` pairs stayed near price and still define the current execution shelves
+- Higher-timeframe thesis:
+  - `XAUUSD`: `Daily` and `4H` remain bearish below the broken `4554.76` shelf; the preserved context pair `DAILY SUPPLY 4730.08` / `DAILY DEMAND 4510.31` still makes sense and the tape has not repaired the bearish HTF damage
+  - `US30`: `Daily` and `4H` remain bearish below `49075.90`; the preserved context pair `DAILY SUPPLY 49359.40` / `DAILY DEMAND 48730.40` is still valid and the bounce has not reclaimed the broken higher shelf
+- Intermediate structure:
+  - `XAUUSD`: `30m / 15m` are bouncing from the `4518.73` sweep back into local supply, but the rebound is still only corrective while price stays below `4551.60-4554.76`; `5m` still reads `LH / LL`
+  - `US30`: `30m / 15m` are also bouncing from the `48701.40` sweep, but the move is still a corrective push into `48845.40-48871.40` supply; `5m` prints `HH / HL`, but only as a bounce into resistance, not as a confirmed reversal of the bearish HTF map
+- Liquidity map:
+  - `XAUUSD`: nearest buy-side liquidity is now `4542.55`; nearest sell-side liquidity is `4542.30`, with the cleaner downside draw still sitting at `4518.73` and then `4510.31`; the market already paid the first downside sweep and is now reacting back into supply
+  - `US30`: nearest buy-side liquidity is `48845.40`; nearest sell-side liquidity is `48797.40`, with the day already having swept down to `48701.40`; the market is now targeting the retest shelf under `48871.40`
+- `5m` execution lifecycle:
+  - lines still `ACTIVE`:
+    - `PEPPERSTONE:XAUUSD` `5M EXECUTION SHORT 4551.60`
+    - `PEPPERSTONE:XAUUSD` `5M EXECUTION LONG 4530.86`
+    - `FOREXCOM:US30` `5M EXECUTION SHORT 48871.40`
+    - `FOREXCOM:US30` `5M EXECUTION LONG 48730.40`
+  - `STALE`: none
+  - `INVALIDATED`: none
+- Opportunity timing state:
+  - `XAUUSD` short side: `PRE-TRIGGER` for a fresh entry; the earlier short already fired, and the new clean short only comes back if price retests `4551.60` or fails a reclaim under `4554.76`
+  - `XAUUSD` long side: `TRIGGERED / DO NOT CHASE / MANAGE IF ALREADY IN` because `4530.86` was already swept and reclaimed intraday before this reassessment
+  - `FOREXCOM:US30` short side: `ARMED` while price pushes into `48845.40`; it flips to `TRIGGERED` only if `5m` rejects / fails reclaim into `48871.40`
+  - `FOREXCOM:US30` long side: `TRIGGERED / DO NOT CHASE / MANAGE IF ALREADY IN` because `48730.40` was already swept and reclaimed off the `48701.40` low
+- Trading decision:
+  - `XAUUSD`: `WAIT / SHORT BIAS`
+  - `FOREXCOM:US30`: `WAIT / SHORT BIAS`
+  - cleaner symbol now: `US30`
+  - symbol to avoid forcing: `XAUUSD`
+  - what not to do now: do not chase the sweep-reclaim longs that already happened, and do not short gold in the middle away from `4551.60-4554.76`
+- Transcript-derived refinement usage:
+  - preserved the standing `indication -> correction -> continuation` filter so the rebound is treated as correction into supply, not as automatic trend reversal
+  - promoted timing honesty by upgrading both sweep-reclaim longs to `TRIGGERED` instead of leaving them as stale `PRE-TRIGGER` ideas
+- Articuno reinforcement:
+  - `XAUUSD`: downside liquidity was already paid, so the right reinforcement is anti-chase discipline and waiting for the real short shelf again
+  - `US30`: the bounce has enough participation to reach supply, but not enough to cancel the bearish HTF map; quality improves only if `5m` rejects the retest shelf cleanly
+- Chart actions:
+  - none; both desired-state JSON files were preserved unchanged because the current HTF map is still valid and both active `5m` pairs remain usable
+- Labels repositioned: none; desired state was preserved unchanged
+- Levels recolored / removed / replaced: none
+- Trader-facing report:
+  - `XAUUSD`
+  - `Historia:` la historia ahora mismo es que oro ya barrio por debajo de `4530.86`, dejo ese rebote tactico, y ahora solo esta corrigiendo de vuelta hacia supply sin recuperar todavia el shelf corto grande de `4551.60-4554.76`.
+  - `Tesis:` eso mantiene el sesgo bajista, pero cambia la lectura de timing. El long tactico ya paso; no quiero chasearlo. El short limpio vuelve solo si el rebote llega otra vez a `4551.60` o si intenta reclamar `4554.76` y falla.
+  - `Niveles:` `DAILY SUPPLY 4730.08` | `DAILY DEMAND 4510.31` | `4H SUPPLY 4554.76` | `4H DEMAND 4510.31` | `5M EXECUTION SHORT 4551.60` | `5M EXECUTION LONG 4530.86`
+  - `Accion:` `WAIT / SHORT BIAS`. Si tomaste el long desde la barrida, gestionar. Si estas flat, no persigas y espera retest mas alto para short limpio.
+  - `US30`
+  - `Historia:` la historia ahora mismo es que `US30` ya hizo la barrida debajo de `48730.40`, reboto desde `48701.40`, y ahora esta volviendo a empujar hacia la oferta de `48845.40-48871.40`.
+  - `Tesis:` eso sigue favoreciendo shorts en retest, no longs nuevos. El long desde la barrida ya disparo; lo que queda vivo ahora es el short si `5m` rechaza esta correccion y no deja reclaim limpio por encima de `48871.40`.
+  - `Niveles:` `DAILY SUPPLY 49359.40` | `DAILY DEMAND 48730.40` | `4H SUPPLY 49075.90` | `4H DEMAND 48730.40` | `5M EXECUTION SHORT 48871.40` | `5M EXECUTION LONG 48730.40`
+  - `Accion:` `ARMED / SHORT BIAS`. Quiero ver rechazo en `48845.40-48871.40`; si no aparece, sigo esperando. El long ya no es fresh.
+- Spanish thread update: `Live reassessment trigger` encontro data fresca y no tuvo que redibujar. `XAUUSD` y `US30` conservan `4551.60 / 4530.86` y `48871.40 / 48730.40`, pero el timing si avanzo: los longs por barrida ya quedaron `TRIGGERED`, no fresh. Lo mas limpio ahora es `US30` si rechaza `48845.40-48871.40`; en oro la accion correcta sigue siendo paciencia hasta retest mas alto.
+- Discord summary written to dispatch:
+  - `[LIVE REASSESSMENT TRIGGER]`
+  - `Historia`
+  - `La historia ahora mismo es que ambos siguen bajistas en HTF, pero los rebotes desde \`4530.86\` en oro y \`48730.40\` en US30 ya pasaron. Oro solo esta corrigiendo hacia supply; US30 esta empujando otra vez hacia \`48845.40-48871.40\`.`
+  - `Tesis`
+  - `Eso deja el mapa preservado, no refrescado. Los longs tacticos ya fueron; no quiero chase. Oro sigue necesitando retest mas alto para short limpio. US30 queda mas interesante porque el rebote lo esta acercando otra vez al shelf corto.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4554.76 / 4510.31 | 5m 4551.60 / 4530.86`
+  - `US30 -> Daily 49359.40 / 48730.40 | 4H 49075.90 / 48730.40 | 5m 48871.40 / 48730.40`
+  - `Accion`
+  - `PRESERVED MAP / WAIT. XAUUSD -> no chase; short solo si vuelve a \`4551.60-4554.76\` y falla. US30 -> \`ARMED\` para short si \`5m\` rechaza \`48845.40-48871.40\`. Trampa: perseguir los longs que ya dispararon.`
+
+- 2026-04-29 | automation: Live Reassessment Trigger | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: a fresh structured cycle was available again at `2026-04-29T13:02:58-06:00`, and both desired-state maps stayed operational without needing a redraw; XAUUSD kept `4H 4554.76 / 4510.31`, `5m 4551.60 / 4530.86`, while US30 kept `4H 49075.90 / 48730.40`, `5m 48871.40 / 48730.40`; the important timing update is that both sweep-reclaim longs already triggered intraday, so the cleaner remaining opportunity is the `US30` short retest into `48845.40-48871.40` while gold still needs a higher retest for a fresh short | action state: `PRESERVED MAP / WAIT / SHORT BIAS` | main lesson: when the active pair still brackets the live tape, preserve the map, but keep the timing honest once the countertrend sweep-reclaim has already happened so the workflow stops advertising a spent bounce as fresh opportunity.
+
+### Asia Setup Detector - Fresh XAUUSD Retest Into 4551.60-4554.76
+
+- Run time: `2026-04-29T17:35:09.0651255-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD` for trade decision, `FOREXCOM:US30` for freshness preservation only.
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - last full valid runtime cycle: `2026-04-29T17:34:52-06:00`
+  - `PEPPERSTONE:XAUUSD` fresh structured read used for the Asia decision:
+    - `as_of = 2026-04-29T17:34:54-06:00`
+    - `fresh_until = 2026-04-29T17:35:24-06:00`
+    - `data_confidence = FULL_DATA`
+    - `decision_allowed = true`
+- Refresh result:
+  - this run finished `FULL_DATA / PRESERVED MAP`
+  - no `refresh_reason` was written because the desired-state map remained operational and no chart mutation was required
+- Higher-timeframe thesis:
+  - `Daily` stays bearish below `DAILY SUPPLY 4730.08`
+  - `4H` still treats `4554.76` as the broken cap and `4510.31` as the lower structural support
+  - the HTF map did not materially change, so the Asia workflow keeps the preserved `Daily / 4H` layer untouched
+- Intermediate structure:
+  - `30m / 15m` are correcting off the `4510.31` sweep low back into fresh supply, not printing a clean higher-timeframe reversal yet
+  - `5m` is currently `HH / HL`, but only as a bounce into the short shelf, not as confirmed acceptance above it
+- Key level being tested now:
+  - `4551.60-4554.76`, with the nearest buy-side liquidity and local `5m` rejection printed at `4553.06`
+- Current price action vs Asia bias:
+  - the rebound is testing the bearish Asia map, not failing it yet
+  - price is back at the underside short shelf, but it still has not accepted above `4554.76`
+- Conditions still favor:
+  - `fade` while price stays below `4554.76 / 4560.06`
+  - `breakout` only if `15m` accepts above that band
+  - `range` only if price keeps chopping between `4549.57` and `4554.76` without a decisive rejection or acceptance
+- `5m` execution lifecycle:
+  - lines still `ACTIVE`:
+    - `PEPPERSTONE:XAUUSD` `5M EXECUTION SHORT 4551.60`
+    - `PEPPERSTONE:XAUUSD` `5M EXECUTION LONG 4530.86`
+  - `STALE`: none
+  - `INVALIDATED`: none
+- Opportunity timing state:
+  - overall opportunity: `ARMED`
+  - short side: `ARMED` because price is inside the trigger shelf now, but the tape still needs a clean `5m` reject / failed reclaim to activate
+  - long side: `TRIGGERED / DO NOT CHASE / MANAGE IF ALREADY IN` because the `4530.86` sweep-reclaim already happened before this Asia reassessment
+- Exact trigger present:
+  - the market is already probing the short shelf and has left a local sell reaction at `4553.06`
+- Exact confirmation still missing:
+  - a `5m` close back below `4549.57`
+  - or a failed reclaim under `4554.76` after the probe
+- What invalidates the current short setup:
+  - `15m` acceptance above `4554.76`
+  - especially if price starts holding above `4560.06`
+- Short execution-focused summary in Spanish:
+  - `oro esta en la zona correcta para mirar fade, pero todavia no me dio el gatillo final; necesito rechazo 5m y perdida de 4549.57 para activar el short sin chase.`
+- Transcript-derived refinement usage:
+  - used the promoted `indication -> correction -> continuation` filter so this bounce is treated as a correction into supply, not as a fresh bullish trend by itself
+  - kept the no-chase rule active by leaving the earlier `4530.86` long as `TRIGGERED`, not rebranding it as a new setup
+- Articuno reinforcement:
+  - liquidity: the first downside objective already got paid at the `4510.31` sweep, so the cleaner idea now is fade-on-retest, not chase-in-the-middle
+  - level quality: `4551.60` still has structural function because it remains the live underside shelf inside the broader `4554.76` cap
+  - psychology: if this shelf does not reject cleanly, patience wins over forcing the short
+- Chart actions:
+  - none; the desired-state file for `PEPPERSTONE:XAUUSD` was preserved unchanged because the HTF map is intact and the active `5m` pair still defines the live Asia decision shelves
+- Automation-owned levels updated in desired state:
+  - none; preserved `XAUUSD: DAILY 4730.08 / 4510.31, 4H 4554.76 / 4510.31, 5M 4551.60 / 4530.86`
+- Labels repositioned: none; desired state was preserved unchanged
+- Levels recolored / removed / replaced: none
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que oro ya hizo la barrida abajo en `4510.31`, dejo el rebote tactico desde `4530.86`, y ahora regreso directo a la oferta de `4551.60-4554.76`. El movimiento es correccion hacia supply, no breakout limpio todavia.
+  - `Tesis:` eso mantiene el sesgo bajista para Asia. El long tactico ya paso y no quiero chasearlo. Lo que queda vivo ahora es el short si esta zona vuelve a rechazar y no deja aceptacion por encima de `4554.76`.
+  - `Niveles:` `DAILY SUPPLY 4730.08` | `DAILY DEMAND 4510.31` | `4H SUPPLY 4554.76` | `4H DEMAND 4510.31` | `5M EXECUTION SHORT 4551.60` | `5M EXECUTION LONG 4530.86`
+  - `Accion:` `WAIT / ARMED SHORT BIAS`. Lo que quiero ver ahora es rechazo `5m` y cierre de vuelta bajo `4549.57`, o reclaim-fail bajo `4554.76`. Si ya venias del long desde `4530.86`, gestionar. Si estas flat, no persigas.
+- Spanish thread update: `Asia setup detector` ya tiene `XAUUSD` fresco otra vez y no necesito redibujar nada. Oro sigue llegando a la zona corta correcta en `4551.60-4554.76`, pero el short todavia esta `ARMED`, no `TRIGGERED`: quiero ver rechazo `5m` y perdida de `4549.57`. El long desde `4530.86` ya paso; si no estas dentro, no quiero chase.
+- Discord summary written to payload:
+  - `[ASIA SETUP DETECTOR]`
+  - `Historia`
+  - `La historia ahora mismo es que oro ya hizo la barrida abajo en \`4510.31\`, dejo el rebote desde \`4530.86\`, y ahora regreso directo a la oferta de \`4551.60-4554.76\`. Sigue siendo correccion hacia supply, no breakout limpio.`
+  - `Tesis`
+  - `Eso mantiene el sesgo bajista para Asia. El long tactico ya fue; no quiero chase. El short esta \`ARMED\`, no activado, mientras el mercado no acepte arriba de \`4554.76\`.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4554.76 / 4510.31 | 5m 4551.60 / 4530.86`
+  - `Accion`
+  - `WAIT / ARMED SHORT BIAS. Quiero ver rechazo \`5m\` y cierre bajo \`4549.57\`, o reclaim-fail bajo \`4554.76\`. Si venias del long desde \`4530.86\`, gestionar. Si estas flat, no persigas.`
+
+- 2026-04-29 | automation: Asia Setup Detector | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: XAUUSD recovered its fresh structured live state for the Asia run, retested the preserved short shelf at `4551.60-4554.76`, and kept the bearish higher-timeframe map intact; the workflow did not redraw because the active pair `4551.60 / 4530.86` still brackets the live Asia decision, but the timing is now `ARMED` for shorts while the earlier `4530.86` long remains `TRIGGERED / DO NOT CHASE` | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4554.76 / 4510.31`, `5m 4551.60 / 4530.86` | action state: `WAIT / ARMED SHORT BIAS` | main lesson: when fresh gold data comes back and price is already retesting the preserved underside shelf, preserve the map if it still fits the tape, but keep the action honest until `5m` actually rejects and loses the local reclaim.
+
+### Live Reassessment Trigger - XAU HTF Reclaim / US30 Preserve On 2026-04-29
+
+- Run time: `2026-04-29T19:52:37-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - last full valid runtime cycle: `2026-04-29T19:49:35-06:00`
+  - fresh structured reads used for the reassessment:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-04-29T19:50:17-06:00` | `fresh_until = 2026-04-29T19:50:47-06:00`
+    - `FOREXCOM:US30` `as_of = 2026-04-29T19:50:03-06:00` | `fresh_until = 2026-04-29T19:50:33-06:00`
+- Refresh result:
+  - this run finished `FULL_DATA / XAU REFRESHED / US30 PRESERVED`
+  - `PEPPERSTONE:XAUUSD` required a desired-state refresh with `refresh_reason = htf_changed`
+  - `FOREXCOM:US30` stayed preserved unchanged because its active pair still brackets the live tape
+- Higher-timeframe thesis:
+  - `XAUUSD`: `Daily` context still sits inside `DAILY SUPPLY 4730.08` / `DAILY DEMAND 4510.31`, but `4H` has now reclaimed above the old `4554.76` cap and is pressing into `4581.38`; the next higher structural cap is `4610.34`, so the prior bearish `4H` map is no longer executable unchanged
+  - `US30`: `Daily / 4H` still lean bearish below `49075.90`; `48730.40` keeps acting as the defended intraday shelf, but price still has not reclaimed into the active short shelf at `48871.40`
+- Intermediate structure:
+  - `XAUUSD`: `30m / 15m` are printing continuation `HH / HL` above the reclaimed `4554.76-4564.76` zone, and `5m` is still `HH / HL` while price targets the session buy-side at `4581.38`
+  - `US30`: `30m / 15m` are only printing a small `HH / HL` bounce above `48730.40`; `5m` is stable, but still compressed and not close enough to `48871.40` to activate the short side
+- Liquidity map:
+  - `XAUUSD`: nearest buy-side liquidity is `4581.38`; nearest sell-side liquidity is `4564.76`; price is targeting buy-side after reclaiming the old resistance
+  - `US30`: nearest buy-side liquidity is `48749.40`; nearest sell-side liquidity is `48730.40`; the earlier downside sweep is already behind price and the market is stabilizing above the defended long shelf
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - old lines became `STALE / INVALIDATED`:
+      - `5M EXECUTION SHORT 4551.60`
+      - `5M EXECUTION LONG 4530.86`
+    - new active lines:
+      - `5M EXECUTION SHORT 4581.38`
+      - `5M EXECUTION LONG 4564.76`
+  - `FOREXCOM:US30`
+    - lines still `ACTIVE`:
+      - `5M EXECUTION SHORT 48871.40`
+      - `5M EXECUTION LONG 48730.40`
+    - `STALE`: none
+    - `INVALIDATED`: none
+- Opportunity timing state:
+  - `XAUUSD` overall opportunity: `ARMED`
+  - `XAUUSD` short side: `ARMED` because price is already at the `4581.38` buy-side shelf, but the tape still needs a `5m` close back below `4573.90` or a failed reclaim under `4581.38` to activate the fade cleanly
+  - `XAUUSD` long side: `TRIGGERED / DO NOT CHASE / MANAGE IF ALREADY IN` because the reclaim above `4554.76` and defense of `4564.76` already produced the continuation leg
+  - `FOREXCOM:US30` short side: `PRE-TRIGGER` because price is still below the `48841.90-48871.40` short shelf and has not reached the rejection zone yet
+  - `FOREXCOM:US30` long side: `TRIGGERED / DO NOT CHASE / MANAGE IF ALREADY IN` because the `48730.40` defense already did the bounce work and the fresh reward is no longer here
+- Trading decision:
+  - `XAUUSD`: `WAIT / LONG BIAS UNTIL 4581.38 REJECTS`
+  - `FOREXCOM:US30`: `WAIT / NO FRESH EDGE YET`
+  - cleaner symbol now: `XAUUSD`
+  - symbol to avoid forcing: `US30`
+  - what not to do now: do not keep using the old gold short map from `4551.60`, and do not chase the already-triggered long sides in either symbol
+- Transcript-derived refinement usage:
+  - used the promoted `indication -> correction -> continuation` filter to treat the gold reclaim above `4554.76` as completed continuation instead of pretending the old short shelf was still current
+  - kept timing honesty by upgrading both defended long sides to `TRIGGERED / DO NOT CHASE` rather than recycling them as fresh ideas
+- Articuno reinforcement:
+  - `XAUUSD`: the liquidity story improved for continuation because the reclaim held and price is now hunting `4581.38`; the right reinforcement is patience for either `4564.76` defense or a real sweep-rejection at the high, not forcing a mid-range fade
+  - `US30`: the defended long shelf still has structural quality, but participation remains muted and the market is not offering a clean fresh entry yet; patience beats forcing either side in the middle of the compression
+- Chart actions:
+  - updated [`C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json`](C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json) for a full XAU redraw
+  - left [`C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json`](C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json) untouched
+- Automation-owned levels updated in desired state:
+  - `XAUUSD` now preserves `DAILY 4730.08 / 4510.31`, refreshes `4H` to `4610.34 / 4554.76`, and refreshes `5m` to `4581.38 / 4564.76`
+  - `US30` preserves `DAILY 49359.40 / 48730.40`, `4H 49075.90 / 48730.40`, and `5m 48871.40 / 48730.40`
+- Labels repositioned:
+  - `XAUUSD`: all owned labels will be re-anchored to the right side by the runtime redraw
+  - `US30`: none; desired state was preserved unchanged
+- Levels recolored / removed / replaced:
+  - `XAUUSD`: removed the obsolete active pair `4551.60 / 4530.86` and replaced it with `4581.38 / 4564.76`; replaced `4H DEMAND 4510.31` with `4H DEMAND 4554.76`; replaced `4H SUPPLY 4554.76` with `4H SUPPLY 4610.34`
+  - `US30`: none
+- Trader-facing report:
+  - `XAUUSD`
+  - `Historia:` la historia ahora mismo es que oro ya no se esta frenando debajo de `4554.76`; lo reclamo, defendio `4564.76`, y ahora esta atacando la buy-side de `4581.38`. El mapa corto viejo ya quedo atras.
+  - `Tesis:` eso cambia la lectura operativa. El long ya disparo y no quiero chasearlo. Lo que queda vivo ahora es continuidad si `4564.76` vuelve a sostener, o short tactico solo si `4581.38` barre liquidez y deja rechazo real.
+  - `Niveles:` `DAILY SUPPLY 4730.08` | `DAILY DEMAND 4510.31` | `4H SUPPLY 4610.34` | `4H DEMAND 4554.76` | `5M EXECUTION SHORT 4581.38` | `5M EXECUTION LONG 4564.76`
+  - `Accion:` `WAIT / ARMED`. Si ya venias del long, gestionar. Si estas flat, no quiero vender antes de ver falla `5m` en `4581.38`, y tampoco comprar persiguiendo arriba.
+  - `US30`
+  - `Historia:` la historia ahora mismo es que `US30` si sostuvo `48730.40`, pero el rebote sigue chico y todavia no llega al shelf corto de `48871.40`. El mercado esta mas comprimido que limpio.
+  - `Tesis:` eso deja el mapa preservado. El long desde `48730.40` ya hizo su parte y no quiero chasearlo. El short sigue existiendo, pero todavia esta demasiado lejos para llamarlo setup activo.
+  - `Niveles:` `DAILY SUPPLY 49359.40` | `DAILY DEMAND 48730.40` | `4H SUPPLY 49075.90` | `4H DEMAND 48730.40` | `5M EXECUTION SHORT 48871.40` | `5M EXECUTION LONG 48730.40`
+  - `Accion:` `WAIT / PRE-TRIGGER`. Si ya estabas dentro del long, gestionar. Si estas flat, no forzar nada hasta que vuelva a dar una zona mejor.
+- Spanish thread update: `Live reassessment trigger` encontro data fresca y esta vez si tuvo que refrescar `XAUUSD`: el par viejo `4551.60 / 4530.86` ya no sirve y ahora oro queda con `4581.38 / 4564.76`. `US30` se preserva en `48871.40 / 48730.40`, pero sigue sin setup fresco. Lo mas limpio ahora es oro; la accion correcta sigue siendo paciencia hasta ver si `4581.38` rechaza o `4564.76` vuelve a defender.
+- Discord summary written to payload:
+  - `[LIVE REASSESSMENT TRIGGER]`
+  - `Historia`
+  - `La historia ahora mismo es que oro ya no se esta frenando debajo de \`4554.76\`: lo reclamo, defendio \`4564.76\`, y ya esta atacando la buy-side de \`4581.38\`. \`US30\`, en cambio, sigue mas lento y solo sostiene \`48730.40\` sin llegar todavia al shelf corto de \`48871.40\`.`
+  - `Tesis`
+  - `Eso obliga refresh en \`XAUUSD\` con \`htf_changed\`, porque el par viejo \`4551.60 / 4530.86\` quedo atras y el long ya disparo. No quiero chase. El short solo me interesa si \`4581.38\` barre y rechaza. \`US30\` queda preservado: long ya disparado, short todavia \`PRE-TRIGGER\`.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4610.34 / 4554.76 | 5m 4581.38 / 4564.76`
+  - `US30 -> Daily 49359.40 / 48730.40 | 4H 49075.90 / 48730.40 | 5m 48871.40 / 48730.40`
+  - `Accion`
+  - `XAUUSD manda ahora: short \`ARMED\` solo si \`5m\` falla en \`4581.38\`; si vuelve a defender \`4564.76\`, el sesgo sigue de continuidad. \`US30\` sigue \`WAIT\`: si ya traes el long desde \`48730.40\`, gestionar; si estas flat, no persigas.`
+
+- 2026-04-29 | automation: Live Reassessment Trigger | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: both symbols had fresh structured live state again in normal runtime mode, but only `XAUUSD` required a redraw because the old `4551.60 / 4530.86` pair was structurally behind price and `4H` had reclaimed above `4554.76`; the XAU desired-state map was refreshed with `refresh_reason = htf_changed` to `4H 4610.34 / 4554.76`, `5m 4581.38 / 4564.76`, while `US30` kept `4H 49075.90 / 48730.40`, `5m 48871.40 / 48730.40` unchanged | action state: `XAUUSD WAIT / ARMED AT 4581.38`, `US30 WAIT / PRE-TRIGGER` | main lesson: once gold reclaims the old cap and the live tape is already trading a new demand shelf, stop preserving the dead short map, rebuild the execution bracket around the reclaimed structure, and keep the other symbol preserved if its pair still classifies the tape cleanly.
+
+### End-of-Day Review - Fresh Structured Close On 2026-04-29
+
+- Run time: `2026-04-29T22:33:27.1419883-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - fresh structured reads used for the close review:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-04-29T22:32:43-06:00` | `fresh_until = 2026-04-29T22:33:13-06:00`
+    - `FOREXCOM:US30` `as_of = 2026-04-29T22:33:16-06:00` | `fresh_until = 2026-04-29T22:33:46-06:00`
+- Workflow result:
+  - this run finished `FULL_DATA / REVIEW-ONLY / DESIRED STATE PRESERVED`
+  - no desired-state mutation was allowed because `End-of-Day Review` remains review-only
+  - both symbols are fully analyzable, but both current desired-state `5m` pairs finish structurally far from price at the close and should be treated as carry-context only until the next fresh reassessment decides whether to preserve or refresh them
+- Session review:
+  - `XAUUSD`: the morning bearish reset was directionally right, but the day did not travel in a straight line. After the fresh NY redraw flipped `4554.76` into resistance and set `4551.60 / 4530.86`, gold later reclaimed that shelf, defended `4564.76`, and extended into `4581.38`. That continuation then failed hard into the close: the latest `4H` bar rolled from `4578.99` to `4543.89`, and the latest `30m / 15m / 5m` all closed back lower. The day therefore finished as `breakdown -> corrective continuation -> failed reclaim back into bearish close`.
+  - `FOREXCOM:US30`: the morning bearish reset also held overall, but in a slower and less expressive way. The rebound from `48730.40` never converted into a clean fresh long and never reached the active short shelf at `48871.40`; by the close, the latest `4H` bar had rolled from `48731.40` to `48555.40`, and `30m / 15m / 5m` all kept closing lower. The day finished as `breakdown -> weak corrective bounce -> continuation lower`.
+- Which levels mattered most:
+  - `XAUUSD`: `4554.76`, `4564.76`, `4581.38`, `4510.31`
+  - `FOREXCOM:US30`: `48730.40`, `48871.40`, `49075.90`, `48643.40`
+- Which levels failed:
+  - `XAUUSD`: the late-session bullish repair above `4554.76` and defense at `4564.76` did not hold into the close; the `4581.38` buy-side objective was reached and then rejected.
+  - `FOREXCOM:US30`: the defended `48730.40` shelf did not survive into the close, and the market never reclaimed enough ground to re-activate the `48871.40` short shelf as a fresh retest.
+- Which symbol was cleaner:
+  - `XAUUSD` finished as the cleaner read because its key shelves kept producing the day’s actual turns: the morning breakdown mattered, the midday reclaim into `4581.38` mattered, and the late failure back under `4554.76` mattered.
+  - `FOREXCOM:US30` should have been treated more cautiously because the bearish idea stayed right directionally, but the tape never came back to the clean short shelf and spent more of the day in compressed follow-through.
+- Where the best opportunity was:
+  - the best opportunity was patience around `XAUUSD`, not aggression in the middle. First, the morning bearish reset only made sense on retest rather than chase. Later, the cleaner day-defining fade was the failure after `4581.38` was tagged and the reclaim above `4554.76` could not hold.
+- Biggest trap:
+  - recycling already-triggered bounces as fresh opportunities
+  - on gold, that meant treating the `4564.76` defense as a new easy long after the continuation leg had already extended
+  - on `US30`, that meant assuming the bounce from `48730.40` had become a fresh long without the structure ever reclaiming enough to justify it
+- `5m` execution lines:
+  - desired-state pair still preserved for `XAUUSD`: `5M EXECUTION SHORT 4581.38`, `5M EXECUTION LONG 4564.76`
+  - desired-state pair still preserved for `US30`: `5M EXECUTION SHORT 48871.40`, `5M EXECUTION LONG 48730.40`
+  - close review observation only:
+    - `XAUUSD` preserved pair finished structurally far from price after the failed reclaim
+    - `US30` preserved pair finished structurally far from price after the close under `48730.40`
+  - no new `ACTIVE / STALE / INVALIDATED` desired-state reclassification was written because this workflow stays review-only
+- Opportunity timing state at close:
+  - `XAUUSD`: the continuation long is no longer fresh and the late close back under `4554.76` confirms that the midday extension already happened; the correct carry lesson is `DO NOT CHASE / WAIT FOR FRESH REASSESSMENT`
+  - `FOREXCOM:US30`: the long from `48730.40` is also spent, and the short side never refreshed at the clean retest shelf; the correct carry lesson is `WAIT / NO FRESH EDGE`
+- Strategy learning:
+  - today reinforced that `Daily + 4H` alignment still mattered. The morning bearish reset survived the full session better than the countertrend bounces.
+  - today also reinforced that `5m` helps only when it keeps timing honest. It was useful for classifying `TRIGGERED`, `ARMED`, and `DO NOT CHASE`; it became noise whenever a bounce that had already fired was treated like a new setup.
+  - the weakness exposed today is not the bias model; it is the temptation to keep trading the same idea after liquidity already got paid.
+  - the market rewarded patience and confirmation more than aggression. The best reads came from waiting for the retest shelf or the failed reclaim, not from forcing the middle of the move.
+- Multi-day intelligence:
+  - recent valid close sample now shows `XAUUSD` producing the cleaner tape more often on bearish / failure days, while `US30` has been cleaner mainly when bullish continuation actually accepts and holds.
+  - in the valid close records from `2026-04-20`, `2026-04-21`, `2026-04-22`, and now `2026-04-29`, bullish continuation on `US30` has been less reliable than bearish failure / retest structure on gold.
+  - another recurring observation is that pre-market or early-session directional bias can survive the day, but only if execution is refreshed once the first trigger already happened. The bias surviving does not mean the original `5m` entry is still fresh.
+  - sweeps are paying best when the workflow waits for the retest or reclaim-fail after the liquidity event. Chasing the first post-sweep impulse keeps showing up as the weaker behavior.
+- Transcript-derived refinement usage:
+  - preserved the standing `indication -> correction -> continuation` filter
+  - the day reinforced that the correction leg must be separated from the fresh entry; once the continuation already printed, the right message becomes `manage` or `do not chase`, not recycled conviction
+- Articuno reinforcement:
+  - `SMC`: both symbols paid key intraday liquidity before the close, which is why late entries degraded in quality
+  - `Supply/Demand`: the gold shelves were structurally cleaner than the `US30` shelves today because they actually produced the day’s key reactions
+  - `Psychology`: the real edge was patience after the trigger, not confidence after the trigger
+- Chart actions:
+  - none; both desired-state JSON files were left untouched because `End-of-Day Review` is review-only
+- Redraw status:
+  - `XAUUSD`: preserved
+  - `FOREXCOM:US30`: preserved
+  - `refresh_reason`: none written in this workflow
+- Labels repositioned: none
+- Levels recolored / removed / replaced: none
+- Trader-facing report:
+  - `Historia:` la historia del dia es que el reset bajista de la manana si sobrevivio, pero con una trampa clara en oro. `XAUUSD` primero respeto el mapa bajista, luego reclamo `4554.76`, defendio `4564.76`, fue a cobrar `4581.38`, y despues devolvio toda esa continuation de nuevo hacia el cierre. `US30` tambien mantuvo el peso bajista, pero su rebote nunca se limpio de verdad y termino cediendo otra vez por debajo de `48730.40`.
+  - `Tesis:` eso refuerza una leccion simple: hoy no ganaba el que tenia mas opinion, ganaba el que tenia mejor timing. El sesgo bajista servia, pero solo si respetabas el retest o el reclaim-fail. En oro, el long ya habia corrido antes del fallo; en `US30`, el rebote nunca dio permiso limpio para convertirlo en continuation.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4610.34 / 4554.76 | 5m 4581.38 / 4564.76` ; `US30 -> Daily 49359.40 / 48730.40 | 4H 49075.90 / 48730.40 | 5m 48871.40 / 48730.40`
+  - `Accion:` `CIERRE MIXTO CON SESGO BAJISTA`. Lo que funciono fue respetar contexto y no perseguir rebotes ya disparados. Lo que fallo fue intentar reciclar continuation despues de que la liquidez ya habia sido pagada. Para manana, ambos pares `5m` cierran lejos del precio y piden reassessment fresco, no preservacion ciega.
+- Spanish thread update: `End-of-day` ya cierra con data fresca otra vez. El reset bajista de la manana termino mandando mas que los rebotes, pero la clave fue timing: en `XAUUSD` el reclaim hasta `4581.38` fallo y devolvio la ventaja al lado vendedor; en `US30` el rebote desde `48730.40` nunca se limpio y tambien cerro pesado. Lo que funciono fue paciencia y retest; lo que fallo fue perseguir continuation despues del trigger.
+- Discord summary written to payload:
+  - `[END-OF-DAY REVIEW]`
+  - `Historia`
+  - `La historia del dia es que el reset bajista de la manana si sobrevivio, pero con una trampa clara en oro: reclamo \`4554.76\`, extendio hasta \`4581.38\`, y al cierre devolvio todo de nuevo. \`US30\` tambien reboto, pero nunca limpio de verdad y termino otra vez pesado bajo \`48730.40\`.`
+  - `Tesis`
+  - `Eso deja una leccion buena: el bias servia, pero solo con timing honesto. En \`XAUUSD\`, el long ya habia corrido y el fallo de \`4581.38\` devolvio la ventaja al lado vendedor. En \`US30\`, el rebote fue correctivo y nunca dio continuation limpia.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4610.34 / 4554.76 | 5m 4581.38 / 4564.76`
+  - `US30 -> Daily 49359.40 / 48730.40 | 4H 49075.90 / 48730.40 | 5m 48871.40 / 48730.40`
+  - `Accion`
+  - `Lo que funciono fue paciencia y retest; lo que fallo fue perseguir rebotes ya disparados. Para manana, ambos pares \`5m\` cierran lejos del precio y piden reassessment fresco, no preservacion ciega.`
+
+- 2026-04-29 | automation: End-of-Day Review | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: both symbols finished with fresh structured close data in normal runtime mode, and the original bearish reset from the refreshed `2026-04-29T11:07:00-06:00` NY baseline held better than the countertrend bounces; `XAUUSD` was the cleaner tape because the reclaim through `4554.76`, defense at `4564.76`, extension into `4581.38`, and late failure back under `4554.76` mapped the real turns of the day, while `US30` stayed bearish but more compressed and never refreshed at `48871.40` | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4610.34 / 4554.76`, `5m 4581.38 / 4564.76`; US30 `Daily 49359.40 / 48730.40`, `4H 49075.90 / 48730.40`, `5m 48871.40 / 48730.40` | action state: `REVIEW-ONLY / DESIRED STATE PRESERVED / BOTH 5M PAIRS FAR FROM PRICE AT CLOSE` | main lesson: when the directional bias survives but liquidity has already been paid, the edge belongs to the retest or reclaim-fail, not to chasing continuation after the trigger; carry the thesis forward, but force a fresh reassessment when the preserved `5m` pair finishes structurally behind price.
+
+### NY Open Levels - Fresh Structured Baseline On 2026-04-30
+
+- Run time: `2026-04-30T05:34:34.7500596-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - fresh structured reads used for the baseline:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-04-30T05:32:29-06:00` | `fresh_until = 2026-04-30T05:32:59-06:00`
+    - `FOREXCOM:US30` `as_of = 2026-04-30T05:32:59-06:00` | `fresh_until = 2026-04-30T05:33:29-06:00`
+- Workflow result:
+  - this run finished `FULL_DATA / REFRESHED MAP`
+  - both prior active `5m` pairs finished structurally far from current price and no longer defined execution readiness for the `2026-04-30` NY baseline
+  - both symbols also reclaimed their prior `4H` resistance shelves, so the desired-state maps were refreshed with `refresh_reason = htf_changed` instead of carrying the old bearish execution bracket forward
+- Higher-timeframe thesis:
+  - `XAUUSD`: `Daily` and `4H` flipped back constructive after reclaiming `4610.34`; the preserved `DAILY SUPPLY 4730.08` / `DAILY DEMAND 4510.31` context still holds, but the active `4H` map now becomes `RESISTANCE 4646.73` and `SUPPORT 4610.34`
+  - `US30`: `Daily` and `4H` also turned constructive again after reclaiming `49075.90`; the preserved `DAILY SUPPLY 49359.40` / `DAILY DEMAND 48730.40` pair still makes sense, but the active `4H` map now becomes `RESISTANCE 49267.40` and `SUPPORT 49075.90`
+- Intermediate structure:
+  - `XAUUSD`: `30m / 15m` show bullish continuation from `4543.71` into `4646.73`, and the current pullback is happening inside fresh `15m` demand `4626.09-4644.06`; `5m` is mixed only because the first push already tagged the local high and is now correcting
+  - `US30`: `30m / 15m` printed a strong upside expansion from `48842.95` into `49247.45`, then pulled back toward `49139.95`; that still supports continuation only if `49139.95` keeps defending, otherwise the move degrades back into opening-range chop
+- Liquidity map:
+  - `XAUUSD`: nearest buy-side liquidity sits at the local opening-range cap around `4631.59-4637.77`; nearest sell-side interest below is the fresh defense shelf `4626.09`; the tape already rejected once from the high, so the cleaner path is either continuation after `4626.09` defense or a new rejection if `4637.77` retests and fails
+  - `US30`: nearest buy-side liquidity is `49247.45`; nearest sell-side liquidity is `49139.95`; the first upside tag already happened, so the cleaner continuation path now depends on `49139.95` holding and the cleaner fade path depends on a fresh sweep-rejection back into `49247.45`
+- Key structure:
+  - `XAUUSD`: prior resistance became support at `4610.34`; the failed push under the opening-range high kept the tape honest, but it did not cancel the higher-timeframe reclaim
+  - `US30`: prior resistance became support at `49075.90`; the market is holding above that reclaim, but the post-impulse tape is noisier than gold and needs cleaner `5m` confirmation
+- Most important levels:
+  - `XAUUSD`: `DAILY SUPPLY 4730.08` | `DAILY DEMAND 4510.31` | `4H SUPPLY 4646.73` | `4H DEMAND 4610.34` | `5M EXECUTION SHORT 4637.77` | `5M EXECUTION LONG 4626.09` | `PDH 4610.34` | `PDL 4510.31`
+  - `US30`: `DAILY SUPPLY 49359.40` | `DAILY DEMAND 48730.40` | `4H SUPPLY 49267.40` | `4H DEMAND 49075.90` | `5M EXECUTION SHORT 49247.45` | `5M EXECUTION LONG 49139.95` | `PDH 49267.40` | `PDL 48643.40`
+- RSI context:
+  - RSI was not present in the structured live-state payload for either symbol, so it remained secondary and neutral by omission; no decision depended on it
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - old lines became `STALE / INVALIDATED`:
+      - `5M EXECUTION SHORT 4581.38`
+      - `5M EXECUTION LONG 4564.76`
+    - new active lines:
+      - `5M EXECUTION SHORT 4637.77`
+      - `5M EXECUTION LONG 4626.09`
+  - `FOREXCOM:US30`
+    - old lines became `STALE / INVALIDATED`:
+      - `5M EXECUTION SHORT 48871.40`
+      - `5M EXECUTION LONG 48730.40`
+    - new active lines:
+      - `5M EXECUTION SHORT 49247.45`
+      - `5M EXECUTION LONG 49139.95`
+- Opportunity timing state:
+  - `XAUUSD` overall opportunity: `ARMED / LONG BIAS`
+  - `XAUUSD` long side: `ARMED` because price is already pulling back into `4626.09` and only needs a clean `5m` defense / close back above `4631.59` to re-open continuation
+  - `XAUUSD` short side: `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST` because the first opening-range rejection already fired under `4637.77-4646.73`
+  - `FOREXCOM:US30` overall opportunity: `WAIT / ARMED`
+  - `FOREXCOM:US30` long side: `ARMED` while `49139.95` holds; it flips cleaner only if `5m` accepts back above `49177.45`
+  - `FOREXCOM:US30` short side: `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST` because the first reaction from `49247.45` already happened
+- Trading decision:
+  - `XAUUSD`: `WAIT / LONG BIAS / DO NOT CHASE`
+  - `FOREXCOM:US30`: `WAIT / LONG BIAS / DO NOT CHASE`
+  - cleaner symbol now: `XAUUSD`
+  - symbol to avoid forcing: `US30`
+  - what not to do now: do not sell the first rejection late, and do not buy continuation without a fresh `5m` defense at the new long shelf
+- Transcript-derived refinement usage:
+  - used the standing `indication -> correction -> continuation` filter to treat both opening spikes as the first impulse and the current tape as correction, not as an invitation to chase the move already printed
+  - timing honesty upgraded the first short reactions in both symbols to `TRIGGERED / DO NOT CHASE` instead of leaving the prior short shelves active after the market had already reclaimed above them
+- Articuno reinforcement:
+  - `XAUUSD`: the reclaim quality improved because `4610.34` flipped cleanly and the pullback is now testing real `15m` demand rather than random `5m` noise; patience for the defense is higher quality than forcing a fade
+  - `US30`: the upside reclaim is valid, but the participation already spent more energy into `49247.45`; the cleaner reinforcement now is anti-chase discipline and waiting to see whether `49139.95` actually defends
+- Chart actions:
+  - updated [`C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json`](C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json) for a full XAU redraw
+  - updated [`C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json`](C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json) for a full US30 redraw
+- Labels repositioned:
+  - `XAUUSD`: all owned labels will be re-anchored to the right side by the runtime redraw
+  - `US30`: all owned labels will be re-anchored to the right side by the runtime redraw
+- Levels recolored / removed / replaced:
+  - `XAUUSD`: removed the obsolete active pair `4581.38 / 4564.76` and replaced it with `4637.77 / 4626.09`; replaced `4H SUPPLY 4610.34` with `4H SUPPLY 4646.73`; replaced `4H DEMAND 4554.76` with `4H DEMAND 4610.34`
+  - `US30`: removed the obsolete active pair `48871.40 / 48730.40` and replaced it with `49247.45 / 49139.95`; replaced `4H SUPPLY 49075.90` with `4H SUPPLY 49267.40`; replaced `4H DEMAND 48730.40` with `4H DEMAND 49075.90`
+- Trader-facing report:
+  - `XAUUSD`
+  - `Historia:` la historia ahora mismo es que oro ya recupero `4610.34`, hizo la primera expansion hasta `4646.73`, y ahora esta corrigiendo dentro de demanda fresca `4626.09-4644.06` sin romper todavia la recuperacion.
+  - `Tesis:` eso favorece continuidad alcista, pero no chase. El short de apertura ya disparo y no lo quiero tarde. Lo que vale ahora es ver si `4626.09` vuelve a defender para continuation, o si `4637.77` retestea y rechaza otra vez.
+  - `Niveles:` `DAILY SUPPLY 4730.08` | `DAILY DEMAND 4510.31` | `4H SUPPLY 4646.73` | `4H DEMAND 4610.34` | `5M EXECUTION SHORT 4637.77` | `5M EXECUTION LONG 4626.09`
+  - `Accion:` `WAIT / ARMED / LONG BIAS`. Lo que quiero ver ahora es defensa limpia en `4626.09`; si estas flat, no persigas el primer impulso ni vendas tarde la primera reaccion.
+  - `US30`
+  - `Historia:` la historia ahora mismo es que `US30` tambien reclamo `49075.90`, corrio hasta `49247.45`, y ahora esta corrigiendo dentro del opening range mientras intenta sostener `49139.95`.
+  - `Tesis:` eso mejora el sesgo, pero el tape esta mas sucio que oro porque ya gasto impulso en la primera subida. El long bueno solo existe si `49139.95` sigue defendiendo; el short solo si `49247.45` vuelve a barrer y rechazar fresco.
+  - `Niveles:` `DAILY SUPPLY 49359.40` | `DAILY DEMAND 48730.40` | `4H SUPPLY 49267.40` | `4H DEMAND 49075.90` | `5M EXECUTION SHORT 49247.45` | `5M EXECUTION LONG 49139.95`
+  - `Accion:` `WAIT / ARMED`. Si `49139.95` falla, se enfria el continuation. Si estas flat, no quiero chase arriba despues del primer empuje.
+- Spanish thread update: `NY Open Levels` ya quedo refrescado con data estructurada fresca en ambos. Oro y `US30` recuperaron sus shelves altos y los mapas viejos quedaron tarde; ahora `XAUUSD` manda con `4637.77 / 4626.09` y `US30` queda con `49247.45 / 49139.95`. La accion correcta sigue siendo paciencia: long solo si el pullback defiende, short solo si hay sweep-rejection nuevo, y no chase del primer impulso.
+- Discord summary written to payload:
+  - `[NY OPEN LEVELS]`
+  - `Historia`
+  - `La historia ahora mismo es que ambos abrieron con reclaim fuerte: oro ya recupero \`4610.34\` y esta corrigiendo dentro de \`4626.09-4644.06\`, mientras \`US30\` ya recupero \`49075.90\`, toco \`49247.45\`, y ahora esta defendiendo \`49139.95\` dentro del opening range.`
+  - `Tesis`
+  - `Eso obliga refresh real del baseline NY con sesgo alcista en ambos, pero sin chase. \`XAUUSD\` queda mejor si \`4626.09\` sostiene para continuation; el short solo sirve si \`4637.77\` vuelve a rechazar. \`US30\` tambien mejora por encima de \`49075.90\`, pero ya gasto mas impulso y queda mas sucio que oro.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4646.73 / 4610.34 | 5m 4637.77 / 4626.09`
+- `US30 -> Daily 49359.40 / 48730.40 | 4H 49267.40 / 49075.90 | 5m 49247.45 / 49139.95`
+- `Accion`
+- ``REFRESHED MAP / HTF_CHANGED`. `XAUUSD` manda: long `ARMED` solo si `5m` defiende `4626.09`; si estas flat, no persigas el primer impulso. `US30` queda `WAIT / ARMED`: long solo si `49139.95` sostiene; short solo en sweep-rejection nuevo de `49247.45`.`
+
+- 2026-04-30 | automation: NY Open Levels | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: both symbols returned fresh structured live state again in normal runtime mode and both prior `5m` pairs were structurally behind price after reclaiming their old `4H` caps, so the NY baseline was fully refreshed with `refresh_reason = htf_changed`; XAUUSD now preserves `Daily 4730.08 / 4510.31`, flips `4H` to `4646.73 / 4610.34`, and realigns `5m` to `4637.77 / 4626.09`, while US30 preserves `Daily 49359.40 / 48730.40`, flips `4H` to `49267.40 / 49075.90`, and realigns `5m` to `49247.45 / 49139.95` | action state: `WAIT / LONG BIAS / DO NOT CHASE` in both, with `XAUUSD` cleaner and `US30` noisier | main lesson: when NY opens with a full reclaim through the prior resistance shelf, stop preserving the old bearish execution bracket, promote the reclaimed shelf into support, and force continuation entries to come from fresh defense instead of chasing the first impulse.
+
+### Post Open Validation - Structured Confirmation On 2026-04-30
+
+- Run time: `2026-04-30T06:51:19.3775250-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-04-30T06:51:10-06:00`
+  - fresh structured reads used for the validation:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-04-30T06:51:36-06:00` | `fresh_until = 2026-04-30T06:52:06-06:00`
+    - `FOREXCOM:US30` `as_of = 2026-04-30T06:51:09-06:00` | `fresh_until = 2026-04-30T06:51:39-06:00`
+- Workflow result:
+  - this run finished `FULL_DATA / VALIDATION REVIEW`
+  - both NY `5m` execution pairs remain close enough to price to stay operational, so no structural reassess or new `refresh_reason` was justified
+  - desired-state mutation was limited to correcting the stale `XAUUSD` `4H` label text so the runtime redraws the preserved map with the right labels
+- Open validation:
+  - `XAUUSD`: `PARTIALLY CONFIRMED` the bullish NY reclaim. The higher-timeframe reclaim above `4610.34` still holds, but the open swept both sides of the local range and left a less clean tape.
+  - `US30`: `VALIDATED` the bullish NY reclaim better. Price broke the opening range high, swept `PDH / 49267.40`, corrected into `49152.45`, and still holds above the active long shelf `49139.95`.
+- Higher-timeframe thesis:
+  - `XAUUSD`: `Daily / 4H` remain constructive above `4610.34`; `4646.73` is still the active `4H` cap and the preserved `Daily 4730.08 / 4510.31` context stays valid.
+  - `US30`: `Daily / 4H` remain constructive above `49075.90`; `49267.40` stays the active `4H` resistance and the preserved `Daily 49359.40 / 48730.40` context stays valid.
+- Structure and execution:
+  - `XAUUSD`: `30m / 15m` are still holding inside fresh `4626.09-4644.06` demand, but `5m` remains `LH/LL` and the open already swept `4637.77` and `4626.66`. The long side stays `ARMED` only if `4626.09` keeps defending and price can accept back above `4631.59`. The first short reaction from `4637.77` is already `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`.
+  - `US30`: `30m` still shows opening-range breakout acceptance and `5m` remains `HH/HL` after the `PDH` sweep and pullback into `49152.45`. The long from `49139.95` already reacted, so the continuation is `TRIGGERED`; if flat, the correct discipline is `DO NOT CHASE / WAIT FOR NEW RETEST`.
+- Level interaction:
+  - `XAUUSD`: respected `4H DEMAND 4610.34` and the fresh demand shelf `4626.09-4644.06`, but it still has not accepted cleanly through `4631.59-4636.31`.
+  - `US30`: respected `4H DEMAND 49075.90`, broke the opening range high `49187.95`, swept `PDH 49267.40`, and then held above `49152.45`.
+- Opportunity timing state:
+  - `XAUUSD` overall opportunity: `ARMED / LONG BIAS`
+  - `XAUUSD` long side: `ARMED`
+  - `XAUUSD` short side: `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`
+  - `FOREXCOM:US30` overall opportunity: `TRIGGERED / LONG BIAS / DO NOT CHASE IF FLAT`
+  - `FOREXCOM:US30` long side: `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`
+  - `FOREXCOM:US30` short side: `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`
+- Trading decision:
+  - `XAUUSD`: `WAIT / LONG BIAS`
+  - `FOREXCOM:US30`: `WAIT / LONG BIAS / DO NOT CHASE IF FLAT`
+  - cleaner symbol now: `US30`
+  - symbol to avoid forcing: `XAUUSD`
+  - biggest trap right now: recycling already-triggered reactions as if they were fresh entries after liquidity has already been paid
+- 3-line conclusion in Spanish:
+  - `US30` valido mejor el reclaim alcista del baseline NY y sigue por encima de su zona de defensa.
+  - `XAUUSD` no rompio el sesgo, pero el open quedo mas erratico y todavia necesita acceptance limpia arriba de `4631.59`.
+  - Lo correcto ahora no es chasear: `US30` pide nuevo retest si estas flat y oro sigue en `WAIT / ARMED`.
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to separate the first post-open impulse from the actual tradable retest
+  - avoided rebranding already-triggered moves as fresh `WAIT for retest` setups
+- Articuno reinforcement:
+  - `XAUUSD`: reinforcement downgraded trigger quality because the open already swept both sides and the microstructure is still less clean than the higher-timeframe reclaim
+  - `US30`: reinforcement improved thesis quality through cleaner opening-range acceptance, a valid pullback into `49152.45`, and stronger anti-chase discipline after the long already reacted
+- Chart actions:
+  - updated [`C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json`](C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json) only to correct the preserved `4H` labels to `4H SUPPLY 4646.73` and `4H DEMAND 4610.34`
+  - left [`C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json`](C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json) untouched because no fresher execution map was warranted
+- Labels repositioned:
+  - `XAUUSD`: the preserved HTF and `5m` labels will be re-anchored to the right side on the redraw triggered by the label-text correction
+  - `US30`: no desired-state mutation was needed; preserved levels remain the active map
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que `US30` si valido mejor el reclaim alcista del baseline NY: rompio el opening range, barrio `49247.45 / PDH`, corrigio hasta `49152.45`, y sigue sosteniendose arriba de `49139.95`. Oro tambien mantuvo vivo el reclaim sobre `4610.34`, pero ya barrio ambos lados del rango `4637.77 / 4626.66` y dejo una cinta mas erratica alrededor de `4626.09-4631.59`.
+  - `Tesis:` eso deja a `US30` como el tape mas limpio despues del open, pero su long bueno ya reacciono y si estas flat no quiero chase. En `XAUUSD`, el sesgo alcista no esta roto, pero el long solo sigue `ARMED` si `4626.09` sigue defendiendo y el precio acepta otra vez arriba de `4631.59`; el short solo vale en rechazo fresco de `4637.77`.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4646.73 / 4610.34 | 5m 4637.77 / 4626.09` ; `US30 -> Daily 49359.40 / 48730.40 | 4H 49267.40 / 49075.90 | 5m 49247.45 / 49139.95`
+  - `Accion:` `WAIT`. Si estas flat, `US30` ya esta `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`, y oro sigue `WAIT / ARMED` hasta que confirme arriba de `4631.59`. Nada de vender tarde la primera reaccion ni comprar continuation sin retest nuevo.
+- Spanish thread update: `Post Open Validation` confirma que `US30` valido mejor el reclaim alcista y ahora es el tape mas limpio, pero su long bueno ya reacciono y no lo quiero tarde. `XAUUSD` mantiene el sesgo, pero el open ya barrio ambos lados y sigue menos limpio; long solo si `4626.09` defiende y acepta arriba de `4631.59`. La accion correcta en ambos es disciplina: si estas flat, espera retest nuevo; no chase.
+- Discord summary written to payload:
+  - `[POST OPEN VALIDATION]`
+  - `Historia`
+  - `La historia ahora mismo es que US30 si valido mejor el reclaim alcista del baseline NY: rompio el opening range, barrio 49247.45 / PDH, corrigio hasta 49152.45, y sigue sosteniendose arriba de 49139.95. Oro tambien mantuvo vivo el reclaim sobre 4610.34, pero ya barrio ambos lados del rango 4637.77 / 4626.66 y dejo una cinta mas erratica alrededor de 4626.09-4631.59.`
+  - `Tesis`
+  - `Eso deja a US30 como el tape mas limpio despues del open, pero su long bueno ya reacciono y si estas flat no quiero chase. En XAUUSD, el sesgo alcista no esta roto, pero el long solo sigue ARMED si 4626.09 sigue defendiendo y el precio acepta otra vez arriba de 4631.59; el short solo vale en rechazo fresco de 4637.77.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4646.73 / 4610.34 | 5m 4637.77 / 4626.09`
+  - `US30 -> Daily 49359.40 / 48730.40 | 4H 49267.40 / 49075.90 | 5m 49247.45 / 49139.95`
+  - `Accion`
+  - `US30 es el limpio, pero si estas flat queda TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST. Oro sigue WAIT / ARMED hasta ver acceptance arriba de 4631.59. No hubo refresh estructural; solo se corrigio el texto de labels 4H en el desired state de XAUUSD.`
+
+- 2026-04-30 | automation: Post Open Validation | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: both symbols returned fresh structured live state again in normal runtime mode, the NY baseline remained structurally valid, and no new `5m` execution pair was cleaner than the preserved maps; `US30` validated the bullish reclaim better by holding above `49139.95` after the `PDH / 49267.40` sweep, while `XAUUSD` only partially confirmed the bullish reclaim because the open swept both sides of `4637.77 / 4626.66` and stayed noisier around `4626.09-4631.59` | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4646.73 / 4610.34`, `5m 4637.77 / 4626.09`; US30 `Daily 49359.40 / 48730.40`, `4H 49267.40 / 49075.90`, `5m 49247.45 / 49139.95` | action state: `US30 CLEANER / LONG CONTINUATION ALREADY TRIGGERED / DO NOT CHASE IF FLAT`, `XAUUSD WAIT / ARMED / LONG BIAS` | main lesson: once the post-open retest has already reacted, the edge shifts from prediction to discipline; preserve the valid map, keep the stronger symbol on watch, and do not recycle a triggered move as a fresh entry.
+
+### Active Setup Detector - Timing Honesty On 2026-04-30
+
+- Run time: `2026-04-30T07:03:04.3485194-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-04-30T07:01:15-06:00`
+  - fresh structured reads used for the setup review:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-04-30T07:01:47-06:00` | `fresh_until = 2026-04-30T07:02:17-06:00`
+    - `FOREXCOM:US30` `as_of = 2026-04-30T07:02:13-06:00` | `fresh_until = 2026-04-30T07:02:43-06:00`
+- Workflow result:
+  - this run finished `FULL_DATA / ACTIVE SETUP REVIEW`
+  - desired-state maps were preserved for both symbols because both active `5m` pairs remain close enough to current price to keep defining execution readiness
+  - the real change here was timing honesty, not chart structure: `XAUUSD` completed the missing long confirmation that validation still needed, and `US30` kept confirming the earlier bullish trigger without producing a fresh chase-safe re-entry
+- Current setup classification:
+  - `XAUUSD`: `VALID LONG SETUP`, but it is already `TRIGGERED / DO NOT CHASE IF FLAT`
+  - `US30`: `VALID LONG SETUP`, but it is already `TRIGGERED / DO NOT CHASE IF FLAT`
+  - no fresh `VALID SHORT SETUP` exists in either symbol right now
+- Key level being tested now:
+  - `XAUUSD`: price is testing the reclaimed `4637.77` shelf while leaning into `4644.99-4646.73`
+  - `US30`: price is re-accepting above the opening-range high `49187.95` while holding above `49161.95`
+- Confirmation vs failure of prior directional idea:
+  - `XAUUSD`: confirming the prior bullish idea by defending `4626.09` and reclaiming above `4631.59`
+  - `US30`: confirming the prior bullish idea by holding the `49152.45-49161.95` pullback and reclaiming `49187.95`
+- Exact trigger present:
+  - `XAUUSD`: the exact long trigger was the `4626.09` defense plus the `5m` reclaim back above `4631.59 / 4633.82`; that trigger is already spent and no longer fresh
+  - `US30`: the exact long trigger was the hold above `49139.95` after the correction and the acceptance back above `49187.95`; that trigger is also already in progress
+- `30m` and `15m` setup quality:
+  - `XAUUSD`: `30m / 15m` still support continuation, but price is now pushing directly into `4H SUPPLY 4646.73`, so the tape is constructive but less forgiving
+  - `US30`: `30m / 15m` remain cleaner, with opening-range breakout acceptance and `5m HH/HL` still intact after the pullback
+- Liquidity map:
+  - `XAUUSD`: nearest buy-side liquidity is `4644.99`, nearest sell-side liquidity is `4633.82`, and the market is reacting after the defense of sell-side liquidity below while targeting the high again
+  - `US30`: nearest buy-side liquidity is `49247.45`, nearest sell-side liquidity is `49161.95`, and the market is holding the correction low while targeting the upper pool again
+- Missing confirmation if not yet active:
+  - none for the long side; both long ideas are already `TRIGGERED`
+  - for fresh entries, both symbols now need a new retest or a fresh rejection event
+- Setup invalidation:
+  - `XAUUSD`: losing `4626.09` and then failing back below `4610.34` would damage the continuation thesis
+  - `US30`: losing `49139.95` and then accepting back below `49075.90` would damage the continuation thesis
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - remained `ACTIVE`:
+      - `5M EXECUTION LONG 4626.09`
+      - `5M EXECUTION SHORT 4637.77`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+  - `FOREXCOM:US30`
+    - remained `ACTIVE`:
+      - `5M EXECUTION LONG 49139.95`
+      - `5M EXECUTION SHORT 49247.45`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+- Opportunity timing state:
+  - `XAUUSD` overall opportunity: `TRIGGERED / LONG BIAS / DO NOT CHASE IF FLAT`
+  - `XAUUSD` long side: `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`
+  - `XAUUSD` short side: `WAIT / REJECTION ONLY IF 4644.99-4646.73 FAILS FRESH`
+  - `FOREXCOM:US30` overall opportunity: `TRIGGERED / LONG BIAS / DO NOT CHASE IF FLAT`
+  - `FOREXCOM:US30` long side: `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`
+  - `FOREXCOM:US30` short side: `WAIT / SWEEP-REJECTION ONLY IF 49247.45-49267.45 FAILS FRESH`
+- Trading decision:
+  - `XAUUSD`: `WAIT / LONG BIAS / DO NOT CHASE IF FLAT`
+  - `FOREXCOM:US30`: `WAIT / LONG BIAS / DO NOT CHASE IF FLAT`
+  - cleaner symbol now: `US30`
+  - symbol to avoid forcing: `XAUUSD`
+  - biggest trap right now: turning already-triggered continuation into a fake fresh entry just because the market is moving
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to upgrade both long continuations from `ARMED` to `TRIGGERED` only after the correction held and the reclaim printed
+  - kept timing honesty so the workflow stops asking for a retest that already happened
+- Articuno reinforcement:
+  - `XAUUSD`: liquidity precision says the long did its job from `4626.09` and is now pressing into nearby buy-side liquidity under `4H SUPPLY`, so anti-chase discipline matters more than adding aggression
+  - `US30`: structure quality remains cleaner because the pullback held above `49139.95` and `5m HH/HL` stayed intact; the reinforcement is continuation confirmation, not a new entry license
+- Chart actions:
+  - left [`C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json`](C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json) untouched because the preserved HTF pair and the active `5m` pair still define the current execution map
+  - left [`C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json`](C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json) untouched for the same reason; no clearer `5m` replacement was justified
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `preserved`
+  - `FOREXCOM:US30`: `preserved`
+  - `refresh_reason`: none; no desired-state mutation was warranted
+- Labels repositioned:
+  - none; desired-state files were preserved
+- Levels recolored / removed / replaced:
+  - none
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que los dos longs NY ya reaccionaron. Oro defendio `4626.09`, recupero `4631.59`, y ahora presiona otra vez hacia `4644.99-4646.73`; `US30` sostuvo `49139.95`, recupero `49187.95`, y sigue arriba de `49161.95` mientras vuelve a apuntar a `49247.45 / PDH`.
+  - `Tesis:` eso confirma la idea alcista previa en ambos, pero el timing ya no es de entrada fresca. `US30` sigue siendo el tape mas limpio; en oro hay confirmacion, pero mas friccion por estar tan cerca del cap `4H`.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4646.73 / 4610.34 | 5m 4637.77 / 4626.09` ; `US30 -> Daily 49359.40 / 48730.40 | 4H 49267.40 / 49075.90 | 5m 49247.45 / 49139.95`
+  - `Accion:` `WAIT`. Si estas flat, ambos longs ya estan `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`. Lo correcto ahora es esperar nuevo retest o rechazo fresco arriba; no comprar la vela tarde.
+- Spanish thread update: `Active Setup Detector` deja una conclusion simple: los dos longs NY siguen vivos, pero ya dispararon. `US30` sigue siendo el simbolo mas limpio; oro confirma, pero esta mas cerca de resistencia y mas facil de forzar mal. Si estas flat, la accion correcta en ambos es `DO NOT CHASE / WAIT FOR NEW RETEST`.
+
+- 2026-04-30 | automation: Active Setup Detector | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: both symbols returned fresh structured live state in normal runtime mode, both preserved `5m` pairs remained close enough to current price to stay operational, and the main change was timing honesty rather than redraw; XAUUSD completed the missing long confirmation by defending `4626.09` and reclaiming `4631.59 / 4633.82`, while US30 kept validating the bullish reclaim by holding `49139.95-49161.95` and re-accepting above `49187.95` | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4646.73 / 4610.34`, `5m 4637.77 / 4626.09`; US30 `Daily 49359.40 / 48730.40`, `4H 49267.40 / 49075.90`, `5m 49247.45 / 49139.95` | action state: both long continuations are now `TRIGGERED / DO NOT CHASE IF FLAT`, with `US30` still cleaner and `XAUUSD` less forgiving near `4H` resistance | main lesson: once the correction holds and the reclaim prints, upgrade the setup to `TRIGGERED`, preserve the map if it still frames price well, and stop pretending the entry is still fresh.
+
+### Bias Integrity Check - Intact Thesis, Spent First Reaction On 2026-04-30
+
+- Run time: `2026-04-30T07:25:42.9441670-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-04-30T07:21:05-06:00`
+  - fresh structured reads used for the integrity check:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-04-30T07:22:32-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-04-30T07:22:16-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / BIAS INTEGRITY REVIEW`
+  - desired-state maps were preserved for both symbols because the preserved HTF pairs still define the thesis and both active `5m` pairs remain close enough to current price to keep framing execution readiness
+  - no `stall_recovery`, `5m_far_from_price`, or `htf_changed` condition was present, so no redraw was warranted
+- Bias status:
+  - `XAUUSD`: `BIAS INTACT`
+  - `US30`: `BIAS INTACT`
+- Which previously important level or structural condition is still holding:
+  - `XAUUSD`: `4626.09` still holds as the active long defense inside the preserved `15m` demand, and the broader reclaim stays valid while `4H DEMAND 4610.34` remains untouched
+  - `US30`: `49139.95` still holds as the active long defense, and the reclaim structure above `4H DEMAND 49075.90` remains intact even after the pullback from `PDH`
+- Which important level or condition has failed, if any:
+  - `XAUUSD`: the tape failed to keep easy continuation above `4637.77` after tagging `4645.85`, so the move lost immediacy under `4H SUPPLY 4646.73`, but that is rejection into overhead structure rather than a thesis break
+  - `US30`: the first continuation leg failed to keep acceptance above `49187.95` after sweeping `49247.45 / PDH 49267.40`, but the pullback still has not broken the `49139.95-49152.45` defense
+- Liquidity already taken or still untapped:
+  - `XAUUSD`: the near buy-side push into `4644.18-4645.85` already got paid and rejected; nearest sell-side remains `4633.82` and then the preserved long-defense shelf `4626.09`
+  - `US30`: buy-side liquidity at `49247.45 / PDH 49267.40` already got swept; nearest sell-side is now `49152.45` and then `49139.95`, while `49187.95` is the near reclaim shelf still untapped on the way back up
+- Higher-timeframe thesis still usable:
+  - `XAUUSD`: `Yes`; the bullish reclaim above `4610.34` still stands even though price is now fighting directly under the `4H` cap
+  - `US30`: `Yes`; the Daily / `4H` bullish reclaim above `49075.90` is still usable because the pullback remains inside preserved demand rather than genuine structural failure
+- Same directional idea still deserves focus:
+  - `XAUUSD`: `Yes`, but only on a fresh `4626.09` defense or on clean re-acceptance back above `4637.77`; the first continuation already happened
+  - `US30`: `Yes`, but only if `49139.95-49152.45` keeps defending and price reclaims `49187.95`; the `PDH` sweep is not a license to chase the middle
+- Structural failure vs noise:
+  - both symbols are showing post-trigger pullback / friction, not higher-timeframe failure
+  - `XAUUSD` is the more fragile tape because the reaction already ran into `4H SUPPLY 4646.73`
+  - `US30` remains the cleaner directional case because the defense shelf is still clearer and farther from higher-timeframe invalidation
+- What to stop assuming if conviction softens:
+  - `XAUUSD`: stop assuming that reclaiming `4631.59` automatically means free continuation through `4637.77 / 4646.73`
+  - `US30`: stop assuming that sweeping `PDH` means straight continuation if price still has to re-accept above `49187.95`
+- Cleaner symbol now: `US30`
+- Avoid forcing right now: `XAUUSD`
+- `5m` execution lines remained `ACTIVE`:
+  - `XAUUSD`: `5M EXECUTION SHORT 4637.77`, `5M EXECUTION LONG 4626.09`
+  - `US30`: `5M EXECUTION SHORT 49247.45`, `5M EXECUTION LONG 49139.95`
+- `5m` execution lines now `STALE`:
+  - none
+- `5m` execution lines now `INVALIDATED`:
+  - none
+- Opportunity timing state:
+  - `XAUUSD`: overall `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`
+  - `US30`: overall `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`
+- Trading decision:
+  - `XAUUSD`: `WAIT`
+  - `US30`: `WAIT`
+  - main discipline: the thesis is still alive, but the first clean reaction already printed in both symbols
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to keep the directional thesis intact while refusing to treat the already-paid first reaction as a fresh entry
+  - kept timing honesty so post-trigger pullback is reported as `WAIT FOR NEW RETEST`, not recycled as a new setup
+- Articuno reinforcement:
+  - `XAUUSD`: liquidity precision and trigger-quality reinforcement say the long did its job from `4626.09`, but the rejection under `4637.77 / 4646.73` removes the right to chase continuation here
+  - `US30`: opening-context and anti-chase reinforcement keep the bullish thesis usable, but only while `49139.95-49152.45` survives and only after price proves itself again through `49187.95`
+- Chart actions:
+  - left [`C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json`](C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json) untouched because the preserved HTF pair and the active `5m` pair still define the current integrity map
+  - left [`C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json`](C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json) untouched for the same reason; no fresher `5m` replacement was justified
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `preserved`
+  - `FOREXCOM:US30`: `preserved`
+  - `refresh_reason`: none; no desired-state mutation was warranted
+- Labels repositioned:
+  - none; desired-state files were preserved
+- Levels recolored / removed / replaced:
+  - none
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que los dos longs NY siguen vivos, pero ya gastaron la primera reaccion. Oro defendio `4626.09`, recupero `4631.59`, ya toco `4645.85` debajo del cap `4H 4646.73`, y ahora vuelve a trabajar `4637.77-4633.82`; `US30` barrio `49247.45 / PDH 49267.40` y ahora cae otra vez sobre `49152.45-49161.95` sin romper `49139.95`.
+  - `Tesis:` eso deja el sesgo alcista intacto en ambos, pero no fresco. `US30` sigue siendo el tape mas limpio; en `XAUUSD` no quiero asumir continuation libre mientras siga chocando con `4637.77 / 4646.73`.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4646.73 / 4610.34 | 5m 4637.77 / 4626.09` ; `US30 -> Daily 49359.40 / 48730.40 | 4H 49267.40 / 49075.90 | 5m 49247.45 / 49139.95`
+  - `Accion:` `WAIT`. Si estas flat, ambos quedan `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`. `US30` solo mejora si sostiene `49139.95-49152.45` y recupera `49187.95`; oro solo mejora si `4626.09` vuelve a defender o si reacepta limpio arriba de `4637.77`.
+- Spanish thread update: `Bias Integrity Check` deja el plan igual, pero con menos permiso para forzar. Los dos sesgos siguen vivos; `US30` sigue siendo el simbolo mas limpio, y `XAUUSD` queda mas delicado debajo del cap `4H`. Si estas flat, en ambos la accion correcta es `DO NOT CHASE / WAIT FOR NEW RETEST`.
+
+- 2026-04-30 | automation: Bias Integrity Check | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: both symbols returned fresh structured live state again in normal runtime mode, both higher-timeframe bullish reclaim maps stayed intact, and no fresher `5m` pair was justified; XAUUSD already paid the first continuation into `4645.85 / 4H 4646.73` and is now pulling back under `4637.77`, while US30 already swept `49247.45 / PDH 49267.40` and is now retesting `49152.45-49161.95` above the preserved `49139.95` defense | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4646.73 / 4610.34`, `5m 4637.77 / 4626.09`; US30 `Daily 49359.40 / 48730.40`, `4H 49267.40 / 49075.90`, `5m 49247.45 / 49139.95` | action state: both directional theses remain intact, but both first reactions are now `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`, with `US30` still cleaner and `XAUUSD` easier to force badly under the `4H` cap | main lesson: preserve a valid map when structure still holds, but once the first liquidity objective is paid, downgrade the execution permission instead of inventing a fresh edge.
+
+### Mid-Session Reassessment - Execution Refresh After Both Morning Maps Moved On On 2026-04-30
+
+- Run time: `2026-04-30T08:19:33-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-04-30T08:15:14-06:00`
+  - fresh structured reads used for the reassessment:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-04-30T08:17:21-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-04-30T08:17:07-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / EXECUTION REFRESH`
+  - `Daily / 4H` were re-evaluated and preserved for both symbols because the broader thesis did not materially change
+  - both prior `5m` pairs were structurally behind current price and no longer defined execution readiness, so both desired-state execution layers were refreshed with `refresh_reason = 5m_far_from_price`
+- Original morning thesis still alive:
+  - `XAUUSD`: `Yes, but weaker`; the bullish reclaim only survives while `4610.34` keeps holding after the `4609.47` sweep
+  - `US30`: `Yes`; the bullish continuation is still alive and cleaner now that price is accepting above `49267.40`
+- Best opportunity already passed:
+  - `XAUUSD`: `Yes`; the old short from `4637.77` already paid and the old long from `4626.09` already failed through
+  - `US30`: `Yes` for the first long impulse; what remains is a new retest or a fresh high sweep, not a middle-of-range chase
+- Market condition now:
+  - `XAUUSD`: `dirtier / rotational`; `30m` broke the opening range down, `15m` printed `LH/LL`, and the bounce is still trapped under `4620.80`
+  - `US30`: `cleaner / trending`; `30m` and `15m` both recovered above the old opening range and are now pressing buy-side into `49331.90`
+- Best remaining opportunity:
+  - `XAUUSD`: `ARMED` long only if `4614.09` keeps defending and price reclaims `4620.80`
+  - `US30`: long continuation remains the better idea, but it is already `TRIGGERED`; the next usable long needs a fresh defense of `49226.40-49267.40`
+- Biggest trap still present:
+  - `XAUUSD`: treating the bounce off `4610.34` as automatic continuation before `4620.80` is reclaimed
+  - `US30`: chasing above `49300` after `PDH / 49267.40` already accepted and the move is already extended into daily supply
+- What not to chase now:
+  - `XAUUSD`: do not short into `4610.34` after the sweep, and do not long before the reclaim confirms
+  - `US30`: do not chase continuation into `49331.90 / 49359.40`
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION SHORT 4637.77`
+    - became `INVALIDATED`: `5M EXECUTION LONG 4626.09`
+    - new `ACTIVE`: `5M EXECUTION SHORT 4620.80`, `5M EXECUTION LONG 4614.09`
+  - `FOREXCOM:US30`
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION LONG 49139.95`
+    - became `INVALIDATED`: `5M EXECUTION SHORT 49247.45`
+    - new `ACTIVE`: `5M EXECUTION SHORT 49331.90`, `5M EXECUTION LONG 49226.40`
+- Opportunity timing state:
+  - `XAUUSD`: overall `ARMED / LONG BIAS`, long side `ARMED`, short side `PRE-TRIGGER`
+  - `US30`: overall `TRIGGERED / LONG BIAS / DO NOT CHASE IF FLAT`, long side `TRIGGERED`, short side `PRE-TRIGGER`
+- Trading decision:
+  - `XAUUSD`: `WAIT / LONG BIAS ONLY IF 4614.09 HOLDS AND 4620.80 RECLAIMS`
+  - `FOREXCOM:US30`: `WAIT / LONG BIAS / DO NOT CHASE IF FLAT`
+  - cleaner symbol now: `US30`
+  - symbol to avoid forcing: `XAUUSD`
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to avoid recycling the old morning entries after they were already paid or broken
+  - used timing honesty to separate `US30` continuation that is already in motion from `XAUUSD` bounce that still needs reclaim confirmation
+- Articuno reinforcement:
+  - `XAUUSD`: liquidity precision says the market already paid the old short objective into `4610.34` and now needs a real reclaim, not emotional continuation buying
+  - `US30`: opening-context and anti-chase reinforcement say the bullish tape is still the best tape, but the current risk is paying up late into buy-side rather than waiting for a cleaner defense
+- Chart actions:
+  - updated [`C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json`](C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json) to preserve the HTF pair and replace the stale `5m` pair with `4620.80 / 4614.09`
+  - updated [`C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json`](C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json) to preserve the HTF pair and replace the stale `5m` pair with `49331.90 / 49226.40`
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `refreshed`
+  - `FOREXCOM:US30`: `refreshed`
+  - `refresh_reason`: `5m_far_from_price`
+- Labels repositioned:
+  - both symbols will be re-anchored on the next chart-runtime apply because the desired-state payloads were refreshed
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced:
+    - `XAUUSD`: replaced `4637.77 / 4626.09` with `4620.80 / 4614.09`
+    - `US30`: replaced `49247.45 / 49139.95` with `49331.90 / 49226.40`
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que `US30` siguio siendo el tape limpio, defendio el pullback y ya acepto arriba de `49267.40` para empujar hacia `49331.90`; oro hizo lo contrario, perdio `4626.09`, barrio `4610.34 / 4609.47` y ahora solo rebota debajo de `4620.80`.
+  - `Tesis:` eso deja el plan vivo, pero con timing distinto. `US30` sigue favoreciendo longs, solo que el primer impulso ya corrio; en `XAUUSD` la idea grande no esta muerta, pero el tape quedo mas sucio y solo mejora si `4614.09` sostiene y `4620.80` se recupera.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4646.73 / 4610.34 | 5m 4620.80 / 4614.09` ; `US30 -> Daily 49359.40 / 48730.40 | 4H 49267.40 / 49075.90 | 5m 49331.90 / 49226.40`
+  - `Accion:` `WAIT`. `US30` sigue siendo el mejor, pero el long ya esta `TRIGGERED` y si estas flat no quiero chase; esperar nuevo retest o sweep claro. En `XAUUSD`, el long viejo ya expiro y lo unico valido ahora es ver defensa en `4614.09` mas reclaim de `4620.80`.
+- Spanish thread update: `Mid-Session Reassessment` deja el plan mas limpio: `US30` sigue siendo el mejor simbolo, pero el impulso actual ya esta `TRIGGERED / DO NOT CHASE`; `XAUUSD` perdio el mapita viejo y solo vuelve a quedar `ARMED` si `4614.09` aguanta y `4620.80` se recupera. Si estas flat, la accion correcta sigue siendo `WAIT`.
+
+- 2026-04-30 | automation: Mid-Session Reassessment | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: both symbols returned fresh structured live state in normal runtime mode, both higher-timeframe maps stayed intact, and both morning `5m` pairs were refreshed because they were already structurally behind price; XAUUSD lost the old `4626.09` long shelf, swept `4610.34 / 4609.47`, and now only improves on `4614.09` defense plus `4620.80` reclaim, while US30 accepted above `PDH / 49267.40` and now frames continuation between `49226.40` support and `49331.90` buy-side | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4646.73 / 4610.34`, `5m 4620.80 / 4614.09`; US30 `Daily 49359.40 / 48730.40`, `4H 49267.40 / 49075.90`, `5m 49331.90 / 49226.40` | action state: `US30` remains the cleaner symbol but its long continuation is already `TRIGGERED / DO NOT CHASE IF FLAT`, while `XAUUSD` shifts to `WAIT / ARMED LONG BIAS` only if `4614.09` holds and `4620.80` reclaims | main lesson: when both active `5m` shelves are behind price, refresh the execution map instead of forcing yesterday's trigger into today's structure.
+
+### Live Reassessment Trigger - 5m Realignment Near Current Price On 2026-04-30
+
+- Run time: `2026-04-30T13:12:43-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-04-30T13:02:39-06:00`
+  - fresh structured reads used for the reassessment:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-04-30T13:01:47-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-04-30T13:02:12-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / EXECUTION REFRESH`
+  - `Daily / 4H` were re-evaluated and preserved for both symbols because the broader bullish thesis still holds and no cleaner new HTF pair was required this cycle
+  - both prior `5m` pairs were structurally behind current price and no longer defined current execution readiness, so both desired-state execution layers were refreshed with `refresh_reason = 5m_far_from_price`
+- Higher-timeframe read:
+  - `XAUUSD`: `Yes`; the bullish reclaim still holds while `4610.34` stays intact and price is now back inside the live `30m` demand that spans into `4623.62-4644.06`
+  - `US30`: `Yes, stronger`; the bullish continuation is now accepted well above `49267.40 / 49359.40`, but the broader thesis is still the same direction so the preserved HTF map stays in place for context while the `5m` layer is refreshed
+- Market condition now:
+  - `XAUUSD`: `cleaner than mid-session but still capped`; `30m / 15m / 5m` reclaimed `4620.80`, held `4619.03`, and are now pressing `4625.33-4625.85` buy-side
+  - `US30`: `cleaner / trending`; `30m / 15m / 5m` keep printing `HH/HL` above the old caps and are now leaning directly into `49736.90` buy-side
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION LONG 4614.09`
+    - became `INVALIDATED`: `5M EXECUTION SHORT 4620.80`
+    - new `ACTIVE`: `5M EXECUTION SHORT 4625.85`, `5M EXECUTION LONG 4619.03`
+  - `FOREXCOM:US30`
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION LONG 49226.40`
+    - became `INVALIDATED`: `5M EXECUTION SHORT 49331.90`
+    - new `ACTIVE`: `5M EXECUTION SHORT 49736.90`, `5M EXECUTION LONG 49685.90`
+- Opportunity timing state:
+  - `XAUUSD`: overall `ARMED`; long side `TRIGGERED / DO NOT CHASE`, short side `ARMED` only on `4625.85` sweep-rejection
+  - `US30`: overall `TRIGGERED / LONG BIAS / DO NOT CHASE IF FLAT`; long side `TRIGGERED`, short side `ARMED` only on `49736.90` sweep-rejection
+- Trading decision:
+  - `XAUUSD`: `WAIT`
+  - `FOREXCOM:US30`: `WAIT / LONG BIAS / DO NOT CHASE IF FLAT`
+  - cleaner symbol now: `US30`
+  - symbol to avoid forcing: `XAUUSD`
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to keep both fresh maps tied to the current defense shelves instead of the already-used impulse legs
+  - used timing honesty to keep both long continuations out of the fresh-entry bucket once price had already left the original defense
+- Articuno reinforcement:
+  - `XAUUSD`: liquidity precision keeps the long map anchored to `4619.03` and avoids late buying into the `4625.85` buy-side cap
+  - `US30`: anti-chase discipline keeps the thesis bullish but refuses fresh continuation buying into `49736.90` without a new retest
+- Chart actions:
+  - updated [`C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json`](C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json) to preserve the HTF pair and replace the old `4620.80 / 4614.09` execution pair with `4625.85 / 4619.03`
+  - updated [`C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json`](C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json) to preserve the HTF pair and replace the old `49331.90 / 49226.40` execution pair with `49736.90 / 49685.90`
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `refreshed`
+  - `FOREXCOM:US30`: `refreshed`
+  - `refresh_reason`: `5m_far_from_price`
+- Labels repositioned:
+  - both symbols will re-anchor the preserved HTF labels and the new `5m` labels on the next chart-runtime apply
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced:
+    - `XAUUSD`: replaced `4620.80 / 4614.09` with `4625.85 / 4619.03`
+    - `US30`: replaced `49331.90 / 49226.40` with `49736.90 / 49685.90`
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que `XAUUSD` recupero `4620.80`, defendio `4619.03` y ya esta otra vez pegado a `4625.33-4625.85`; `US30` siguio en continuation, ya acepto muy por encima de `49267.40 / 49359.40`, y ahora vuelve a presionar `49736.90` con `49685.90` como defensa corta.
+  - `Tesis:` eso deja el fondo alcista vivo en ambos, pero el timing ya no es el mismo. En `XAUUSD` el long desde defensa ya corrio y lo fresco ahora es o nueva defensa de `4619.03` o sweep-rejection arriba; `US30` sigue siendo el tape mas limpio, pero el long actual ya esta tarde y no quiero chase arriba del high.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4646.73 / 4610.34 | 5m 4625.85 / 4619.03` ; `US30 -> Daily 49359.40 / 48730.40 | 4H 49267.40 / 49075.90 | 5m 49736.90 / 49685.90`
+  - `Accion:` `WAIT`. `XAUUSD` queda `ARMED`: si estas flat, nada hasta ver rechazo limpio en `4625.85` o nueva defensa en `4619.03`. `US30` sigue alcista pero ya esta `TRIGGERED / DO NOT CHASE IF FLAT`; lo unico limpio ahora es nuevo retest de `49685.90` o sweep-rejection claro en `49736.90`.
+- Spanish thread update: `Live Reassessment Trigger` vuelve a alinear el mapa con precio actual: `US30` sigue siendo el simbolo mas limpio, pero el long ya va tarde; `XAUUSD` quedo pegado al buy-side y necesita confirmacion nueva. Si estas flat, la accion correcta en ambos sigue siendo `WAIT`.
+
+- 2026-04-30 | automation: Live Reassessment Trigger | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: both symbols returned fresh structured live state in normal runtime mode, both higher-timeframe bullish theses remained intact, and both mid-session `5m` pairs were refreshed because they were already behind current execution; XAUUSD reclaimed `4620.80`, defended `4619.03`, and is now pressing `4625.85` buy-side, while US30 kept the clean continuation alive, accepted far above `49267.40 / 49359.40`, and now frames the live tape between `49685.90` support and `49736.90` buy-side | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4646.73 / 4610.34`, `5m 4625.85 / 4619.03`; US30 `Daily 49359.40 / 48730.40`, `4H 49267.40 / 49075.90`, `5m 49736.90 / 49685.90` | action state: `XAUUSD` is now `ARMED` only for a fresh rejection at buy-side or a new defense retest, while `US30` remains the cleaner symbol but its long continuation is already `TRIGGERED / DO NOT CHASE IF FLAT` | main lesson: when a valid continuation leaves the old shelf behind, refresh the `5m` map around the new defense and the current liquidity cap instead of recycling the earlier trigger.
+
+### Live Reassessment Trigger - Stall Recovery Redraw After Both Symbols Revalidated On 2026-04-30
+
+- Run time: `2026-04-30T14:26:15-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = true`
+  - `recovery_pending = true`
+  - `recovery_gate_status = ready`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-04-30T14:23:18-06:00`
+  - fresh structured reads used for the reassessment:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-04-30T14:25:43-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-04-30T14:25:09-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / RECOVERY-DRIVEN REASSESS + REDRAW`
+  - this dual-symbol NY workflow had already entered stalled recovery, both symbols were valid again, and the required full reassess + redraw was executed with `refresh_reason = stall_recovery`
+  - `Daily / 4H` were re-evaluated and preserved for both symbols because the broader bullish thesis did not materially change during the recovery cycle
+- Higher-timeframe read:
+  - `XAUUSD`: `Yes, but dirtier`; the bullish reclaim still survives while `4610.34` holds, but price is now rotating back inside the fresh `30m` bearish displacement shelf from `4634.57` into `4610.68`
+  - `US30`: `Yes, stronger`; the bullish continuation still holds well above `49267.40 / 49359.40`, even though the first high sweep into `49763.40` already happened
+- Market condition now:
+  - `XAUUSD`: `rotational / messy`; `30m` lost upside momentum, `15m` and `5m` are back in `LH/LL`, and the usable bracket is now tighter between `4614.50` defense and `4617.51` buy-side
+  - `US30`: `cleaner / still bullish but extended`; `30m` remains `HH/HL`, `15m` reclaimed above `49715.90`, and `5m` is now pausing under the swept `49763.40` high
+- Nearest liquidity and current relation:
+  - `XAUUSD`: nearest buy-side liquidity `4617.51`, nearest sell-side liquidity `4616.10`; price is rotating just under buy-side after a failed reclaim and still reacting above `4614.50`
+  - `US30`: nearest buy-side liquidity `49763.40`, nearest sell-side liquidity `49715.90`; price already swept the high, rejected it, and is now trying to hold above the reclaimed sell-side shelf
+- `30m / 15m` setup-quality read:
+  - `XAUUSD`: `30m` says the bounce stalled back under local supply; `15m` says setup quality is unresolved and too easy to force from the middle
+  - `US30`: `30m` still supports continuation; `15m` says the pullback was bought, but the fresh long is no longer early and must come from defense, not from late momentum
+- Exact trigger status:
+  - `XAUUSD`: long trigger still missing; it needs `4614.50` to hold and `4617.51` to reclaim cleanly. Short trigger is only valid on another confirmed rejection from `4617.51`
+  - `US30`: the long continuation is already `TRIGGERED`; if flat, the only fresh long is a new defense of `49715.90`. Short trigger exists only on a fresh sweep-rejection through `49763.40`
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION SHORT 4625.85`
+    - became `INVALIDATED`: `5M EXECUTION LONG 4619.03`
+    - new `ACTIVE`: `5M EXECUTION SHORT 4617.51`, `5M EXECUTION LONG 4614.50`
+  - `FOREXCOM:US30`
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION SHORT 49736.90`
+    - became `INVALIDATED`: `5M EXECUTION LONG 49685.90`
+    - new `ACTIVE`: `5M EXECUTION SHORT 49763.40`, `5M EXECUTION LONG 49715.90`
+- Opportunity timing state:
+  - `XAUUSD`: overall `ARMED / WAIT`; long side `PRE-TRIGGER`, short side `ARMED`
+  - `US30`: overall `TRIGGERED / LONG BIAS / DO NOT CHASE IF FLAT`; long side `TRIGGERED`, short side `PRE-TRIGGER`
+- Trading decision:
+  - `XAUUSD`: `WAIT`
+  - `FOREXCOM:US30`: `WAIT / LONG BIAS / DO NOT CHASE IF FLAT`
+  - cleaner symbol now: `US30`
+  - symbol to avoid forcing: `XAUUSD`
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to avoid treating the recovery redraw as permission to recycle already-used continuation legs
+  - kept timing honesty so `US30` stays `TRIGGERED / DO NOT CHASE` while `XAUUSD` stays conditional until reclaim confirmation actually returns
+- Articuno reinforcement:
+  - `XAUUSD`: liquidity precision and anti-chase discipline say the old `4625.85 / 4619.03` bracket is dead and the tape is too compressed to sponsor a late continuation entry
+  - `US30`: trigger-quality reinforcement keeps the bullish read intact, but the higher-quality continuation shelf is now `49715.90`, not the older `49685.90` defense that already got traded through
+- Chart actions:
+  - updated [`C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json`](C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json) to preserve the HTF pair and replace the old `4625.85 / 4619.03` execution pair with `4617.51 / 4614.50`
+  - updated [`C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json`](C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json) to preserve the HTF pair and replace the old `49736.90 / 49685.90` execution pair with `49763.40 / 49715.90`
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `recovery-driven`
+  - `FOREXCOM:US30`: `recovery-driven`
+  - `refresh_reason`: `stall_recovery`
+- Labels repositioned:
+  - both symbols will re-anchor the preserved HTF labels and the refreshed `5m` labels on the next chart-runtime apply
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced:
+    - `XAUUSD`: replaced `4625.85 / 4619.03` with `4617.51 / 4614.50`
+    - `US30`: replaced `49736.90 / 49685.90` with `49763.40 / 49715.90`
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que el recovery ya devolvio data valida en los dos simbolos, pero el tape no volvio igual. `XAUUSD` perdio la defensa corta de `4619.03`, quedo rotando entre `4614.50` y `4617.51` con micro `LH/LL`; `US30` ya hizo el sweep de `49763.40`, aguanto el pullback y ahora intenta sostener arriba de `49715.90`.
+  - `Tesis:` eso mantiene el fondo alcista HTF vivo en ambos, pero la ejecucion cambio. En `XAUUSD` no hay continuation limpio hasta ver defensa real de `4614.50` con reclaim de `4617.51`; en `US30` el sesgo sigue siendo el mejor, pero el long ya esta tarde y si estas flat no quiero chase.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4646.73 / 4610.34 | 5m 4617.51 / 4614.50` ; `US30 -> Daily 49359.40 / 48730.40 | 4H 49267.40 / 49075.90 | 5m 49763.40 / 49715.90`
+  - `Accion:` `WAIT`. `XAUUSD` queda `ARMED`, pero solo mejora si `4614.50` aguanta y `4617.51` se recupera; si vuelve a rechazar arriba, el short tactico es el unico limpio. `US30` sigue siendo el mejor, pero el long actual ya esta `TRIGGERED / DO NOT CHASE IF FLAT`; lo fresco seria nuevo retest de `49715.90` o sweep-rejection claro en `49763.40`.
+- Spanish thread update: `Live Reassessment Trigger` ya hizo el redraw de recovery: `US30` sigue siendo el simbolo mas limpio, pero el long va tarde; `XAUUSD` quedo comprimido y necesita confirmacion nueva. Si estas flat, la accion correcta en ambos sigue siendo `WAIT`.
+
+- 2026-04-30 | automation: Live Reassessment Trigger | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: this NY dual-symbol workflow had entered stalled recovery and both symbols returned with valid structured live state again, so the run executed the required full reassess + redraw with `refresh_reason = stall_recovery`; HTF stayed intact in both, but XAUUSD realigned its `5m` bracket down to `4617.51 / 4614.50` after the old `4619.03` defense failed, while US30 realigned its `5m` bracket up to `49763.40 / 49715.90` after the old continuation shelf was traded through and reclaimed higher | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4646.73 / 4610.34`, `5m 4617.51 / 4614.50`; US30 `Daily 49359.40 / 48730.40`, `4H 49267.40 / 49075.90`, `5m 49763.40 / 49715.90` | action state: `US30` remains the cleaner symbol but its long continuation is already `TRIGGERED / DO NOT CHASE IF FLAT`, while `XAUUSD` is still `WAIT / ARMED` only if the tighter defense-reclaim sequence proves itself again | main lesson: once stalled recovery returns valid data, do the full redraw immediately, keep HTF if it still holds, and move the `5m` map to the nearest real liquidity shelves instead of reusing a bracket that the tape already left behind.
+
+### Asia Session Gold - Asia Baseline Refresh Into 4628.47-4632.91 On 2026-04-30
+
+- Run time: `2026-04-30T16:34:41-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD` for trade decision, `FOREXCOM:US30` for freshness preservation only.
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `last_full_valid_cycle_at = 2026-04-30T16:34:35-06:00`
+  - fresh structured reads used for the Asia baseline:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-04-30T16:33:59-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-04-30T16:34:23-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / EXECUTION REFRESH`
+  - `Daily / 4H` were re-evaluated and preserved because the higher-timeframe thesis did not materially change
+  - the prior XAUUSD `5m` pair was structurally behind current price and no longer defined execution readiness, so the execution layer was refreshed with `refresh_reason = 5m_far_from_price`
+- Higher-timeframe thesis:
+  - `Daily directional bias`: bullish recovery from `4510.31`, but still trading below `DAILY SUPPLY 4730.08`
+  - `4H directional bias`: bullish recovery while `4H DEMAND 4610.34` holds, with `4H SUPPLY 4646.73` still the overhead cap
+  - alignment: `Daily` and `4H` remain aligned bullish, but both are now walking into resistance rather than opening with clean air
+- `30m / 15m` session-quality read:
+  - `30m`: Asia opens after a late-session expansion from the stale `4614.50-4617.51` bracket into the current buy-side shelf `4632.91`, so the structure is pushing higher but directly into local cap
+  - `15m`: setup quality improved to `HH/HL`, but the long from defense already worked and the current location is too close to buy-side liquidity to call it a fresh chase entry
+  - current structure: `expansion into resistance / transition`
+  - bias strength: `moderate`
+- Nearest liquidity and current relation:
+  - nearest buy-side liquidity: `4632.91`, then `PDH / 4H SUPPLY 4646.73`
+  - nearest sell-side liquidity: `4628.47`, then the older defense stack `4614.50 / 4610.34`
+  - demand is being respected underneath, but the immediate `5m` buy-side cap is also getting respected on first touch, so the tape is mixed at the exact Asia handoff
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION LONG 4614.50`
+    - became `INVALIDATED`: `5M EXECUTION SHORT 4617.51`
+    - new `ACTIVE`: `5M EXECUTION SHORT 4632.91`, `5M EXECUTION LONG 4628.47`
+  - `FOREXCOM:US30`
+    - preserved only; no Asia redraw needed
+- Opportunity timing state:
+  - `XAUUSD`: overall `ARMED`
+  - long side: `TRIGGERED / DO NOT CHASE`; the defense already bounced and now needs a new retest
+  - short side: `ARMED`; the only clean short is a fresh sweep-rejection or failed acceptance at `4632.91`
+- Trading decision:
+  - `PEPPERSTONE:XAUUSD`: `WAIT / NO CLEAR EDGE`
+  - execution condition if Asia gives a clean setup:
+    - long only on renewed `4628.47` defense
+    - short only on `4632.91` sweep-rejection
+  - symbol to avoid forcing: `PEPPERSTONE:XAUUSD`
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to avoid carrying the old `4617.51 / 4614.50` bracket forward after price already expanded away from it
+  - used timing honesty to keep the old long from being repackaged as a fresh entry once the `4628.47` defense already bounced
+- Articuno reinforcement:
+  - liquidity precision says the old `4614.50` defense already did its job and the new decision shelf is `4628.47` versus `4632.91`
+  - price-action and psychology reinforcement say the long is no longer early, so the only honest baseline is patience until either defense reloads or the upper shelf rejects cleanly
+- Chart actions:
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` to preserve the HTF pair and replace the stale `5m` pair `4617.51 / 4614.50` with `4632.91 / 4628.47`
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` untouched because `US30` is not the Asia trade-decision symbol and no preservation change was required
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `refreshed`
+  - `FOREXCOM:US30`: `preserved`
+  - `refresh_reason`: `5m_far_from_price`
+- Labels repositioned:
+  - `XAUUSD` preserved HTF labels and the new `5m` labels will re-anchor on the next chart-runtime apply
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced:
+    - `XAUUSD`: replaced `4617.51 / 4614.50` with `4632.91 / 4628.47`
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que oro salio del bracket viejo `4614.50-4617.51`, defendio `4628.47` y llega a Asia pegado al buy-side `4632.91`, todavia debajo de `PDH / 4H SUPPLY 4646.73`.
+  - `Tesis:` eso mantiene vivo el rebote `Daily / 4H`, pero el timing no esta limpio aqui. La demanda inmediata aguanto, pero el long desde defensa ya corrio y arriba sigue habiendo cap, asi que esto favorece paciencia y no chase en medio.
+  - `Niveles:` `Daily 4730.08 / 4510.31` | `4H 4646.73 / 4610.34` | `5m 4632.91 / 4628.47`
+  - `Accion:` `WAIT / NO CLEAR EDGE`. El trade bueno seria ver defensa clara otra vez en `4628.47` para longs o sweep-rejection limpio en `4632.91` para shorts. Si ya no estas dentro del rebote, no persigas.
+- Spanish thread update: `Asia Session Gold` deja el mapa actualizado en `4632.91 / 4628.47`: el rebote HTF sigue vivo, pero el long inmediato ya corrio y arriba hay cap. La accion correcta ahora mismo es `WAIT / NO CLEAR EDGE` hasta ver defensa nueva o rechazo claro.
+
+- 2026-04-30 | automation: Asia Session Gold | symbols: PEPPERSTONE:XAUUSD | thesis result: XAUUSD arrived to the Asia baseline with fresh structured live state, preserved its bullish `Daily / 4H` recovery map, and refreshed only the stale `5m` execution layer from `4617.51 / 4614.50` up to `4632.91 / 4628.47` because the old pair was already structurally behind current price; the rebound remains alive above `4H DEMAND 4610.34`, but price is now opening Asia directly into buy-side liquidity and under `PDH / 4H SUPPLY 4646.73`, so the honest baseline is patience rather than a fresh chase long | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4646.73 / 4610.34`, `5m 4632.91 / 4628.47` | action state: `WAIT / NO CLEAR EDGE`; longs only on renewed `4628.47` defense or shorts only on `4632.91` sweep-rejection | main lesson: when the defense shelf already bounced and price reaches the next buy-side cap before Asia opens, refresh the `5m` map to the new bracket and keep the baseline honest instead of recycling the earlier long as if it were still fresh.
+
+### Asia Setup Detector - XAUUSD Still Waiting Under 4632.91 On 2026-04-30
+
+- Run time: `2026-04-30T17:31:15-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD` for trade decision, `FOREXCOM:US30` for freshness preservation only.
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-04-30T17:30:25-06:00`
+  - fresh structured reads used for the Asia setup check:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-04-30T17:30:49-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-04-30T17:31:13-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / PRESERVED MAP`
+  - `Daily / 4H` were re-evaluated and preserved because the higher-timeframe recovery thesis did not materially change
+  - the active XAUUSD `5m` pair `4632.91 / 4628.47` remained the nearest clean execution bracket, so no desired-state refresh was warranted
+- Higher-timeframe thesis:
+  - `Daily directional bias`: bullish recovery remains intact above `4510.31`, but price is still trading below `DAILY SUPPLY 4730.08`
+  - `4H directional bias`: bullish while `4H DEMAND 4610.34` holds, with `4H SUPPLY 4646.73` still the overhead cap
+  - alignment: `Daily` and `4H` stay aligned bullish, but the live tape is still pressing into local resistance rather than offering a fresh long shelf
+- `30m / 15m` setup-quality read:
+  - `30m`: the tape is still holding above the `4628.25-4628.47` defense and compressing back into `4632.45-4632.91` buy-side, so bullish pressure is alive but still capped
+  - `15m`: the earlier `HH/HL` defense is still valid, but the current location is back at the ceiling instead of back at the entry shelf, so setup quality is not fresh enough to chase
+- Nearest liquidity and current relation:
+  - nearest buy-side liquidity: `4632.45`, then `PDH / 4H SUPPLY 4646.73`
+  - nearest sell-side liquidity: `4628.25`, then the defended `4628.47` shelf
+  - price is targeting buy-side again after the defense held, but it has not shown clean acceptance above the cap yet
+- Exact trigger status:
+  - exact trigger already present: the `4628.47` defense long already fired and is now `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`
+  - current short trigger is not active yet; it still needs a fresh sweep or failed acceptance through `4632.91` plus a `5m` loss back through `4628.47-4628.25`
+  - if price accepts above `4632.91`, the fade is invalid and the correct action becomes waiting for a new breakout retest instead of forcing shorts
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - remained `ACTIVE`: `5M EXECUTION SHORT 4632.91`, `5M EXECUTION LONG 4628.47`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+    - new `ACTIVE`: none
+  - `FOREXCOM:US30`
+    - preserved only; no Asia redraw needed
+- Opportunity timing state:
+  - `XAUUSD`: overall `ARMED`
+  - long side: `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`
+  - short side: `ARMED`
+- Trading decision:
+  - `PEPPERSTONE:XAUUSD`: `WAIT / NO CLEAR EDGE`
+  - conditions currently favor `range / breakout-watch behavior`; breakout only on clean acceptance above `4632.91`, fade only on a clean sweep-rejection there
+  - symbol to avoid forcing: `PEPPERSTONE:XAUUSD`
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to keep the earlier `4628.47` bounce classified as already triggered instead of recycling it as a fresh long
+- Articuno reinforcement:
+  - liquidity precision keeps the map unchanged because `4628.47` is still the nearest defended shelf and `4632.91` is still the nearest live cap
+  - anti-chase discipline blocks both late longs into the cap and premature shorts before rejection confirms
+- Chart actions:
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` untouched because the active `5m` pair stayed current and HTF did not materially change
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` untouched because `US30` is not the Asia trade-decision symbol
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `preserved`
+  - `FOREXCOM:US30`: `preserved`
+  - `refresh_reason`: none; desired state stayed unchanged
+- Labels repositioned:
+  - none; desired state stayed unchanged on this detector pass
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: none
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que oro defendio otra vez la zona de `4628.25-4628.47`, pero no logro romper limpio arriba y sigue pegado a `4632.45-4632.91`. El rebote HTF sigue vivo, pero el tape esta comprimiendo justo debajo del cap.
+  - `Tesis:` eso confirma la idea de Asia de paciencia. El long bueno ya corrio desde defensa y ahora no quiero chase arriba; el short solo gana permiso si `4632.91` barre y rechaza con perdida clara de `4628.47`.
+  - `Niveles:` `Daily 4730.08 / 4510.31` | `4H 4646.73 / 4610.34` | `5m 4632.91 / 4628.47`
+  - `Accion:` `WAIT / NO CLEAR EDGE`. Longs solo en nuevo retest y defensa de `4628.47`; shorts solo en sweep-rejection limpio de `4632.91`. Si estas flat, no persigas el medio.
+- Spanish thread update: `Asia Setup Detector` mantiene el mapa en `4632.91 / 4628.47`: el long desde defensa ya se activo y ahora solo queda esperar nuevo retest abajo o rechazo real arriba. La accion correcta sigue siendo `WAIT / NO CLEAR EDGE`.
+
+- 2026-04-30 | automation: Asia Setup Detector | symbols: PEPPERSTONE:XAUUSD | thesis result: XAUUSD kept the same Asia baseline map with fresh structured live state, the bullish `Daily / 4H` recovery still held, and the active `5m` bracket `4632.91 / 4628.47` remained the nearest live decision shelf, so the desired state stayed preserved; price re-defended `4628.25-4628.47` and rotated back into `4632.45-4632.91` buy-side, which means the prior long already triggered while the short still needs a real sweep-rejection before it becomes tradable | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4646.73 / 4610.34`, `5m 4632.91 / 4628.47` | action state: `WAIT / NO CLEAR EDGE`; long side is `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`, short side is `ARMED` only on clean rejection through `4632.91` | main lesson: when the same defense shelf still holds and price rotates back to the same cap, keep the `5m` map preserved and update only the timing honesty, not the levels.
+
+### End-of-Day Review - Fresh Structured Close On 2026-04-30
+
+- Run time: `2026-04-30T22:34:16.0712517-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - fresh structured reads used for the close review:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-04-30T22:33:21-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-04-30T22:32:46-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / REVIEW-ONLY / DESIRED STATE PRESERVED`
+  - no desired-state mutation was allowed because `End-of-Day Review` remains review-only
+  - both symbols are fully analyzable at the close, but the review treats the current desired-state maps as carry-context only and does not refresh chart structure here
+- Session review:
+  - `XAUUSD`: the morning bullish reclaim did not survive the full day cleanly. Gold expanded through the NY continuation, refreshed into the Asia bracket `4632.91 / 4628.47`, swept the buy-side up to `4635.98`, and then failed to accept above `4632.91`. From there it rolled back through `4628.47` and closed near `4H DEMAND 4610.34` with the latest `30m / 15m / 5m` all finishing `LH/LL`. The day ended as `BULLISH CONTINUATION -> FAILED ACCEPTANCE -> SELLOFF INTO SUPPORT`. The original bullish bias weakened materially by the close even though `4610.34` still holds.
+  - `FOREXCOM:US30`: the bullish continuation held cleaner all day. After the NY reclaim and later `5m` realignments, `US30` swept `PDH 49782.40` into `49812.90`, defended the higher low at `49745.90`, and closed around `49766.90` still above the preserved continuation shelf. The day ended as `BULLISH CONTINUATION -> HIGH HOLD / COMPRESSED RANGE`. The original bullish bias held.
+- Which levels mattered most:
+  - `XAUUSD`: `4632.91`, `4628.47`, `4619.42`, `4610.34`, `4635.98`
+  - `FOREXCOM:US30`: `49782.40`, `49763.40`, `49745.90`, `49715.90`, `49812.90`
+- Which levels failed:
+  - `XAUUSD`: the Asia defense at `4628.47` failed into the close, and the continuation push above `4632.91` could not hold after the `4635.98` sweep.
+  - `FOREXCOM:US30`: no major bullish failure printed into the close; `49763.40` kept capping immediate expansion, but `49745.90` held and the deeper continuation defense `49715.90` was never needed.
+- Which symbol was cleaner:
+  - `FOREXCOM:US30` finished as the cleaner read because the bullish framework stayed accepted through the close, while gold lost its late-session continuation quality and rolled back into support.
+- Where the best opportunity was:
+  - the best opportunity was the `US30` bullish continuation once the reclaim structure proved itself and the market kept defending higher shelves instead of giving back the move. The edge was patience on defense, not chasing the first expansion candle.
+- Biggest trap:
+  - recycling `XAUUSD` longs after the buy-side at `4632.91 / 4635.98` had already been paid
+  - forcing `US30` shorts just because price stalled under the cap while the higher-timeframe continuation shelf was still holding
+- `5m` execution lines:
+  - desired-state pair still preserved for `XAUUSD`: `5M EXECUTION SHORT 4632.91`, `5M EXECUTION LONG 4628.47`
+  - desired-state pair still preserved for `US30`: `5M EXECUTION SHORT 49763.40`, `5M EXECUTION LONG 49715.90`
+  - close review observation only:
+    - `XAUUSD` preserved pair finished spent for fresh continuation: the long defense failed into the close and the short shelf already did its rejection work
+    - `US30` preserved pair remains relevant into the close, but price is compressed near the upper bracket and no late chase is justified
+  - no new `ACTIVE / STALE / INVALIDATED` desired-state reclassification was written because this workflow stays review-only
+- Opportunity timing state at close:
+  - `XAUUSD`: the earlier long is no longer fresh and the late roll back into `4610.34` means the correct carry lesson is `FAILED CONTINUATION / WAIT FOR FRESH REASSESSMENT`
+  - `FOREXCOM:US30`: the continuation thesis is still alive, but the day already spent the cleaner entries; the correct carry lesson is `TRIGGERED EARLIER / DO NOT CHASE / WAIT FOR NEW RETEST`
+- Strategy learning:
+  - today reinforced that bias survival and entry freshness are not the same thing. `US30` rewarded patient continuation thinking because the defended shelves kept holding; `XAUUSD` punished anyone who kept treating the reclaimed move as a fresh long after buy-side liquidity had already been paid.
+  - today also reinforced that `Daily + 4H` context stayed useful, but only if `5m` kept the timing honest. Gold still holding `4H DEMAND 4610.34` did not make the late long clean again, and `US30` staying above `49075.90` did not make every push under `49763.40` a fresh buy either.
+  - the market rewarded confirmation and selective continuation, not aggression in the middle.
+- Multi-day intelligence:
+  - the valid close sample keeps separating the symbols in a consistent way: `XAUUSD` tends to produce the cleaner tape on failure / rejection days, while `US30` tends to produce the cleaner tape on true acceptance / continuation days. `2026-04-29` leaned toward gold; `2026-04-30` leans toward `US30`.
+  - another recurring observation remains intact: pre-market bias can survive the open, but only if the workflow refreshes timing honesty once the first trigger already happened. Bias survival does not mean the original `5m` entry is still tradable.
+  - `PDH` and buy-side sweeps continue to work best when they are followed by either accepted defense or clear rejection. `US30` showed the accepted-defense version today; gold showed the failed-acceptance version under `4632.91 / 4635.98`.
+- Transcript-derived refinement usage:
+  - preserved the standing `indication -> correction -> continuation` filter
+  - the day reinforced that once continuation already printed and liquidity got paid, the message must downgrade to `DO NOT CHASE` or `WAIT FOR FRESH REASSESSMENT`, not recycled conviction
+- Articuno reinforcement:
+  - `SMC`: gold paid the upper liquidity and then rejected it; `US30` paid `PDH` and kept the acceptance better
+  - `Supply/Demand`: `US30` demand quality stayed intact longer, while gold lost the `4628.47` defense late
+  - `Psychology`: the real edge was staying selective after the trigger, not forcing one more entry because the higher-timeframe bias still existed
+- Chart actions:
+  - none; both desired-state JSON files were left untouched because `End-of-Day Review` is review-only
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: preserved
+  - `FOREXCOM:US30`: preserved
+  - `refresh_reason`: none written in this workflow
+- Labels repositioned: none
+- Levels recolored / removed / replaced: none
+- Trader-facing report:
+  - `Historia:` la historia del cierre es que el dia no termino igual en los dos charts. `US30` si sostuvo la continuation bull y cerro arriba del shelf que importaba, mientras oro pago buy-side en `4635.98`, no logro aceptar arriba de `4632.91`, y termino devolviendo el tramo hacia `4H DEMAND 4610.34`.
+  - `Tesis:` eso deja una leccion simple y util para manana: tener el sesgo correcto no alcanza si la entrada ya se gasto. `US30` premio paciencia y defensa; `XAUUSD` castigo el impulso tardio despues de que la liquidez ya estaba cobrada.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4646.73 / 4610.34 | 5m 4632.91 / 4628.47` ; `US30 -> Daily 49359.40 / 48730.40 | 4H 49267.40 / 49075.90 | 5m 49763.40 / 49715.90`
+  - `Accion:` `CIERRE MIXTO`. Para manana no quiero arrastrar conviccion vieja: en oro toca reassessment fresco porque la continuation fallo; en `US30` el sesgo sigue mejor, pero si estas flat tampoco quiero chase cerca de `49763.40`. La disciplina correcta sigue siendo retest nuevo o nada.
+- Spanish thread update: `End-of-day` cierra con una diferencia clara: `US30` sostuvo mejor la continuation bull y oro no. Lo que funciono fue esperar defensa real en el chart limpio; lo que fallo fue insistir con oro despues de pagar buy-side en `4632.91 / 4635.98`. La leccion para manana es simple: sesgo si, chase no.
+- Discord summary written to payload:
+  - `[END-OF-DAY REVIEW]`
+  - `Historia`
+  - `La historia del cierre es que el dia no termino igual en los dos charts. US30 si sostuvo la continuation bull y cerro arriba del shelf que importaba, mientras oro pago buy-side en 4635.98, no logro aceptar arriba de 4632.91, y termino devolviendo el tramo hacia 4H DEMAND 4610.34.`
+  - `Tesis`
+  - `Eso deja una leccion clara: el sesgo puede sobrevivir, pero la entrada no. US30 premio paciencia y defensa; XAUUSD castigo el impulso tardio despues de que la liquidez ya estaba cobrada.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4646.73 / 4610.34 | 5m 4632.91 / 4628.47`
+  - `US30 -> Daily 49359.40 / 48730.40 | 4H 49267.40 / 49075.90 | 5m 49763.40 / 49715.90`
+  - `Accion`
+  - `CIERRE MIXTO. En oro toca reassessment fresco porque la continuation fallo; en US30 el sesgo sigue mejor, pero si estas flat no quiero chase cerca de 49763.40. Leccion: sesgo si, chase no.`
+
+- 2026-04-30 | automation: End-of-Day Review | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / REVIEW-ONLY / DESIRED STATE PRESERVED`; `XAUUSD` ended the day as a failed continuation back into `4H DEMAND 4610.34` after paying buy-side at `4632.91 / 4635.98`, while `US30` held the bullish continuation cleaner by sweeping `PDH 49782.40`, defending `49745.90`, and closing near `49763.40` | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4646.73 / 4610.34`, `5m 4632.91 / 4628.47`; US30 `Daily 49359.40 / 48730.40`, `4H 49267.40 / 49075.90`, `5m 49763.40 / 49715.90` | action state: `CLOSE REVIEW ONLY / XAUUSD NEEDS FRESH REASSESSMENT / US30 CLEANER BUT DO NOT CHASE` | main lesson: a surviving bias is not the same as a fresh entry; keep the cleaner continuation, drop the spent idea, and do not confuse paid liquidity with a new setup.
+
+### NY Open Levels - Fresh Baseline On 2026-05-01
+
+- Run time: `2026-05-01T05:34:58.3369766-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - fresh structured reads used for the baseline:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-01T05:37:42-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-01T05:38:09-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / DESIRED STATE REFRESHED`
+  - both prior `5m` pairs were structurally behind price and no longer defined current execution readiness
+  - `XAUUSD` also needed an HTF redraw because the old `4H DEMAND 4610.34` failed and now acts as the nearest overhead shelf
+  - `US30` also needed an HTF redraw because the old `DAILY / 4H` resistance cluster `49359.40 / 49267.40` has already been accepted through
+- Higher-timeframe thesis:
+  - `XAUUSD`: `Daily` stays bearish below `DAILY SUPPLY 4730.08` while `DAILY DEMAND 4510.31` remains the broader floor. `4H` failed back under `4610.34`, sold off into `4560.08`, and is now only bouncing inside a bearish intraday structure.
+  - `FOREXCOM:US30`: `Daily` and `4H` stay bullish after the reclaim day from `48465.90`, and the tape is still accepting above reclaimed `PDH 49782.40` while pressing fresh buy-side at `49848.45`.
+- `30m / 15m` setup-quality read:
+  - `XAUUSD`: `30m` is rebounding from `4560.08` but now pressing directly into fresh supply `4575.84-4582.68`; `15m` improved off the low but remains tactical and noisy rather than clean bullish continuation.
+  - `FOREXCOM:US30`: `30m` still holds above `49782.40`, while `15m` remains constructive but is no longer as clean as the first push after printing rejection under `49843.95`.
+- Nearest liquidity and current relation:
+  - `XAUUSD`: nearest buy-side liquidity is `4582.68`; nearest sell-side liquidity is `4575.84`, then `4570.16`. Price is reacting inside supply after failing to reclaim the broken `4H` shelf.
+  - `FOREXCOM:US30`: nearest buy-side liquidity is `49843.95`; nearest sell-side liquidity is `49809.45`. Price is still holding the higher shelf, but the latest `5m` already showed a small rejection under the cap.
+- Exact trigger status:
+  - `XAUUSD`: short side is `ARMED` only on a clean sweep-rejection or failed acceptance through `4582.68`; long side is `PRE-TRIGGER` and only gains permission if `4570.16-4560.08` defends again with a clean reclaim.
+  - `FOREXCOM:US30`: long side is `PRE-TRIGGER` until `49809.45` retests and holds; short side is `ARMED` only if `49843.95` rejects again with a clear `5m` loss. No valid chase entry exists at current price.
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - remained `ACTIVE`: none from the prior map
+    - became `STALE`: none
+    - became `INVALIDATED`: `5M EXECUTION SHORT 4632.91`, `5M EXECUTION LONG 4628.47`
+    - new `ACTIVE`: `5M EXECUTION SHORT 4582.68`, `5M EXECUTION LONG 4570.16`
+  - `FOREXCOM:US30`
+    - remained `ACTIVE`: none from the prior map
+    - became `STALE`: `5M EXECUTION SHORT 49763.40`, `5M EXECUTION LONG 49715.90`
+    - became `INVALIDATED`: none
+    - new `ACTIVE`: `5M EXECUTION SHORT 49843.95`, `5M EXECUTION LONG 49809.45`
+- Opportunity timing state:
+  - `XAUUSD`: overall `ARMED`
+  - `FOREXCOM:US30`: overall `ARMED`
+- Trading decision:
+  - `PEPPERSTONE:XAUUSD`: `WAIT / SHORT BIAS ONLY ON 4582.68 SWEEP-REJECTION OR LONGS ONLY ON 4570.16-4560.08 DEFENSE`
+  - `FOREXCOM:US30`: `WAIT / LONG BIAS ONLY ON 49809.45 DEFENSE OR SHORTS ONLY ON 49843.95 SWEEP-REJECTION`
+  - cleaner symbol: `FOREXCOM:US30`
+  - symbol to avoid forcing: `PEPPERSTONE:XAUUSD`
+- RSI context:
+  - `XAUUSD` `5m RSI ~= 63.84`: firmer bounce, but still not enough to override the broken `4H` context
+  - `US30` `5m RSI ~= 64.37`: constructive, but no longer fresh enough to justify chasing under local buy-side
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to block late entries into the first NY impulse and require retest or rejection at the refreshed `5m` shelves
+- Articuno reinforcement:
+  - `XAUUSD`: liquidity precision keeps the short focus at `4582.68` because the bounce is now inside supply under the failed `4H` shelf; anti-chase discipline blocks treating this rebound as a clean fresh long.
+  - `FOREXCOM:US30`: demand quality remains stronger above `49809.45`, while liquidity precision keeps `49843.95` as the fade-only cap unless price accepts cleanly through it.
+- Chart actions:
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` to preserve the Daily pair, replace the broken `4H` pair with `4610.34 / 4560.08`, and replace the spent `5m` pair with `4582.68 / 4570.16`
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` to refresh the Daily / `4H` continuation map to `49848.45 / 48465.90` and `49848.45 / 49723.95`, and replace the stale `5m` pair with `49843.95 / 49809.45`
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: refreshed
+  - `FOREXCOM:US30`: refreshed
+  - `refresh_reason`: `htf_changed`
+- Labels repositioned:
+  - both symbols will re-anchor all active `Daily`, `4H`, and `5m` labels to the current right side on the next chart-runtime apply
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced:
+    - `XAUUSD`: removed `4632.91 / 4628.47`; replaced with `4582.68 / 4570.16`; replaced `4H SUPPLY 4646.73` with `4H SUPPLY 4610.34`; replaced `4H DEMAND 4610.34` with `4H DEMAND 4560.08`
+    - `FOREXCOM:US30`: removed `49763.40 / 49715.90`; replaced with `49843.95 / 49809.45`; replaced `DAILY SUPPLY 49359.40` with `DAILY SUPPLY 49848.45`; replaced `DAILY DEMAND 48730.40` with `DAILY DEMAND 48465.90`; replaced `4H SUPPLY 49267.40` with `4H SUPPLY 49848.45`; replaced `4H DEMAND 49075.90` with `4H DEMAND 49723.95`
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que NY abre con dos lecturas distintas: `US30` sigue aceptando arriba de `PDH 49782.40`, mientras oro rebota desde `4560.08` pero sigue debajo del `4H` roto en `4610.34` y ya llega a `4575.84-4582.68` supply intradia.
+  - `Tesis:` eso deja a `US30` como continuation bull mas limpia y a `XAUUSD` como bounce tactico, no como long libre. En ambos el primer impulso ya corrio lo suficiente para exigir confirmacion en nivel; no quiero chase.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4610.34 / 4560.08 | 5m 4582.68 / 4570.16` ; `US30 -> Daily 49848.45 / 48465.90 | 4H 49848.45 / 49723.95 | 5m 49843.95 / 49809.45`
+  - `Accion:` `WAIT / DO NOT CHASE`. `US30` manda: long solo si `49809.45` defiende otra vez; short solo si `49843.95` barre y rechaza. En oro, short solo en sweep-rejection de `4582.68` o long solo si `4570.16-4560.08` vuelve a defender.
+- Spanish thread update: `NY Open Levels` deja baseline nuevo con `US30` como chart mas limpio arriba de `PDH 49782.40` y con oro mas reactivo debajo de `4610.34`. Los dos mapas se refrescaron; la apertura correcta es `WAIT / DO NOT CHASE` hasta ver defensa en `49809.45` para `US30` o confirmacion real en `4582.68` / `4570.16` para oro.
+
+- 2026-05-01 | automation: NY Open Levels | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / DESIRED STATE REFRESHED`; `XAUUSD` opened NY with a bearish daily context, a failed `4H` recovery back under `4610.34`, and a tactical bounce into `4575.84-4582.68` supply, while `US30` opened with the cleaner continuation by accepting above `PDH 49782.40` and leaning into `49843.95` from a higher shelf | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4610.34 / 4560.08`, `5m 4582.68 / 4570.16`; US30 `Daily 49848.45 / 48465.90`, `4H 49848.45 / 49723.95`, `5m 49843.95 / 49809.45` | action state: `WAIT / DO NOT CHASE`; `US30` is the cleaner long-bias continuation only on `49809.45` defense, while `XAUUSD` is tactical only on `4582.68` rejection or `4570.16-4560.08` defense | main lesson: when the old `5m` pair is already behind price at the NY open, refresh the execution map immediately and only carry higher-timeframe levels forward if they still describe the current structure honestly.
+
+### Post Open Validation - Structured Validation On 2026-05-01
+
+- Run time: `2026-05-01T06:48:38.9900476-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-05-01T06:46:11-06:00`
+  - fresh structured reads used for the validation:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-01T06:47:34-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-01T06:46:59-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / VALIDATION REVIEW`
+  - `US30` kept the active NY pair close enough to price to preserve the map
+  - `XAUUSD` required a `5m` refresh because both active execution levels from the baseline sat behind price and no longer defined the nearest live decision shelves
+  - desired-state mutation was limited to `PEPPERSTONE_XAUUSD.json` with `refresh_reason = 5m_far_from_price`; HTF stayed preserved
+- Open validation:
+  - `XAUUSD`: `PARTIALLY VALIDATED` the NY baseline. The long defense idea from `4570.16-4560.08` worked, but the original `5m` pair is now spent and the open shifted the live decision higher into `4590.74 / 4607.78`.
+  - `US30`: `VALIDATED` the cleaner bullish continuation better, but the open already swept buy-side into `49955.45` and then rotated back under `49843.95`, so the clean trigger is no longer fresh if flat.
+- Higher-timeframe thesis:
+  - `XAUUSD`: `Daily` stays bearish below `4730.08`, `4H` still treats `4610.34` as the nearest overhead shelf, and the bounce from `4560.08` remains tactical until price can prove acceptance through that cap.
+  - `US30`: `Daily / 4H` still favor continuation above `49723.95` and reclaimed `PDH 49782.40`; the rejection came after buy-side expansion, not after higher-timeframe failure.
+- Structure and execution:
+  - `XAUUSD`: `30m` broke the opening range and ran from `4570.16` into `4607.78`, then the latest `15m / 5m` pulled back into `4590.74` and held it. The old short at `4582.68` is `INVALIDATED`, the old long at `4570.16` is `TRIGGERED / STALE / DO NOT CHASE`, and the refreshed live pair is `5M EXECUTION SHORT 4607.78` and `5M EXECUTION LONG 4590.74`. Long side is `ARMED` only if `4590.74` keeps defending and price can reclaim `4598.23`; short side is `PRE-TRIGGER` unless `4607.78-4610.34` sweeps and rejects again.
+  - `US30`: `30m` still sits above the higher shelf, but the open already broke out, swept buy-side to `49955.45`, and failed back under `49843.95`. `15m` is less clean now and `5m` is mixed after the rejection. The preserved pair `49843.95 / 49809.45` remains operational, but both sides already reacted earlier in the open, so the current state is `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`.
+- Level interaction:
+  - `XAUUSD`: the open left `4570.16` behind, accepted above `4582.68`, printed `4607.78`, and now respects `4590.74` as the nearest live defense while `4610.34` still caps the higher-timeframe reclaim.
+  - `US30`: reclaimed and held `PDH 49782.40`, defended `49809.45`, then swept above `49843.95` into `49955.45` before falling back under the short shelf.
+- Opportunity timing state:
+  - `XAUUSD` overall opportunity: `ARMED`
+  - `XAUUSD` long side: `ARMED / 4590.74 DEFENSE + 4598.23 RECLAIM STILL NEEDED`
+  - `XAUUSD` short side: `PRE-TRIGGER / WAIT FOR 4607.78-4610.34 SWEEP-REJECTION`
+  - `FOREXCOM:US30` overall opportunity: `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`
+  - `FOREXCOM:US30` long side: `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`
+  - `FOREXCOM:US30` short side: `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`
+- Trading decision:
+  - `XAUUSD`: `WAIT / LONG BIAS ONLY ON 4590.74 DEFENSE OR SHORTS ONLY ON 4607.78-4610.34 SWEEP-REJECTION`
+  - `FOREXCOM:US30`: `WAIT / DO NOT CHASE / WAIT FOR NEW RETEST`
+  - cleaner symbol now: `US30`
+  - symbol to avoid forcing: `XAUUSD`
+  - biggest trap right now: treating already-triggered open moves as if they were fresh entries after buy-side has already been paid
+- 3-line conclusion in Spanish:
+  - `US30` sigue siendo el chart mas limpio, pero el sweep y el rechazo del open ya pasaron y si estas flat no quiero chase.
+  - Oro si valido la defensa larga de la manana, pero el mapa del open cambio y ahora la decision real esta mas arriba, entre `4590.74` y `4607.78`.
+  - La accion correcta en ambos es `WAIT`: en `US30` toca retest nuevo y en `XAUUSD` solo quiero confirmacion real sobre el bracket refrescado.
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to separate the first open expansion from the only cleaner retest that still matters now
+  - avoided carrying a triggered `5m` pair as if it were still a fresh operational map
+- Articuno reinforcement:
+  - `XAUUSD`: reinforcement upgraded the new `4590.74` defense shelf and downgraded the old `4582.68 / 4570.16` map because liquidity already moved on and the cleaner decision now sits under `4607.78 / 4610.34`
+  - `US30`: reinforcement kept the desired-state pair because `49843.95 / 49809.45` still frames the tape, but psychology and trigger-quality filters block any late chase after the `49955.45` sweep
+- Chart actions:
+  - updated [PEPPERSTONE_XAUUSD.json](C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json) to preserve the `Daily / 4H` pair and replace the stale `5m` pair `4582.68 / 4570.16` with `4607.78 / 4590.74`
+  - left [FOREXCOM_US30.json](C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json) untouched because the current pair still frames the live open honestly
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: refreshed
+  - `FOREXCOM:US30`: preserved
+  - `refresh_reason`: `XAUUSD = 5m_far_from_price`
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION LONG 4570.16`
+    - became `INVALIDATED`: `5M EXECUTION SHORT 4582.68`
+    - new `ACTIVE`: `5M EXECUTION SHORT 4607.78`, `5M EXECUTION LONG 4590.74`
+  - `FOREXCOM:US30`
+    - remained `ACTIVE`: `5M EXECUTION SHORT 49843.95`, `5M EXECUTION LONG 49809.45`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+    - new `ACTIVE`: none
+- Labels repositioned:
+  - `XAUUSD`: the preserved `Daily / 4H` labels and the refreshed `5m` labels will re-anchor to the current right side on the redraw
+  - `US30`: no desired-state mutation was needed; the preserved map stays active as-is
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que `US30` barrio buy-side hasta `49955.45` y ya volvio debajo de `49843.95`, asi que el long del open ya hizo el tramo bueno. En oro paso algo distinto: el par inicial `4582.68 / 4570.16` quedo atras, el precio subio hasta `4607.78`, y ahora esta corrigiendo mientras sostiene `4590.74`.
+  - `Tesis:` eso deja a `US30` como el chart mas limpio por estructura, pero no por frescura: el trigger ya paso y si estas flat no quiero chase. En `XAUUSD` el mapa si cambio; la decision real ya no esta en el bracket viejo, sino en ver si `4590.74` vuelve a defender para continuation o si `4607.78-4610.34` barre y rechaza para fade.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4610.34 / 4560.08 | 5m 4607.78 / 4590.74` ; `US30 -> Daily 49848.45 / 48465.90 | 4H 49848.45 / 49723.95 | 5m 49843.95 / 49809.45`
+  - `Accion:` `WAIT`. En `US30`, si estas flat, el open ya queda `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`. En oro, solo quiero longs si `4590.74` defiende otra vez y el precio recupera `4598.23`, o shorts si `4607.78-4610.34` barre y rechaza. Nada de perseguir el primer impulso ya pagado.
+- Spanish thread update: `Post Open Validation` deja a `US30` como el chart mas limpio, pero con el trigger del open ya gastado; si estas flat, toca esperar retest nuevo. En `XAUUSD` el mapa si cambio: el par `4582.68 / 4570.16` quedo viejo y ahora la decision real esta entre `4590.74` como defensa o `4607.78-4610.34` como sweep-rejection. La accion correcta sigue siendo `WAIT`, no chase.
+- Discord summary written to payload:
+  - `[POST OPEN VALIDATION]`
+  - `Historia`
+  - `US30 barrio buy-side hasta 49955.45 y volvio debajo de 49843.95; el long del open ya trabajo. Oro dejo atras el par 4582.68 / 4570.16, subio hasta 4607.78, y ahora corrige sosteniendo 4590.74.`
+  - `Tesis`
+  - `US30 sigue siendo el chart mas limpio, pero el trigger ya paso y no quiero chase. En XAUUSD el mapa si cambio: el par viejo quedo detras del precio y la decision real ahora es 4590.74 como defensa o 4607.78-4610.34 como sweep-rejection.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4610.34 / 4560.08 | 5m 4607.78 / 4590.74`
+  - `US30 -> Daily 49848.45 / 48465.90 | 4H 49848.45 / 49723.95 | 5m 49843.95 / 49809.45`
+  - `Accion`
+  - `WAIT. US30 ya quedo TRIGGERED / DO NOT CHASE si estas flat; solo vale un retest nuevo. En oro, long solo si 4590.74 vuelve a defender y short solo si 4607.78-4610.34 barre y rechaza.`
+
+- 2026-05-01 | automation: Post Open Validation | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / VALIDATION REVIEW`; `US30` stayed the cleaner tape but the open already swept buy-side into `49955.45` and left the immediate trigger spent, while `XAUUSD` partially validated the long-defense side of the baseline and forced a `5m` refresh because the old `4582.68 / 4570.16` pair no longer defined current execution readiness | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4610.34 / 4560.08`, `5m 4607.78 / 4590.74`; US30 `Daily 49848.45 / 48465.90`, `4H 49848.45 / 49723.95`, `5m 49843.95 / 49809.45` | action state: `US30 CLEANER / TRIGGERED / DO NOT CHASE`, `XAUUSD WAIT / ARMED ON 4590.74 DEFENSE OR PRE-TRIGGER SHORT ONLY ON 4607.78-4610.34 REJECTION` | main lesson: once both old `5m` levels sit behind price, refresh the execution map immediately; once the open trigger already ran, keep the thesis but remove the temptation to chase it late.
+
+### Active Setup Detector - XAUUSD Holds The Cleaner Retest On 2026-05-01
+
+- Run time: `2026-05-01T07:04:03.6226677-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-05-01T07:04:09-06:00`
+  - fresh structured reads used for the setup review:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-01T07:03:32-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-01T07:03:57-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / ACTIVE SETUP REVIEW`
+  - desired-state maps were preserved for both symbols because both active `5m` pairs remain close enough to current price and still define the nearest clean decision shelves
+  - `XAUUSD` now holds the cleaner live opportunity because `4590.74` defended again and `30m / 15m / 5m` are rebuilding `HH/HL` toward `4598.23`
+  - `US30` keeps the broader bullish thesis, but the post-sweep tape is still mixed under `49843.95`, so it needs a fresh accept-or-reject event before it becomes actionable again
+- Current setup classification:
+  - `XAUUSD`: `WAIT`, with long side `ARMED`; no fresh `VALID SHORT SETUP`
+  - `FOREXCOM:US30`: `WAIT`; no fresh `VALID LONG SETUP` or `VALID SHORT SETUP` yet
+- Key level being tested now:
+  - `XAUUSD`: price is testing the defended `4590.74` shelf while leaning back into `4598.23`
+  - `US30`: price is retesting `49843.95` from underneath after the earlier buy-side sweep into `49955.45`
+- Confirmation vs failure of prior directional idea:
+  - `XAUUSD`: confirming the prior tactical long-defense idea from validation, but still below the higher-timeframe cap `4610.34`
+  - `US30`: not failing the higher-timeframe bullish thesis, but not confirming a fresh continuation either; the open sweep already happened and the current tape is mixed
+- Exact trigger present:
+  - `XAUUSD`: the long trigger is another clean `4590.74` defense plus `5m` acceptance above `4598.23`; the short trigger only exists if `4607.78-4610.34` sweeps and rejects
+  - `US30`: the long trigger needs clean acceptance above `49843.95` and then a hold; the short trigger needs a fresh rejection at `49843.95` plus `5m` failure back through `49828.95`
+- `30m` and `15m` setup quality right now:
+  - `XAUUSD`: `30m / 15m` both closed back above `4590.74` and remain constructive with `HH/HL`; setup quality is cleaner, but still tactical beneath `4H SUPPLY 4610.34`
+  - `US30`: `30m / 15m` are pressing the cap again, but the microstructure remains mixed after the failed breakout, so the tape is less fresh than the first open impulse
+- Liquidity map:
+  - `XAUUSD`: nearest buy-side liquidity is `4598.23`; nearest sell-side liquidity is `4590.74`; the market is targeting buy-side after defending the sell-side shelf and session low
+  - `US30`: nearest buy-side liquidity is `49843.95`; nearest sell-side liquidity is `49809.45`; the market is reacting after the earlier buy-side sweep and is now retesting the cap rather than expanding cleanly
+- Missing confirmation if not yet active:
+  - `XAUUSD`: still needs a clean `5m` acceptance through `4598.23` to flip the long side from `ARMED` to `TRIGGERED`
+  - `US30`: still needs either clean acceptance above `49843.95` for continuation or a fresh rejection that proves the cap again; until then it stays `WAIT`
+- Opportunity timing state:
+  - `XAUUSD` overall opportunity: `ARMED`
+  - `XAUUSD` long side: `ARMED / 4590.74 DEFENSE IS LIVE, 4598.23 ACCEPTANCE STILL NEEDED`
+  - `XAUUSD` short side: `PRE-TRIGGER / WAIT FOR 4607.78-4610.34 SWEEP-REJECTION`
+  - `FOREXCOM:US30` overall opportunity: `PRE-TRIGGER`
+  - `FOREXCOM:US30` long side: `PRE-TRIGGER / WAIT FOR CLEAN ACCEPTANCE ABOVE 49843.95`
+  - `FOREXCOM:US30` short side: `ARMED / 49843.95 REJECTION STILL NEEDED`
+- Setup invalidation:
+  - `XAUUSD`: losing `4590.74` and then failing back below `4589.02` would weaken the current continuation attempt; losing `4560.08` would damage the broader bounce thesis
+  - `US30`: clean acceptance above `49843.95-49848.45` weakens the short fade; any future long continuation would still need `49809.45` to hold on a retest
+- Trading decision:
+  - `PEPPERSTONE:XAUUSD`: `WAIT / LONG BIAS ONLY ON 4590.74 DEFENSE + 4598.23 RECLAIM OR SHORTS ONLY ON 4607.78-4610.34 SWEEP-REJECTION`
+  - `FOREXCOM:US30`: `WAIT / NO CLEAR EDGE UNTIL 49843.95 ACCEPTS OR REJECTS CLEANLY AGAIN`
+  - cleaner symbol now: `PEPPERSTONE:XAUUSD`
+  - symbol to avoid forcing: `FOREXCOM:US30`
+  - biggest trap right now: forcing `US30` as if the first NY breakout were still a fresh entry
+- 3-line conclusion in Spanish:
+  - `Oro es el chart que mejor sostiene estructura ahora mismo: la defensa de 4590.74 sigue viva y el precio vuelve a empujar hacia 4598.23.`
+  - `US30 mantiene la tesis mayor, pero aqui ya no quiero adivinar en medio del retest a 49843.95; necesito accept limpio arriba o rechazo claro abajo.`
+  - `La accion correcta sigue siendo WAIT: XAUUSD queda ARMED y US30 queda en paciencia, no en chase.`
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to keep `XAUUSD` as an `ARMED` continuation only while the defended shelf still holds and to block premature `US30` continuation calls without fresh acceptance
+- Articuno reinforcement:
+  - `XAUUSD`: liquidity precision keeps the long focus at `4590.74` because the market is rebuilding from defended sell-side liquidity and still has `4598.23` as the nearest buy-side objective; anti-chase discipline blocks promoting the move before acceptance prints
+  - `FOREXCOM:US30`: psychology and trigger-quality filters keep the tape in `WAIT` because buy-side was already paid earlier and the current retest into `49843.95` is still mixed, not clean continuation
+- Chart actions:
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` untouched because `5M EXECUTION SHORT 4607.78` and `5M EXECUTION LONG 4590.74` remain `ACTIVE`
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` untouched because `5M EXECUTION SHORT 49843.95` and `5M EXECUTION LONG 49809.45` still define the nearest live decision shelves
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: preserved
+  - `FOREXCOM:US30`: preserved
+  - `refresh_reason`: none
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - remained `ACTIVE`: `5M EXECUTION SHORT 4607.78`, `5M EXECUTION LONG 4590.74`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+    - new `ACTIVE`: none
+  - `FOREXCOM:US30`
+    - remained `ACTIVE`: `5M EXECUTION SHORT 49843.95`, `5M EXECUTION LONG 49809.45`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+    - new `ACTIVE`: none
+- Labels repositioned:
+  - none; no desired-state mutation was needed this cycle
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: none
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que oro si esta sosteniendo `4590.74` y vuelve a empujar hacia `4598.23`, mientras `US30` regreso otra vez a `49843.95` despues del sweep del open pero todavia sin una aceptacion limpia arriba del cap.
+  - `Tesis:` eso deja a `XAUUSD` como el tape mas accionable de este momento: hay `HH/HL` y defensa viva, pero todavia falta reclaim para que el long quede activado. En `US30` la estructura mayor sigue bullish, pero aqui no quiero adivinar en medio del retest; necesito accept o rechazo claro.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4610.34 / 4560.08 | 5m 4607.78 / 4590.74` ; `US30 -> Daily 49848.45 / 48465.90 | 4H 49848.45 / 49723.95 | 5m 49843.95 / 49809.45`
+  - `Accion:` `WAIT`. `XAUUSD` queda `ARMED`: long solo si `4590.74` sigue defendiendo y el precio acepta arriba de `4598.23`; short solo si `4607.78-4610.34` barre y rechaza. En `US30`, no quiero chase ni anticipar nada dentro del cap; esperar aceptacion limpia arriba de `49843.95` o rechazo fresco para retest nuevo.
+- Spanish thread update: `Active Setup Detector` deja a `XAUUSD` como el chart mas claro del momento porque la defensa de `4590.74` sigue viva y solo falta reclaim sobre `4598.23`. `US30` mantiene tesis, pero el retest a `49843.95` sigue mixto y no quiero forzarlo. La accion correcta en ambos sigue siendo `WAIT`, con oro `ARMED` y `US30` en paciencia.
+
+- 2026-05-01 | automation: Active Setup Detector | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / ACTIVE SETUP REVIEW`; both preserved `5m` pairs remained active and close enough to current price to keep framing execution readiness, `XAUUSD` became the cleaner tape by defending `4590.74` and rebuilding `HH/HL` toward `4598.23`, while `US30` kept the bullish higher-timeframe thesis but stayed mixed under `49843.95` after the earlier buy-side sweep | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4610.34 / 4560.08`, `5m 4607.78 / 4590.74`; US30 `Daily 49848.45 / 48465.90`, `4H 49848.45 / 49723.95`, `5m 49843.95 / 49809.45` | action state: `XAUUSD WAIT / ARMED ON 4590.74 DEFENSE + 4598.23 RECLAIM`, `US30 WAIT / NO CLEAR EDGE UNTIL 49843.95 ACCEPTS OR REJECTS CLEANLY AGAIN` | main lesson: preserve the active `5m` pair when it still defines the live shelf, but keep timing honest; the cleaner tape is the one defending now, not the one that already spent its open sweep.
+
+### Bias Integrity Check - Bias Holds In Both Symbols While US30 Needs A New 5m Pair On 2026-05-01
+
+- Run time: `2026-05-01T07:25:59.6728871-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-05-01T07:22:08-06:00`
+  - fresh structured reads used for the integrity review:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-01T07:23:32-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-01T07:22:57-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / BIAS INTACT / PARTIAL DESIRED STATE REFRESH`
+  - both symbols kept the same usable higher-timeframe thesis from the earlier NY chain
+  - `XAUUSD` kept the active `5m` pair because `4607.78 / 4590.74` still defines the live decision bracket near price
+  - `US30` required a `5m` refresh because `49843.95` stopped behaving as a fade-only cap once price accepted above it, while `49809.45` no longer defined the nearest pullback defense
+- Bias verdict:
+  - `PEPPERSTONE:XAUUSD`: `BIAS INTACT`
+  - `FOREXCOM:US30`: `BIAS INTACT`
+- What is still holding:
+  - `XAUUSD`: `4590.74` defended again and `4H SUPPLY 4610.34` still caps the broader bounce
+  - `US30`: bullish continuation above reclaimed `PDH 49782.40` and `4H DEMAND 49723.95` remains intact, and price is now holding above reclaimed `49843.95`
+- What failed, and what to stop assuming:
+  - `XAUUSD`: no material structural failure printed, but stop assuming `4590.74` defense alone is enough without a clean reclaim through `4597.37-4598.23`
+  - `US30`: the old `49843.95` short-only cap failed as a fade condition; stop treating that shelf as the live rejection level while price is accepting above it
+- Liquidity and condition check:
+  - `XAUUSD`: local buy-side at `4597.37` was tested and held as resistance, while the defended sell-side shelf remains `4590.74`
+  - `US30`: the larger open buy-side at `49955.45` already got paid earlier, the current tape is targeting `49874.95`, and `49828.95` is now the nearest live pullback shelf
+- Higher-timeframe thesis:
+  - `XAUUSD`: `Daily` stays bearish below `4730.08`, and the current bounce remains tactical while price stays below `4H SUPPLY 4610.34`
+  - `US30`: `Daily / 4H` continuation stays bullish above `49723.95`, so the thesis is not being damaged by the current `5m` noise
+- Same directional idea that still deserves focus:
+  - `XAUUSD`: yes, but only as an `ARMED` tactical long if `4590.74` keeps defending and price can reclaim `4597.37-4598.23`; otherwise patience
+  - `US30`: yes, bullish continuation still deserves focus more than the fade, but fresh execution now belongs at `49874.95 / 49828.95`
+- Opportunity timing state:
+  - `PEPPERSTONE:XAUUSD` overall opportunity: `ARMED`
+  - `PEPPERSTONE:XAUUSD` long side: `ARMED / 4590.74 DEFENSE IS STILL LIVE, 4597.37-4598.23 RECLAIM STILL NEEDED`
+  - `PEPPERSTONE:XAUUSD` short side: `PRE-TRIGGER / WAIT FOR 4607.78-4610.34 SWEEP-REJECTION`
+  - `FOREXCOM:US30` overall opportunity: `PRE-TRIGGER`
+  - `FOREXCOM:US30` long side: `PRE-TRIGGER / WAIT FOR 49828.95 DEFENSE`
+  - `FOREXCOM:US30` short side: `PRE-TRIGGER / WAIT FOR 49874.95 SWEEP-REJECTION`
+- Trading decision:
+  - `PEPPERSTONE:XAUUSD`: `WAIT / LONG BIAS ONLY ON 4590.74 DEFENSE + 4597.37-4598.23 RECLAIM OR SHORTS ONLY ON 4607.78-4610.34 SWEEP-REJECTION`
+  - `FOREXCOM:US30`: `WAIT / LONG BIAS ONLY ON 49828.95 DEFENSE OR SHORTS ONLY ON 49874.95 SWEEP-REJECTION`
+  - cleaner symbol now: `FOREXCOM:US30`
+  - symbol to avoid forcing: `PEPPERSTONE:XAUUSD`
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to keep the thesis intact in both symbols while blocking a fake downgrade from short-term noise and forcing a `US30` execution refresh only after the prior cap clearly stopped defining the live tape
+- Articuno reinforcement:
+  - `XAUUSD`: liquidity precision kept the bracket unchanged because `4590.74` still defends and `4597.37` is still the live buy-side gate; anti-chase discipline blocks promoting the long before reclaim prints
+  - `FOREXCOM:US30`: liquidity precision and trigger-quality filters downgraded `49843.95` from fade cap to reclaimed shelf and promoted `49874.95 / 49828.95` as the cleaner current pair without changing the bullish higher-timeframe thesis
+- Chart actions:
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` untouched because `5M EXECUTION SHORT 4607.78` and `5M EXECUTION LONG 4590.74` remain `ACTIVE`
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` to preserve the `Daily / 4H` pair and replace the stale `5m` pair `49843.95 / 49809.45` with `49874.95 / 49828.95`
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: preserved
+  - `FOREXCOM:US30`: refreshed
+  - `refresh_reason`: `FOREXCOM:US30 = 5m_far_from_price`
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - remained `ACTIVE`: `5M EXECUTION SHORT 4607.78`, `5M EXECUTION LONG 4590.74`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+    - new `ACTIVE`: none
+  - `FOREXCOM:US30`
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION LONG 49809.45`
+    - became `INVALIDATED`: `5M EXECUTION SHORT 49843.95`
+    - new `ACTIVE`: `5M EXECUTION SHORT 49874.95`, `5M EXECUTION LONG 49828.95`
+- Labels repositioned:
+  - `XAUUSD`: none; no desired-state mutation was needed this cycle
+  - `US30`: the preserved `Daily / 4H` labels and the refreshed `5m` labels will re-anchor to the current right side on the redraw
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced:
+    - `US30`: removed `49843.95 / 49809.45`; replaced with `49874.95 / 49828.95`
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que `US30` ya acepto arriba de `49843.95` y ahora aprieta `49874.95`, asi que la continuation bull sigue viva pero ese viejo cap ya no es fade limpio. En oro pasa otra cosa: `4590.74` sigue defendiendo, pero `4597.37-4598.23` todavia frena y el tape sigue tactico debajo de `4610.34`.
+  - `Tesis:` eso deja los dos sesgos intactos, pero con expresiones distintas. En `XAUUSD` no hay dano estructural; solo falta reclaim para que el long vuelva a tomar permiso. En `US30` la tesis bull sigue mandando, pero el mapa 5m si cambia porque `49843.95` ya no describe la ejecucion actual.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4610.34 / 4560.08 | 5m 4607.78 / 4590.74` ; `US30 -> Daily 49848.45 / 48465.90 | 4H 49848.45 / 49723.95 | 5m 49874.95 / 49828.95`
+  - `Accion:` `WAIT`. En oro, long solo si `4590.74` sigue defendiendo y el precio recupera `4597.37-4598.23`; short solo si `4607.78-4610.34` barre y rechaza. En `US30`, long solo en defensa de `49828.95`; short solo si `49874.95` barre y rechaza. No quiero chase en ninguno.
+- Spanish thread update: `Bias Integrity Check` deja a los dos sesgos vivos, pero no iguales: `XAUUSD` conserva su mapa porque `4590.74 / 4607.78` sigue mandando; `US30` sigue bullish, pero el par viejo `49843.95 / 49809.45` ya no sirve y se refresca a `49874.95 / 49828.95`. El chart mas limpio vuelve a ser `US30`, y la accion correcta sigue siendo `WAIT`, no chase.
+- Discord summary written to payload:
+  - `[BIAS INTEGRITY CHECK]`
+  - `Historia`
+  - `US30 ya acepto arriba de 49843.95 y ahora aprieta 49874.95; el sesgo bull sigue vivo, pero ese cap ya no es fade limpio. Oro sigue defendiendo 4590.74, pero 4597.37-4598.23 todavia frena y la continuidad larga sigue sin reclaim claro.`
+  - `Tesis`
+  - `Los dos sesgos mayores siguen intactos. En XAUUSD no hay dano estructural, solo falta confirmacion arriba de 4597.37-4598.23. En US30 la tesis bull sigue mandando, pero el viejo par 49843.95 / 49809.45 ya quedo viejo y el 5m se mueve a 49874.95 / 49828.95.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4610.34 / 4560.08 | 5m 4607.78 / 4590.74`
+  - `US30 -> Daily 49848.45 / 48465.90 | 4H 49848.45 / 49723.95 | 5m 49874.95 / 49828.95`
+  - `Accion`
+  - `WAIT. Oro: long solo si 4590.74 sigue defendiendo y recupera 4597.37-4598.23; short solo si 4607.78-4610.34 barre y rechaza. US30: long solo en defensa de 49828.95; short solo si 49874.95 barre y rechaza. No chase en ninguno.`
+
+- 2026-05-01 | automation: Bias Integrity Check | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / BIAS INTACT / PARTIAL DESIRED STATE REFRESH`; both higher-timeframe theses stayed valid, `XAUUSD` preserved the active `4607.78 / 4590.74` bracket, and `US30` refreshed the `5m` pair to `49874.95 / 49828.95` after price accepted above the prior `49843.95` cap | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4610.34 / 4560.08`, `5m 4607.78 / 4590.74`; US30 `Daily 49848.45 / 48465.90`, `4H 49848.45 / 49723.95`, `5m 49874.95 / 49828.95` | action state: `XAUUSD WAIT / ARMED ONLY ON 4590.74 DEFENSE + 4597.37-4598.23 RECLAIM`, `US30 WAIT / BULLISH CONTINUATION ONLY ON 49828.95 DEFENSE OR 49874.95 SWEEP-REJECTION` | main lesson: bias can stay intact while the owned `5m` map still needs refresh; preserve HTF when structure holds, but move the execution pair as soon as the old cap stops defining the live tape.
+
+### Mid-Session Reassessment - Both Morning Continuations Already Triggered On 2026-05-01
+
+- Run time: `2026-05-01T08:21:14.1969591-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-05-01T08:17:18-06:00`
+  - fresh structured reads used for the mid-session review:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-01T08:17:52-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-01T08:17:17-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / MID-SESSION REASSESSMENT / FULL 5M REFRESH`
+  - both higher-timeframe theses remain usable, but both morning execution maps became structurally far from current price and no longer define fresh readiness
+  - `XAUUSD` already reclaimed `4607.78-4610.34`, paid `PDH 4646.73`, and pushed into `4660.27`, so the old morning long is no longer a fresh entry
+  - `US30` already reclaimed `49828.95`, paid `49955.45`, and tested `50000.90`, so the old continuation long is also no longer a fresh entry
+- Whether the original morning thesis is still alive:
+  - `XAUUSD`: yes, but it evolved from tactical defense into post-breakout continuation; the morning long already happened
+  - `US30`: yes; the bullish continuation thesis is still intact, but the easy open retest already ran
+- Whether the best opportunity already passed:
+  - `XAUUSD`: yes for the morning long
+  - `US30`: yes for the morning long
+- Market condition now:
+  - `XAUUSD`: trending continuation after the reclaim, but stretched into session-high liquidity
+  - `US30`: bullish continuation and cleaner than gold, but also post-trigger under `50000.90`
+- Liquidity and execution-readiness check:
+  - `XAUUSD`: obvious intraday buy-side at `4646.73` and `4660.27` already got paid; bigger upside context remains `4730.08`, but fresh execution now needs either `4646.73` defense or a `4660.27` sweep-rejection
+  - `US30`: obvious buy-side at `49955.45` and `50000.90` already got paid; the cleaner pullback shelf is now `49916.90`, while `50000.90` becomes the fresh fade trigger only if it sweeps and rejects
+- Momentum or patience right now:
+  - patience is better than momentum in both symbols because the open continuation already expanded
+- Open structure outcome:
+  - `XAUUSD`: continuation
+  - `US30`: continuation
+- Best remaining opportunity:
+  - `US30`: fresh continuation only on `49916.90` defense
+  - `XAUUSD`: tactical short only on `4660.27` sweep-rejection or continuation only on `4646.73` pullback defense
+- Biggest trap still present:
+  - chasing the second expansion as if the open retest were still available
+- What not to chase now:
+  - `XAUUSD`: not above `4646.73` after the push already tagged `4660.27`
+  - `US30`: not directly into `50000.90` after the reclaim already ran
+- Opportunity timing state:
+  - `PEPPERSTONE:XAUUSD` overall opportunity: `TRIGGERED / DO NOT CHASE`
+  - `PEPPERSTONE:XAUUSD` long re-entry: `PRE-TRIGGER / WAIT FOR 4646.73 DEFENSE`
+  - `PEPPERSTONE:XAUUSD` short fade: `ARMED / 4660.27 SWEEP-REJECTION STILL NEEDS FAILURE BACK BELOW 4646.73`
+  - `FOREXCOM:US30` overall opportunity: `TRIGGERED / DO NOT CHASE`
+  - `FOREXCOM:US30` long re-entry: `PRE-TRIGGER / WAIT FOR 49916.90 DEFENSE`
+  - `FOREXCOM:US30` short fade: `ARMED / 50000.90 SWEEP-REJECTION STILL NEEDS FAILURE BACK BELOW 49955.45`
+- Trading decision:
+  - `PEPPERSTONE:XAUUSD`: `WAIT / MORNING LONG ALREADY TRIGGERED / DO NOT CHASE / LONGS ONLY ON 4646.73 DEFENSE OR SHORTS ONLY ON 4660.27 SWEEP-REJECTION`
+  - `FOREXCOM:US30`: `WAIT / MORNING LONG ALREADY TRIGGERED / DO NOT CHASE / LONGS ONLY ON 49916.90 DEFENSE OR SHORTS ONLY ON 50000.90 SWEEP-REJECTION`
+  - cleaner symbol now: `FOREXCOM:US30`
+  - symbol to avoid forcing: `PEPPERSTONE:XAUUSD`
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to mark both morning moves as already `TRIGGERED` and require a real correction before treating either symbol as fresh again
+- Articuno reinforcement:
+  - `XAUUSD`: liquidity precision blocked a late continuation buy after `PDH 4646.73` and `session_high 4660.27` were already paid; anti-chase discipline keeps the fresh short idea conditional on an actual sweep-rejection
+  - `FOREXCOM:US30`: trigger-quality and psychology filters keep the bullish thesis alive while blocking a late buy directly under `50000.90`; the cleaner next map is the pullback defense at `49916.90`
+- Chart actions:
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` to preserve the `Daily / 4H` pair and replace the stale `5m` pair `4607.78 / 4590.74` with `4660.27 / 4646.73`
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` to preserve the `Daily / 4H` pair and replace the stale `5m` pair `49874.95 / 49828.95` with `50000.90 / 49916.90`
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: refreshed
+  - `FOREXCOM:US30`: refreshed
+  - `refresh_reason`: `XAUUSD = 5m_far_from_price`, `US30 = 5m_far_from_price`
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION LONG 4590.74`
+    - became `INVALIDATED`: `5M EXECUTION SHORT 4607.78`
+    - new `ACTIVE`: `5M EXECUTION SHORT 4660.27`, `5M EXECUTION LONG 4646.73`
+  - `FOREXCOM:US30`
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION LONG 49828.95`
+    - became `INVALIDATED`: `5M EXECUTION SHORT 49874.95`
+    - new `ACTIVE`: `5M EXECUTION SHORT 50000.90`, `5M EXECUTION LONG 49916.90`
+- Labels repositioned:
+  - `XAUUSD`: the preserved `Daily / 4H` labels and the refreshed `5m` labels will re-anchor on the next redraw
+  - `US30`: the preserved `Daily / 4H` labels and the refreshed `5m` labels will re-anchor on the next redraw
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced:
+    - `XAUUSD`: removed `4607.78 / 4590.74`; replaced with `4660.27 / 4646.73`
+    - `US30`: removed `49874.95 / 49828.95`; replaced with `50000.90 / 49916.90`
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que los dos charts ya hicieron la expansion del open: oro defendio `4590.74`, recupero `4607.78 / 4646.73` y ya toco `4660.27`; `US30` reclamo `49828.95`, barrio hasta `50000.90` y sigue firme arriba de `49916.90`.
+  - `Tesis:` la tesis original sigue viva, pero el timing ya no es de entrada fresca. El long de la manana en ambos ya esta `TRIGGERED`; ahora solo vuelvo a mirar continuation en correccion o un fade si el sweep alto rechaza limpio. `US30` queda un poco mas ordenado que oro para un nuevo retest.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4610.34 / 4560.08 | 5m 4660.27 / 4646.73` ; `US30 -> Daily 49848.45 / 48465.90 | 4H 49848.45 / 49723.95 | 5m 50000.90 / 49916.90`
+  - `Accion:` `WAIT`. Si estas flat, no quiero chase. Oro: long solo si `4646.73` sostiene; short solo si `4660.27` barre y rechaza. `US30`: long solo si `49916.90` aguanta el pullback; short solo si `50000.90` barre y rechaza.
+- Spanish thread update: `Mid-Session Reassessment` deja claro que los dos longs de la manana ya estan `TRIGGERED` y no quiero venderlos como entrada fresca. `US30` sigue un poco mas limpio para un nuevo retest en `49916.90`; en oro solo quiero continuation con defensa en `4646.73` o fade si `4660.27` barre y rechaza. La accion correcta en ambos sigue siendo `WAIT`, no chase.
+- Discord summary written to payload:
+  - `[MID-SESSION REASSESSMENT]`
+  - `Historia`
+  - `La historia ahora mismo es que los dos charts ya hicieron la expansion del open: oro defendio 4590.74, recupero 4607.78 / 4646.73 y ya toco 4660.27; US30 reclamo 49828.95, barrio hasta 50000.90 y sigue firme arriba de 49916.90.`
+  - `Tesis`
+  - `La tesis original sigue viva, pero el timing ya no es de entrada fresca. El long de la manana en ambos ya esta TRIGGERED; ahora solo vuelvo a mirar continuation en correccion o un fade si el sweep alto rechaza limpio. US30 queda un poco mas ordenado que oro para un nuevo retest.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4610.34 / 4560.08 | 5m 4660.27 / 4646.73`
+  - `US30 -> Daily 49848.45 / 48465.90 | 4H 49848.45 / 49723.95 | 5m 50000.90 / 49916.90`
+  - `Accion`
+  - `WAIT. Si estas flat, no quiero chase. Oro: long solo si 4646.73 sostiene; short solo si 4660.27 barre y rechaza. US30: long solo si 49916.90 aguanta el pullback; short solo si 50000.90 barre y rechaza.`
+
+- 2026-05-01 | automation: Mid-Session Reassessment | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / MID-SESSION REASSESSMENT / FULL 5M REFRESH`; both morning continuation longs already triggered and expanded, so both owned `5m` maps were refreshed to the nearest remaining decision shelves while the HTF layer stayed preserved | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4610.34 / 4560.08`, `5m 4660.27 / 4646.73`; US30 `Daily 49848.45 / 48465.90`, `4H 49848.45 / 49723.95`, `5m 50000.90 / 49916.90` | action state: `XAUUSD WAIT / MORNING LONG TRIGGERED / LONGS ONLY ON 4646.73 DEFENSE OR SHORTS ONLY ON 4660.27 SWEEP-REJECTION`, `US30 WAIT / MORNING LONG TRIGGERED / LONGS ONLY ON 49916.90 DEFENSE OR SHORTS ONLY ON 50000.90 SWEEP-REJECTION` | main lesson: when the open continuation already ran and both execution levels sit behind price, refresh the 5m pair immediately and downgrade the message from opportunity to patience.
+
+### Live Reassessment Trigger - Both Symbols Need A Fresh Intraday Map And Both HTF Layers Shift On 2026-05-01
+
+- Run time: `2026-05-01T12:23:27.2456453-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-05-01T12:22:43-06:00`
+  - fresh structured reads used for the live reassessment:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-01T12:23:07-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-01T12:22:31-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / LIVE REASSESSMENT / FULL DESIRED-STATE REDRAW`
+  - both morning `5m` maps were structurally far from current price and no longer described execution readiness
+  - `XAUUSD` also needed an HTF adjustment because `4H SUPPLY 4610.34` stopped acting as the real cap after price accepted above it and then failed from `4660.27`
+  - `US30` also needed an HTF adjustment because the bullish `4H DEMAND 49723.95` failed and now behaves as the nearest higher-timeframe cap while the live defense shifts down to `49565.90`
+- Higher-timeframe thesis:
+  - `PEPPERSTONE:XAUUSD`: `Daily` stays bearish below `4730.08`, but the usable `4H` ceiling now shifts higher to `4660.27` while `4560.08` stays as the preserved support
+  - `FOREXCOM:US30`: the broader `Daily` context still holds above `48465.90`, but the intraday `4H` continuation failed back below `49723.95`, so that shelf is now resistance and the nearest defended `4H` support becomes `49565.90`
+- Structure bridge and setup quality:
+  - `XAUUSD`: `30m` rolled back from the `4650.11-4660.27` sweep into the active `4628.82-4586.52` demand, while `15m` still shows overhead supply into `4630.79`; the tape is tactical, not free-flowing
+  - `US30`: `30m` now carries fresh bearish supply at `49685.40-49565.90`, and `15m` kept rejecting `49675.90-49685.40`; the short retest is cleaner than the bounce, but price still needs to come back into the cap to trigger it properly
+- Liquidity and condition check:
+  - `XAUUSD`: nearest buy-side liquidity is `4634.94`; nearest sell-side liquidity is `4618.95`; price is reacting off `4613.60` and still needs reclaim continuation, not chase
+  - `US30`: nearest visible rejection cap is `49675.90-49685.40`; the defended sell-side shelf is `49565.90`; price is holding above the low for now, but the cleaner directional trade still comes from a failed retest higher
+- Opportunity timing state:
+  - `PEPPERSTONE:XAUUSD` overall opportunity: `ARMED`
+  - `PEPPERSTONE:XAUUSD` long side: `ARMED / 4613.60 DEFENSE IS LIVE, BUT 4624.48-4628.82 RECLAIM IS STILL MISSING`
+  - `PEPPERSTONE:XAUUSD` short side: `PRE-TRIGGER / WAIT FOR 4634.94 RETEST-REJECTION`
+  - `FOREXCOM:US30` overall opportunity: `ARMED`
+  - `FOREXCOM:US30` long side: `ARMED / 49565.90 IS DEFENDING, BUT 49590.40-49601.40 STILL NEEDS ACCEPTANCE`
+  - `FOREXCOM:US30` short side: `PRE-TRIGGER / WAIT FOR 49675.90-49685.40 RETEST-REJECTION`
+- Trading decision:
+  - `PEPPERSTONE:XAUUSD`: `WAIT / LONGS ONLY IF 4613.60 DEFENDS AND 4624.48-4628.82 RECLAIMS / SHORTS ONLY ON 4634.94 REJECTION`
+  - `FOREXCOM:US30`: `WAIT / SHORT BIAS ONLY ON 49675.90-49685.40 REJECTION / LONGS ONLY IF 49565.90 HOLDS AND 49590.40-49601.40 ACCEPTS`
+  - cleaner symbol now: `FOREXCOM:US30`
+  - symbol to avoid forcing: `PEPPERSTONE:XAUUSD`
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to avoid treating the first bounce off `4613.60` or `49565.90` as automatic execution and to require reclaim / retest confirmation before promoting either idea
+- Articuno reinforcement:
+  - `XAUUSD`: liquidity precision keeps `4634.94` as the active rejection cap and blocks a late long until price proves it can reclaim back through the upper edge of the `30m` demand
+  - `FOREXCOM:US30`: trigger-quality and anti-chase discipline keep the short idea focused on `49675.90-49685.40` instead of selling directly into `49565.90`, while still allowing a tactical long only if the low truly holds and reaccepts higher
+- Chart actions:
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` to preserve the `Daily` pair, move the `4H` resistance from `4610.34` to `4660.27`, and replace the stale `5m` pair `4660.27 / 4646.73` with `4634.94 / 4613.60`
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` to preserve the `Daily` pair, flip `49723.95` into `4H SUPPLY`, set `4H DEMAND 49565.90`, and replace the stale `5m` pair `50000.90 / 49916.90` with `49685.40 / 49590.40`
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: refreshed
+  - `FOREXCOM:US30`: refreshed
+  - `refresh_reason`: `XAUUSD = htf_changed`, `US30 = htf_changed`
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION SHORT 4660.27`
+    - became `INVALIDATED`: `5M EXECUTION LONG 4646.73`
+    - new `ACTIVE`: `5M EXECUTION SHORT 4634.94`, `5M EXECUTION LONG 4613.60`
+  - `FOREXCOM:US30`
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION SHORT 50000.90`
+    - became `INVALIDATED`: `5M EXECUTION LONG 49916.90`
+    - new `ACTIVE`: `5M EXECUTION SHORT 49685.40`, `5M EXECUTION LONG 49590.40`
+- Labels repositioned:
+  - `XAUUSD`: the preserved `Daily` labels, the refreshed `4H` labels, and the refreshed `5m` labels will all re-anchor on the next redraw
+  - `US30`: the preserved `Daily` labels, the refreshed `4H` labels, and the refreshed `5m` labels will all re-anchor on the next redraw
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced:
+    - `XAUUSD`: removed `5m 4660.27 / 4646.73` from the execution layer, promoted `4660.27` into `4H SUPPLY`, and replaced the live `5m` pair with `4634.94 / 4613.60`
+    - `US30`: removed `5m 50000.90 / 49916.90`, replaced `4H DEMAND 49723.95` with `4H SUPPLY 49723.95`, added `4H DEMAND 49565.90`, and replaced the live `5m` pair with `49685.40 / 49590.40`
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que `US30` perdio la continuation de la manana debajo de `49723.95` y ahora esta peleando el piso de `49565.90` con oferta fresca encima en `49675.90-49685.40`. Oro hizo otra cosa: acepto arriba de `4610.34`, barro hasta `4660.27`, y luego regreso hasta `4613.60`, asi que los niveles viejos de la manana ya no mandan la ejecucion.
+  - `Tesis:` eso obliga un redraw completo en los dos. En `XAUUSD` el sesgo diario sigue bajista, pero el techo `4H` sube a `4660.27` y la decision `5m` se aprieta a `4634.94 / 4613.60`. En `US30` el contexto diario sigue vivo mas abajo, pero la continuation `4H` se dano; ahora el short limpio vive en un retest a `49675.90-49685.40`, mientras que el long solo existe si `49565.90` sostiene y el precio vuelve a aceptar arriba de `49590.40-49601.40`.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4660.27 / 4560.08 | 5m 4634.94 / 4613.60` ; `US30 -> Daily 49848.45 / 48465.90 | 4H 49723.95 / 49565.90 | 5m 49685.40 / 49590.40`
+  - `Accion:` `WAIT`. Oro: long solo si `4613.60` defiende y recupera `4624.48-4628.82`; short solo en rechazo de `4634.94`. `US30`: sesgo short solo si `49675.90-49685.40` rechaza; long solo si `49565.90` aguanta y `49590.40-49601.40` acepta. No chase en ninguno.
+- Spanish thread update: `Live Reassessment Trigger` deja los dos mapas viejos fuera de juego. `US30` sigue siendo el chart mas claro, pero para short en retest, no para perseguirlo abajo; `XAUUSD` queda tactico dentro de `4613.60 / 4634.94` y no quiero forzarlo hasta que confirme. La accion correcta en ambos sigue siendo `WAIT`.
+- Discord summary written to payload:
+  - `[LIVE REASSESSMENT TRIGGER]`
+  - `Historia`
+  - `US30 ya perdio la continuation de la manana debajo de 49723.95 y ahora pelea 49565.90 con oferta fresca en 49675.90-49685.40. Oro acepto arriba de 4610.34, barrio hasta 4660.27 y regreso a 4613.60; los niveles viejos ya no mandan la ejecucion.`
+  - `Tesis`
+  - `Esto obliga redraw completo en los dos. En XAUUSD el techo 4H sube a 4660.27 y el 5m se aprieta a 4634.94 / 4613.60. En US30 la continuation 4H se dano; el short limpio vive en retest a 49675.90-49685.40 y el long solo existe si 49565.90 sostiene y recupera 49590.40-49601.40.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4660.27 / 4560.08 | 5m 4634.94 / 4613.60`
+  - `US30 -> Daily 49848.45 / 48465.90 | 4H 49723.95 / 49565.90 | 5m 49685.40 / 49590.40`
+  - `Accion`
+  - `WAIT. Oro: long solo si 4613.60 defiende y recupera 4624.48-4628.82; short solo en rechazo de 4634.94. US30: sesgo short solo si 49675.90-49685.40 rechaza; long solo si 49565.90 aguanta y 49590.40-49601.40 acepta. No chase en ninguno.`
+
+- 2026-05-01 | automation: Live Reassessment Trigger | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / LIVE REASSESSMENT / FULL DESIRED-STATE REDRAW`; both old `5m` maps were stale, `XAUUSD` shifted its `4H` cap from `4610.34` to `4660.27`, and `US30` lost `4H DEMAND 49723.95`, which now acts as resistance while `49565.90` becomes the defended support | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4660.27 / 4560.08`, `5m 4634.94 / 4613.60`; US30 `Daily 49848.45 / 48465.90`, `4H 49723.95 / 49565.90`, `5m 49685.40 / 49590.40` | action state: `XAUUSD WAIT / LONGS ONLY IF 4613.60 DEFENDS AND 4624.48-4628.82 RECLAIMS / SHORTS ONLY ON 4634.94 REJECTION`, `US30 WAIT / SHORT BIAS ONLY ON 49675.90-49685.40 REJECTION / LONGS ONLY IF 49565.90 HOLDS AND 49590.40-49601.40 ACCEPTS` | main lesson: when a live reassessment finds both execution maps behind price and the higher-timeframe control shelf also moved, refresh the full owned map instead of preserving a now-misleading morning narrative.
+
+### Asia Session Gold - XAUUSD Asia Baseline On 2026-05-01
+
+- Run time: `2026-05-01T16:34:36.7151770-06:00`
+- Symbol reviewed: `PEPPERSTONE:XAUUSD`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-05-01T16:31:37-06:00`
+  - fresh structured read used for the Asia baseline:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-01T16:32:01-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / ASIA SESSION GOLD / PRESERVED MAP`
+  - `Daily` and `4H` remain aligned bearish below `4730.08` and `4660.27`, but the live tape is entering Asia in compression instead of clean expansion
+  - the active desired-state `5m` pair `4634.94 / 4613.60` still brackets price and still defines the nearest clean decision shelves, so no chart mutation was warranted
+- Higher-timeframe thesis:
+  - Daily bias: `BEARISH BELOW 4730.08`
+  - 4H bias: `BEARISH BELOW 4660.27` while `4560.08` stays as the preserved support
+  - Alignment: `Yes`
+  - Bias strength: `Moderate`
+- Structure bridge and setup quality:
+  - `30m`: price is sitting inside the preserved `4628.82-4586.52` demand after failing to hold the push above `4624.61`, so Asia opens inside a compressed corrective structure rather than a clean trend leg
+  - `15m`: the tape is noisy-to-mixed because fresh supply still sits at `4624.61-4630.79`, while the bounce from `4606.83` has not yet reclaimed the upper edge of that supply
+  - current structure: `CONSOLIDATION / TRANSITION`
+  - supply or demand being respected: near-term supply is still respected overhead, while the broader `30m` demand is still containing the downside
+  - Asia condition: `range first, not expansion first`
+- Liquidity and execution-readiness check:
+  - nearest buy-side liquidity: `4617.39`, then `4624.61 / 4630.79`, then the cleaner sweep cap at `4634.94`
+  - nearest sell-side liquidity: `4613.60`, then `4610.15 / 4606.83`
+  - `PDH / PDL`: `4646.73 / 4539.21`
+  - `RANGE HIGH / RANGE LOW`: `4627.79 / 4606.83`
+  - `RSI 15m`: `47.11` as secondary context only; neutral-to-soft, not a trade signal
+- Opportunity timing state:
+  - overall opportunity: `WAIT / NO CLEAR EDGE`
+  - long side: `ARMED / 4613.60 DEFENSE IS STILL LIVE, BUT 4617.39 AND THEN 4624.61-4628.82 MUST RECLAIM`
+  - short side: `PRE-TRIGGER / WAIT FOR 4634.94 SWEEP-REJECTION`
+- Trading decision:
+  - `PEPPERSTONE:XAUUSD`: `WAIT / NO CLEAR EDGE / LONGS ONLY IF 4613.60 DEFENDS AND 4624.61-4628.82 RECLAIMS / SHORTS ONLY ON 4634.94 SWEEP-REJECTION`
+  - conditions favor: `RANGE / FADE` unless Asia first sweeps liquidity and then confirms
+  - what invalidates both sides right now: staying trapped in the middle without reclaim above `4624.61` or rejection after a sweep above `4634.94`
+  - what not to do now: do not chase a midpoint bounce into `4617.39-4624.61`, and do not force a breakdown short straight into `4613.60 / 4610.15`
+- `5m` execution lifecycle:
+  - remained `ACTIVE`: `5M EXECUTION SHORT 4634.94`, `5M EXECUTION LONG 4613.60`
+  - became `STALE`: none
+  - became `INVALIDATED`: none
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to keep the bounce off `4613.60` in `ARMED` status until price actually reclaims `4617.39` and then `4624.61-4628.82`
+- Articuno reinforcement:
+  - liquidity precision keeps `4634.94` as the real fade shelf instead of promoting the midpoint as a short
+  - anti-chase discipline blocks a late long while `4624.61-4630.79` still caps the tape
+- Chart actions:
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` untouched because the preserved `Daily / 4H / 5m` map is still current for Asia
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: preserved
+  - `refresh_reason`: not needed because the active `5m` pair stayed valid and HTF structure did not materially change
+- Labels repositioned:
+  - `XAUUSD`: no desired-state mutation was needed; the active preserved map remains `Daily 4730.08 / 4510.31`, `4H 4660.27 / 4560.08`, `5m 4634.94 / 4613.60`
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: none
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que oro entra Asia debajo de `4H SUPPLY 4660.27` y comprimido despues del rebote desde `4606.83`. La defensa en `4613.60` sigue viva, pero arriba `4617.39` y luego `4624.61-4630.79` siguen frenando el tape.
+  - `Tesis:` eso deja el sesgo `Daily / 4H` bajista intacto, pero el timing inmediato esta mixto. El long solo existe si `4613.60` sostiene y el precio reacepta `4624.61-4628.82`; el short bueno sigue siendo un sweep-rejection en `4634.94`. Mientras eso no pase, Asia es paciencia y no prediccion.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4660.27 / 4560.08 | 5m 4634.94 / 4613.60 | PDH 4646.73 | PDL 4539.21 | Range 4627.79 / 4606.83`
+  - `Accion:` `WAIT / NO CLEAR EDGE`. No quiero chase en medio. Long solo con defensa real en `4613.60` y reclaim de `4624.61-4628.82`; short solo si Asia barre `4634.94` y rechaza limpio.
+- Three-line conclusion:
+  - `Bias Diario: bajista. Bias 4H: bajista. Alineacion: si, pero con fuerza solo moderada.`
+  - `La estructura inmediata no da breakout limpio; esta entrando Asia en compresion entre soporte tactico y oferta cercana.`
+  - `La mejor lectura ahora es esperar sweep o reclaim; sin eso, no hay edge fresco.`
+- Spanish thread update: oro ya fue revisado para Asia. El sesgo sigue bajista por `Daily / 4H`, los niveles activos siguen siendo `4634.94 / 4613.60`, y por ahora se ve mas para paciencia que para trade inmediato.
+
+- 2026-05-01 | automation: Asia Session Gold | symbols: PEPPERSTONE:XAUUSD | thesis result: XAUUSD enters Asia with `Daily / 4H` still aligned bearish below `4730.08 / 4660.27`, but the live tape is compressed between defended `4613.60` and overhead supply into `4624.61-4630.79`, so the correct baseline is `WAIT / NO CLEAR EDGE` until either the long side reclaims `4624.61-4628.82` or Asia sweeps `4634.94` and rejects | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4660.27 / 4560.08`, `5m 4634.94 / 4613.60`, `PDH 4646.73`, `PDL 4539.21`, `RANGE 4627.79 / 4606.83` | action state: `WAIT / NO CLEAR EDGE / LONGS ONLY IF 4613.60 DEFENDS AND 4624.61-4628.82 RECLAIMS / SHORTS ONLY ON 4634.94 SWEEP-REJECTION` | main lesson: when the higher-timeframe bias survives into Asia but price opens inside compressed mixed structure, preserve the active pair that still brackets price and wait for the sweep or reclaim instead of forcing a redraw.
+
+### Asia Setup Detector - XAUUSD Asia Follow-Through On 2026-05-01
+
+- Run time: `2026-05-01T17:33:51.0629740-06:00`
+- Symbol reviewed: `PEPPERSTONE:XAUUSD`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-05-01T17:32:33-06:00`
+  - fresh structured read used for the Asia setup check:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-01T17:32:56-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / ASIA SETUP DETECTOR / PRESERVED MAP`
+  - the active desired-state `5m` pair `4634.94 / 4613.60` still brackets the live tape, so there is no `5m_far_from_price` refresh trigger and no higher-timeframe redraw trigger
+  - price dipped through the lower shelf into `4606.83`, reclaimed back above `4613.60`, and is now pressing the underside of `4615.77-4616.22`, but it still has not accepted through `4617.39` and `4624.61-4628.82`
+- Higher-timeframe thesis:
+  - Daily bias: `BEARISH BELOW 4730.08`
+  - 4H bias: `BEARISH BELOW 4660.27` while `4560.08` stays as the preserved support
+  - Alignment: `Yes`
+  - Bias strength: `Moderate`
+- Structure bridge and setup quality:
+  - `30m`: the preserved `4628.82-4586.52` demand is still containing the downside; the latest `30m` close back at `4616.19` says defense is alive, but Asia still looks corrective instead of impulsive
+  - `15m`: fresh supply still caps at `4624.61-4630.79`; the latest bounce only tagged `4617.39`, so the reclaim is still incomplete and the tape remains mixed
+  - current structure: `CONSOLIDATION / TRANSITION`
+  - supply or demand being respected: `30m` demand is still holding from below, but near-term `15m` supply is still respected overhead
+  - Asia condition: `range first, fade first, not breakout confirmation yet`
+- Liquidity and execution-readiness check:
+  - key level being tested now: `4613.60` defense with immediate resistance at `4615.77-4616.22`
+  - nearest buy-side liquidity: `4616.22`, then `4617.39`, then `4624.61 / 4627.79`, then the cleaner sweep cap at `4634.94`
+  - nearest sell-side liquidity: `4613.60`, then `4610.15 / 4606.83`
+  - `PDH / PDL`: `4646.73 / 4539.21`
+  - `RANGE HIGH / RANGE LOW`: `4627.79 / 4606.83`
+  - `RSI 15m`: `47.11` as secondary context only; still neutral-to-soft
+- Opportunity timing state:
+  - overall opportunity: `ARMED`
+  - long side: `ARMED / 4613.60 RECLAIMED, BUT 4617.39 AND THEN 4624.61-4628.82 STILL NEED ACCEPTANCE`
+  - short side: `PRE-TRIGGER / WAIT FOR 4634.94 SWEEP-REJECTION`
+- Trading decision:
+  - `PEPPERSTONE:XAUUSD`: `WAIT / NO CLEAR EDGE / LONGS ONLY IF 4613.60 DEFENDS AND 4617.39 THEN 4624.61-4628.82 ACCEPTS / SHORTS ONLY ON 4634.94 SWEEP-REJECTION`
+  - current price action is confirming the earlier Asia `range / fade` read, not a clean breakout read
+  - exact trigger present now: the reclaim of `4613.60` is only `indication + correction`; continuation is still missing
+  - exact confirmation still missing:
+    - long: `5m / 15m` acceptance above `4617.39` and then above `4624.61-4628.82`
+    - short: a sweep into `4634.94` followed by clean rejection back down
+  - what invalidates the immediate long idea: loss of `4613.60` with acceptance back through `4610.15 / 4606.83`
+  - what invalidates the immediate short idea: acceptance above `4634.94` instead of rejection
+  - conditions still favor: `RANGE / FADE`
+  - what not to do now: do not chase the bounce into `4616.22-4624.61`, and do not force a short into the defended `4613.60` shelf
+- `5m` execution lifecycle:
+  - remained `ACTIVE`: `5M EXECUTION SHORT 4634.94`, `5M EXECUTION LONG 4613.60`
+  - became `STALE`: none
+  - became `INVALIDATED`: none
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to keep the reclaim of `4613.60` honest; the bounce is real, but it is still not a valid continuation long until price accepts above the next reclaim gates
+- Articuno reinforcement:
+  - liquidity precision keeps `4613.60` as the active defense low and blocks a late breakdown short into already-defended sell-side liquidity
+  - trigger-quality and anti-chase discipline keep `4634.94` as the only clean short shelf instead of promoting the midpoint `4616.22-4624.61` as a fresh fade
+- Chart actions:
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` untouched because the preserved `Daily / 4H / 5m` map is still the correct Asia execution map
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: preserved
+  - `refresh_reason`: not needed because HTF structure did not materially change and the active `5m` pair stayed current
+- Labels repositioned:
+  - `XAUUSD`: no desired-state mutation was needed; the active preserved map remains `Daily 4730.08 / 4510.31`, `4H 4660.27 / 4560.08`, `5m 4634.94 / 4613.60`
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: none
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que oro barrio debajo de `4613.60`, defendio desde `4606.83`, y ahora esta otra vez pegando por abajo a `4615.77-4616.22`. La defensa baja sigue viva, pero arriba `4617.39` y luego `4624.61-4628.82` siguen sin quedar aceptados.
+  - `Tesis:` eso mantiene el sesgo `Daily / 4H` bajista, pero en execution sigue mandando el rango. El long todavia no esta confirmado porque falta aceptar arriba de `4617.39` y luego de `4624.61-4628.82`; el short bueno sigue siendo barrida y rechazo en `4634.94`. Mientras eso no pase, no hay edge fresco.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4660.27 / 4560.08 | 5m 4634.94 / 4613.60 | PDH 4646.73 | PDL 4539.21 | Range 4627.79 / 4606.83`
+  - `Accion:` `WAIT / NO CLEAR EDGE`. Long solo si `4613.60` vuelve a defender y luego acepta arriba de `4617.39` y `4624.61-4628.82`; short solo si Asia barre `4634.94` y rechaza limpio. No quiero chase en medio.
+- Spanish thread update: oro sigue con mapa preservado para Asia. El sesgo `Daily / 4H` sigue bajista, `4613.60 / 4634.94` siguen siendo los niveles activos, y la accion correcta todavia es `WAIT` hasta ver reclaim real arriba o sweep-rejection arriba.
+- Discord summary written to payload:
+  - `Historia: oro barrio debajo de 4613.60, defendio desde 4606.83 y ahora vuelve a pegarle por abajo a 4615.77-4616.22. La defensa sigue viva, pero arriba 4617.39 y 4624.61-4628.82 todavia no quedan aceptados.`
+  - `Tesis: el sesgo Daily / 4H sigue bajista, pero en execution sigue mandando el rango. El long todavia no esta confirmado; el short bueno sigue siendo barrida y rechazo en 4634.94.`
+  - `Niveles: XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4660.27 / 4560.08 | 5m 4634.94 / 4613.60 | PDH 4646.73 | PDL 4539.21 | Range 4627.79 / 4606.83`
+  - `Accion: WAIT / NO CLEAR EDGE. Long solo si 4613.60 defiende y luego acepta arriba de 4617.39 y 4624.61-4628.82; short solo si Asia barre 4634.94 y rechaza limpio. No chase en medio.`
+
+- 2026-05-01 | automation: Asia Setup Detector | symbols: PEPPERSTONE:XAUUSD | thesis result: XAUUSD kept the preserved Asia map because `4613.60 / 4634.94` still define the nearest execution shelves; price defended the low after a dip to `4606.83`, but the bounce is still capped under `4617.39` and the `4624.61-4628.82` reclaim gate, so the correct status remains `WAIT / NO CLEAR EDGE` inside a `RANGE / FADE` read | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4660.27 / 4560.08`, `5m 4634.94 / 4613.60`, `PDH 4646.73`, `PDL 4539.21`, `RANGE 4627.79 / 4606.83` | action state: `WAIT / NO CLEAR EDGE / LONGS ONLY IF 4613.60 DEFENDS AND 4617.39 THEN 4624.61-4628.82 ACCEPTS / SHORTS ONLY ON 4634.94 SWEEP-REJECTION` | main lesson: when Asia reclaims the lower shelf but still cannot accept through the first buy-side liquidity and overhead 15m supply, preserve the live pair and keep the setup in `ARMED` / `PRE-TRIGGER` rather than forcing a new map.
+
+### End-of-Day Review - Mixed Close With US30 Cleaner Overall On 2026-05-01
+
+- Run time: `2026-05-01T22:34:11.4061652-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-05-01T22:31:02-06:00`
+  - fresh structured reads used for the close review:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-01T22:31:26-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-01T22:31:51-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / REVIEW-ONLY / DESIRED STATE PRESERVED`
+  - `US30` was the cleaner tape overall because the NY continuation long worked first and the later failure below `49723.95` also stayed structurally cleaner than `XAUUSD`
+  - `XAUUSD` squeezed from `4590.74` into `4660.27`, but the move failed to hold and the close sits back inside the preserved `4613.60 / 4634.94` execution bracket under fresh `15m` supply
+- Session review:
+  - `PEPPERSTONE:XAUUSD`: the original daily bearish context held, but the morning intraday cap at `4610.34` failed once price accepted above it. The defense at `4590.74` and later reclaim carried price through `4646.73` into `4660.27`, but that extension did not sustain. The late tape rotated back into `4613.60`, so the real finish is `mixed / failed continuation back into range`, not a clean bearish close or a clean bullish carry.
+  - `FOREXCOM:US30`: the opening bullish continuation worked cleanly from the defended shelf and paid buy-side into `49955.45-50000.90`, but that was the end of the easy money. Once `49723.95` failed, the continuation thesis broke, the structure rolled into `LH/LL`, and the close finished down at `49429.90-49453.40`. The real finish is `continuation first, reversal later`, with the late close already extended and no fresh chase permission.
+  - best opportunity: `US30` long on the early defended continuation into `49955.45-50000.90`; secondary opportunity was `XAUUSD` long from `4590.74` into `4646.73 / 4660.27`
+  - biggest trap: chasing either symbol after the first liquidity objective was already paid, especially buying `US30` after `PDH / 50000.90` was spent or forcing fresh longs in gold after the squeeze already ran into `4660.27`
+  - symbol cleaner today: `FOREXCOM:US30`
+  - symbol that should have been avoided late: `PEPPERSTONE:XAUUSD`
+- Strategy learning:
+  - today rewarded defended continuation early and patience later; the edge came from the defense shelf and the retest logic, not from chasing the extension candle
+  - `Daily + 4H` stayed useful for direction, but only after updating the active control shelf honestly; `4610.34` in gold and `49723.95` in `US30` stopped telling the truth once price accepted through them
+  - `5m` helped when it stayed tied to `30m / 15m` structure and close to price; once the pair finished structurally behind the tape, it became stale context, not fresh execution permission
+  - main lesson for tomorrow: if the session already paid liquidity and the preserved `5m` pair no longer brackets price, the next trade belongs to the fresh retest or the fresh reassessment, not to stubborn preservation and not to chase
+- Multi-day intelligence:
+  - recent close reviews keep reinforcing the same filter: symbol quality is structural, not emotional. The cleaner chart is the one with the clearer defended shelf or cleaner failed retest, not simply the one that moved more
+  - `XAUUSD` keeps trading cleaner on bearish days when the active `4H` cap stays intact and reclaim attempts fail quickly. When gold first accepts through the cap and only later rolls over, it turns more tactical and less forgiving
+  - `US30` has recently been cleaner when it offers an obvious defense shelf. It can reward continuation first and still produce a useful failure read later, but only if the workflow stops chasing once buy-side liquidity is already paid
+  - the last real end-of-day closes now show a repeated pattern: `PDH` or obvious buy-side sweeps can extend cleanly, but the moment the defended shelf fails, the continuation story is over and the next edge must reset to `WAIT FOR NEW RETEST`
+- Higher-timeframe thesis at the close:
+  - `PEPPERSTONE:XAUUSD`: `Daily` remains bearish below `4730.08`; `4H` remains bearish below the shifted `4660.27` cap while `4560.08` stays as the structural support
+  - `FOREXCOM:US30`: the broader `Daily` context still sits above `48465.90`, but the intraday bullish continuation failed; `49723.95` now acts as the active `4H` cap and the close below `49565.90` weakens the long-defense side into tomorrow
+- Structure bridge and setup quality at the close:
+  - `XAUUSD`: `30m` is still sitting inside the preserved `4628.82-4586.52` demand, but `15m` still caps with fresh supply at `4624.61-4630.79`; the immediate tape is compressed and mixed
+  - `US30`: `30m` and `15m` both finished with fresh bearish supply overhead, and `5m` kept printing `LH/LL`; the short-side story is cleaner, but the close is already away from the ideal retest shelf
+- Liquidity and execution-readiness check:
+  - `XAUUSD`: key level being tested now is the reclaimed `4613.60` defense; nearest buy-side liquidity is `4617.39`, then `4624.61-4630.79`, and the cleaner sweep cap stays `4634.94`; nearest sell-side liquidity is `4613.60`, then `4610.15 / 4606.83`
+  - `FOREXCOM:US30`: key level being tested now is the underside of `49478.40-49497.40` after losing `49565.90`; nearest buy-side liquidity is `49478.40`, then `49604.90-49628.90`; nearest sell-side liquidity is the fresh low at `49429.90`
+- Opportunity timing state:
+  - `PEPPERSTONE:XAUUSD` overall opportunity: `WAIT / NO CLEAR EDGE`
+  - `PEPPERSTONE:XAUUSD` long side: `ARMED / 4613.60 DEFENSE HOLDS, BUT 4617.39 AND THEN 4624.61-4628.82 STILL NEED ACCEPTANCE`
+  - `PEPPERSTONE:XAUUSD` short side: `PRE-TRIGGER / WAIT FOR 4634.94 SWEEP-REJECTION`
+  - `FOREXCOM:US30` overall opportunity: `EXPIRED / WAIT FOR NEW RETEST`
+  - `FOREXCOM:US30` long side: `INVALIDATED FOR THE CLOSE / 49565.90 FAILED`
+  - `FOREXCOM:US30` short side: `TRIGGERED EARLIER / DO NOT CHASE THE CLOSE BREAKDOWN`
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - remained `ACTIVE`: `5M EXECUTION SHORT 4634.94`, `5M EXECUTION LONG 4613.60`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+  - `FOREXCOM:US30`
+    - remained `ACTIVE`: none
+    - became `STALE` at the close: `5M EXECUTION SHORT 49685.40`
+    - became `INVALIDATED` at the close: `5M EXECUTION LONG 49590.40`
+    - replacement status: review-only workflow preserved desired state, but tomorrow should not treat the current `US30` pair as a fresh operational map without reassessment
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` plus the freshness rules to separate the valid morning continuation from the late-session chase trap
+- Articuno reinforcement:
+  - `XAUUSD`: liquidity precision kept `4613.60` as the real defense and `4634.94` as the clean rejection cap, which prevented treating the midpoint bounce as a fresh trend entry
+  - `FOREXCOM:US30`: anti-chase discipline mattered more than conviction; once the close sat well below `49565.90`, the correct read became `WAIT FOR NEW RETEST`, not late short aggression into already-paid downside
+- Chart actions:
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` untouched because `End-of-Day Review` remains review-only
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` untouched because `End-of-Day Review` remains review-only
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: preserved
+  - `FOREXCOM:US30`: preserved
+  - `refresh_reason`: not applicable in this review-only workflow
+- Labels repositioned:
+  - none, because desired state was not mutated in this workflow
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: none
+- Trader-facing report:
+  - `Historia:` la historia del cierre es que `US30` fue el chart mas limpio del dia: defendio la continuation long de la apertura, pago buy-side hasta `49955.45-50000.90`, y despues perdio `49723.95` hasta cerrar pesado cerca de `49429.90-49453.40`. Oro tambien corrio desde `4590.74` hasta `4660.27`, pero ese squeeze no sostuvo y termino otra vez comprimido entre `4613.60` y la oferta `4624.61-4634.94`.
+  - `Tesis:` eso deja una lectura clara. En `US30` el bias de apertura funciono, pero el cierre ya no valida chase; el mapa bueno para manana vuelve a ser retest short mientras `49723.95` siga actuando como cap. En `XAUUSD` el sesgo diario bajista sigue vivo, pero la ejecucion quedo mixta; `4613.60` sigue siendo defensa tactica y `4634.94` sigue siendo el cap limpio, sin edge fresco en medio.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4660.27 / 4560.08 | 5m 4634.94 / 4613.60` ; `US30 -> Daily 49848.45 / 48465.90 | 4H 49723.95 / 49565.90 | 5m 49685.40 / 49590.40`
+  - `Accion:` `CIERRE DE REVISION`. Lo que funciono fue comprar defensa temprano o vender el failure despues del quiebre real; lo que fallo fue perseguir la extension cuando la liquidez ya estaba pagada. Para manana: `US30` sigue siendo el mapa mas limpio, pero solo con retest; en oro no quiero forzar nada mientras siga atrapado debajo de `4624.61-4634.94`.
+- Spanish thread update: cierre mixto. `US30` fue el chart mas limpio porque la continuation long si trabajo temprano y el failure bajo `49723.95` tambien quedo claro; oro termino mas sucio otra vez dentro de `4613.60 / 4634.94`. La leccion para manana es no chasear despues de pagar liquidez y exigir retest fresco si el `5m` ya quedo detras del precio.
+- Discord summary written to payload:
+  - `[END-OF-DAY REVIEW]`
+  - `Historia`
+  - `US30 fue el chart mas limpio del dia: defendio la continuation long de la apertura, pago buy-side hasta 49955.45-50000.90 y despues perdio 49723.95 hasta cerrar pesado cerca de 49429.90-49453.40. Oro tambien corrio desde 4590.74 hasta 4660.27, pero ese squeeze no sostuvo y termino otra vez comprimido entre 4613.60 y la oferta 4624.61-4634.94.`
+  - `Tesis`
+  - `La lectura correcta hoy fue continuation temprano y paciencia despues. En US30 el bias de apertura funciono, pero el cierre ya no valida chase; el mapa bueno para manana vuelve a ser retest short mientras 49723.95 siga actuando como cap. En XAUUSD el sesgo diario bajista sigue vivo, pero la ejecucion quedo mixta; 4613.60 sigue siendo defensa tactica y 4634.94 sigue siendo el cap limpio.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4660.27 / 4560.08 | 5m 4634.94 / 4613.60`
+  - `US30 -> Daily 49848.45 / 48465.90 | 4H 49723.95 / 49565.90 | 5m 49685.40 / 49590.40`
+  - `Accion`
+  - `CIERRE DE REVISION. Lo que funciono fue comprar defensa temprano y no chasear despues de pagar liquidez. Para manana: US30 sigue siendo el mapa mas limpio, pero solo con retest; en oro no quiero forzar nada mientras siga atrapado debajo de 4624.61-4634.94.`
+
+- 2026-05-01 | automation: End-of-Day Review | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / REVIEW-ONLY / DESIRED STATE PRESERVED`; `US30` was the cleaner tape overall because the morning bullish continuation into `49955.45-50000.90` worked and the later failure below `49723.95` also stayed structurally cleaner than `XAUUSD`, while gold squeezed from `4590.74` into `4660.27` but closed back inside the preserved `4613.60 / 4634.94` bracket under fresh `15m` supply | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4660.27 / 4560.08`, `5m 4634.94 / 4613.60`; US30 `Daily 49848.45 / 48465.90`, `4H 49723.95 / 49565.90`, `5m 49685.40 / 49590.40` | action state: `REVIEW-ONLY / US30 CLEANER / XAUUSD WAIT / NO CLEAR EDGE / US30 CLOSE BREAKDOWN ALREADY EXTENDED SO WAIT FOR NEW RETEST` | main lesson: today rewarded defended continuation early and punished late chasing after liquidity was already paid; when a `4H` control shelf fails and the preserved `5m` pair finishes behind price, carry the thesis only through a fresh retest, not through stubborn preservation.
+
+### NY Open Levels - Recovery Redraw Resets Both Maps On 2026-05-05
+
+- Run time: `2026-05-05T05:39:23.6706684-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = true`
+  - `recovery_pending = true`
+  - `recovery_gate_status = ready`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-05-05T05:32:09-06:00`
+  - fresh structured reads used for the New York baseline:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-05T05:38:18-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-05T05:37:29-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / RECOVERY-DRIVEN NY BASELINE / FULL REASSESS + REDRAW`
+  - both symbols were valid again after the stall, so the old execution maps were not treated as a fresh operational baseline
+  - both desired-state maps were fully refreshed with `refresh_reason = stall_recovery`
+  - `XAUUSD` is the cleaner chart for the open because `Daily + 4H` remain aligned bearish while the bounce is already stalling under the nearest buy-side shelf
+- Higher-timeframe bias:
+  - `XAUUSD`: Daily `BEARISH BELOW 4730.08`, `4H` `BEARISH BELOW 4583.31`, alignment `YES`, strength `MODERATE`, preferred side `SHORTS ON REJECTION`
+  - `US30`: Daily `CORRECTIVE ABOVE 48465.90`, `4H` `CORRECTIVE BELOW 49429.90`, alignment `PARTIAL / MIXED`, strength `WEAK-MODERATE`, preferred side `PATIENCE / FADE THE BOUNCE`
+- Intermediate structure:
+  - `XAUUSD`: `30m` and `15m` are rebounding from `4548.24` demand, but `5m` is now testing `4558.20-4560.68`; unless that new top shelf actually accepts, the tape still leans tactically bearish
+  - `US30`: `30m` and `15m` are lifting from `49027.45-49065.40` demand into `49114.95` supply, but the move still reads corrective inside a broader `4H` pullback rather than clean continuation
+- Liquidity map:
+  - `XAUUSD`: nearest buy-side liquidity is `4558.20-4560.68`; nearest sell-side liquidity is `4552.70`, then `4548.24`; the market is pressing buy-side first, but the fade still holds unless this latest top shelf accepts
+  - `US30`: nearest buy-side liquidity is `49114.95-49117.95`; nearest sell-side liquidity is `49082.45`, then `49065.40`; the rebound is targeting the top of the opening bracket first, but it still needs real acceptance to stop being just a bounce
+- Key structure:
+  - `XAUUSD`: the prior `4H` defense at `4560.08` is no longer the active intraday support shelf; the cleaner open bracket is now `4560.68 / 4548.24` inside a still-bearish `4H` damage range
+  - `US30`: the larger corrective failure from `50000.90` still dominates, and the open is now testing fresh intraday supply under the newer `4H` cap `49429.90`
+- Opportunity timing state:
+  - `PEPPERSTONE:XAUUSD` overall opportunity: `ARMED`
+  - `PEPPERSTONE:XAUUSD` short side: `ARMED / 4560.68 REJECTION IS THE LIVE TRIGGER`
+  - `PEPPERSTONE:XAUUSD` long side: `PRE-TRIGGER / 4548.24 MUST HOLD AND 4552.70-4558.20 MUST RECLAIM`
+  - `FOREXCOM:US30` overall opportunity: `ARMED`
+  - `FOREXCOM:US30` short side: `ARMED / 49114.95 REJECTION IS THE LIVE TRIGGER`
+  - `FOREXCOM:US30` long side: `PRE-TRIGGER / 49065.40 MUST HOLD AND 49082.45-49100.95 MUST ACCEPT`
+- Setup invalidation:
+  - `XAUUSD`: clean acceptance above `4560.68` weakens the immediate short fade; losing `4548.24` reopens the path back toward `4500.57 / 4510.31`
+  - `US30`: clean acceptance above `49114.95` weakens the fade; losing `49065.40` reopens the path toward `49027.45` and then `48897.90`
+- Trading decision:
+  - `PEPPERSTONE:XAUUSD`: `WAIT / ARMED / SHORT BIAS ONLY ON 4560.68 REJECTION / LONGS ONLY IF 4548.24 HOLDS AND 4552.70-4558.20 RECLAIMS`
+  - `FOREXCOM:US30`: `WAIT / ARMED / SHORT BIAS ONLY ON 49114.95 REJECTION / LONGS ONLY IF 49065.40 HOLDS AND 49082.45-49100.95 ACCEPTS`
+  - cleaner symbol now: `PEPPERSTONE:XAUUSD`
+  - symbol to avoid forcing: `FOREXCOM:US30`
+  - biggest trap right now: buying either rebound before the upper shelf actually accepts
+- 3-line conclusion in Spanish:
+  - `Oro llega a NY con el sesgo mas claro: el rebote existe, pero por ahora sigue chocando justo donde quiero ver rechazo, no chase.`
+  - `US30 tambien rebota, pero todavia lo leo como bounce correctivo debajo de oferta fresca; si no acepta arriba, sigue siendo mas fade que continuation.`
+  - `La apertura es paciencia con niveles claros: XAUUSD queda mas limpio que US30, y en ambos necesito confirmacion en shelf, no adivinanza en medio.`
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to avoid treating the first opening bounce in either symbol as automatic execution and to keep the timing honest after the recovery-driven redraw
+- Articuno reinforcement:
+  - `XAUUSD`: liquidity precision and anti-chase discipline keep `4560.68` as the clean rejection cap and block promoting the rebound before real acceptance prints
+  - `FOREXCOM:US30`: trigger-quality and psychology filters keep the tape in patience because the rebound is still attacking fresh supply and the broader `4H` correction has not been repaired
+- Chart actions:
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` with `Daily 4730.08 / 4510.31`, `4H 4583.31 / 4500.57`, `5m 4560.68 / 4548.24`
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` with `Daily 49848.45 / 48465.90`, `4H 49429.90 / 48897.90`, `5m 49114.95 / 49065.40`
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `recovery-driven`
+  - `FOREXCOM:US30`: `recovery-driven`
+  - `refresh_reason`: `stall_recovery`
+  - latest runtime check after the redraw: `workflow_stalled = false`, `recovery_pending = false`, `recovery_gate_status = not_needed`
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION SHORT 4634.94`
+    - became `INVALIDATED`: `5M EXECUTION LONG 4613.60`
+    - new `ACTIVE`: `5M EXECUTION SHORT 4560.68`, `5M EXECUTION LONG 4548.24`
+  - `FOREXCOM:US30`
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION SHORT 49685.40`
+    - became `INVALIDATED`: `5M EXECUTION LONG 49590.40`
+    - new `ACTIVE`: `5M EXECUTION SHORT 49114.95`, `5M EXECUTION LONG 49065.40`
+- Labels repositioned:
+  - full symbol redraw requested on both symbols so the preserved `Daily / 4H` pair and the refreshed `5m` pair finish with one clean right-side label per owned level
+- Levels recolored / removed / replaced:
+  - recolored: none; semantic palette preserved
+  - removed / replaced: both prior `5m` pairs were replaced during the recovery redraw, and both `4H` pairs shifted to the current control shelves
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que oro abre rebotando dentro de dano bajista y ya se vuelve a frenar en `4560.68`, mientras `US30` rebota desde `49027.45-49065.40` pero sigue metido debajo de oferta fresca en `49114.95`.
+  - `Tesis:` eso favorece paciencia con sesgo short, y el chart mas limpio ahora mismo es `XAUUSD`. Oro tiene `Daily + 4H` mas alineados para fade; en `US30` el rebote existe, pero todavia luce mas correctivo que continuation limpia.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4583.31 / 4500.57 | 5m 4560.68 / 4548.24` ; `US30 -> Daily 49848.45 / 48465.90 | 4H 49429.90 / 48897.90 | 5m 49114.95 / 49065.40`
+  - `Accion:` `RECOVERY REDRAW / STALL_RECOVERY`. Oro: short solo si `4560.68` rechaza; long solo si `4548.24` sostiene y `4552.70-4558.20` reacepta. `US30`: short solo si `49114.95` rechaza; long solo si `49065.40` sostiene y `49082.45-49100.95` acepta. Apertura = `WAIT / NO CHASE`.
+- Spanish thread update: los dos symbols ya quedaron re-evaluados con data estructurada valida y mapa nuevo. `XAUUSD` abre mas limpio porque el rebote sigue frenando justo bajo `4560.68`; `US30` tambien rebota, pero por ahora sigue mas correctivo. Niveles dibujados: oro `Daily 4730.08 / 4510.31`, `4H 4583.31 / 4500.57`, `5m 4560.68 / 4548.24`; `US30` `Daily 49848.45 / 48465.90`, `4H 49429.90 / 48897.90`, `5m 49114.95 / 49065.40`. El mejor chart para la apertura es oro, y la accion correcta en ambos sigue siendo esperar confirmacion, no chase.
+- Discord summary written to payload:
+  - `[NY OPEN LEVELS]`
+  - `Historia`
+  - `La historia ahora mismo es que oro abre rebotando dentro de dano bajista y ya se vuelve a frenar en 4560.68, mientras US30 rebota desde 49027.45-49065.40 pero sigue metido debajo de oferta fresca en 49114.95.`
+  - `Tesis`
+  - `Eso favorece paciencia con sesgo short, y el chart mas limpio ahora mismo es XAUUSD. Oro tiene Daily + 4H mas alineados para fade; en US30 el rebote existe, pero todavia luce mas correctivo que continuation limpia.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4583.31 / 4500.57 | 5m 4560.68 / 4548.24`
+  - `US30 -> Daily 49848.45 / 48465.90 | 4H 49429.90 / 48897.90 | 5m 49114.95 / 49065.40`
+  - `Accion`
+  - `RECOVERY REDRAW / STALL_RECOVERY. Oro: short solo si 4560.68 rechaza; long solo si 4548.24 sostiene y 4552.70-4558.20 reacepta. US30: short solo si 49114.95 rechaza; long solo si 49065.40 sostiene y 49082.45-49100.95 acepta. Apertura = WAIT / NO CHASE.`
+
+- 2026-05-05 | automation: NY Open Levels | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / RECOVERY-DRIVEN NY BASELINE / FULL REASSESS + REDRAW`; `workflow_stalled` had been active, both symbols were valid again, and the dual-symbol recovery gate was `ready`, so both desired-state maps were rebuilt with `refresh_reason = stall_recovery` and then tightened once more to the latest opening shelves `4560.68` and `49114.95` before dispatch | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4583.31 / 4500.57`, `5m 4560.68 / 4548.24`; US30 `Daily 49848.45 / 48465.90`, `4H 49429.90 / 48897.90`, `5m 49114.95 / 49065.40` | action state: `XAUUSD CLEANER / WAIT / ARMED SHORT ONLY ON 4560.68 REJECTION OR LONG ONLY IF 4548.24 HOLDS AND 4552.70-4558.20 RECLAIMS`, `US30 WAIT / ARMED SHORT ONLY ON 49114.95 REJECTION OR LONG ONLY IF 49065.40 HOLDS AND 49082.45-49100.95 ACCEPTS` | main lesson: once a stalled New York workflow gets both symbols back in `FULL_DATA`, force the full reassess immediately; preserve the strategy, but rebuild the entire `5m` map around the nearest live shelves instead of carrying distant execution levels forward.
+
+### Post Open Validation - Open Long Branches Fired First, Now Wait For Fresh Retests On 2026-05-05
+
+- Run time: `2026-05-05T06:51:06.0094207-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-05-05T06:47:29-06:00`
+  - fresh structured reads used for the validation:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-05T06:48:54-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-05T06:48:19-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / VALIDATION REVIEW / 5M REFRESH ON BOTH SYMBOLS`
+  - the New York open rejected the first fade branch in both symbols by holding the long-defense side of the baseline before the first pullback
+  - both original `5m` pairs were already behind the active post-open tape, so both desired-state maps were refreshed with `refresh_reason = 5m_far_from_price` while preserving the `Daily / 4H` layer
+  - `XAUUSD` remains the cleaner chart after the open because the higher-timeframe bearish map is still intact and the failed-breakout shelf is clearer than the mixed corrective bounce in `US30`
+- XAUUSD result: `WEAKENED PRE-MARKET THESIS`
+- US30 result: `PARTIALLY REJECTED PRE-MARKET THESIS`
+- Open validation:
+  - `XAUUSD`: the open weakened the immediate bearish fade by defending `4548.24` and accepting above `4560.68`, but the first breakout already failed back under the fresh `15m` cap `4566.13`; the move is now a failed-breakout / retest sequence, not clean continuation.
+  - `US30`: the open rejected the immediate fade more clearly by holding `49065.40`, accepting above `49114.95`, and running to `49188.95`; the pullback is orderly, but the first long trigger is already spent, so the tape shifts into post-breakout patience rather than fresh chase.
+- Structure and execution:
+  - `XAUUSD`: `30m` and `15m` both show that the defended long branch already happened, but the latest tape failed back under `4564.98-4566.13`; `5m` is now reacting after taking near buy-side liquidity, so a fresh short only improves on another rejection of `4566.13` or a higher sweep into `4574.69`, while a fresh long only exists if `4554.15` defends and price reclaims `4564.98`.
+  - `US30`: `30m` is holding a fresh `49110.45-49190.95` demand shelf and `15m` still prints `HH/HL`, so the open did build a bullish correction first; `5m` is now reacting after the first breakout into `49188.95`, which means the clean long already triggered earlier and the next decision is either a new defense at `49110.45` or a fresh sweep-rejection from `49188.95`.
+- Opportunity timing state:
+  - `PEPPERSTONE:XAUUSD` overall opportunity: `WAIT`
+  - `PEPPERSTONE:XAUUSD` long side: `TRIGGERED EARLIER / DO NOT CHASE`
+  - `PEPPERSTONE:XAUUSD` short side: `ARMED / 4566.13 REJECTION OR 4574.69 SWEEP-FAILURE IS THE NEXT LIVE TRIGGER`
+  - `FOREXCOM:US30` overall opportunity: `WAIT`
+  - `FOREXCOM:US30` long side: `TRIGGERED EARLIER / DO NOT CHASE`
+  - `FOREXCOM:US30` short side: `PRE-TRIGGER / WAIT FOR 49188.95 SWEEP-REJECTION`
+- Level interaction:
+  - `XAUUSD`: `5M EXECUTION LONG 4548.24` did its job and is no longer the nearest live defense; `5M EXECUTION SHORT 4560.68` was accepted through during the open and cannot stay the active cap; nearest buy-side `4564.98` was already tested and failed, while `PDL 4500.57` remains untouched.
+  - `US30`: `5M EXECUTION LONG 49065.40` validated the open but now sits below the live defense shelf; `5M EXECUTION SHORT 49114.95` was accepted through during the breakout and is no longer the active cap; the session high `49188.95` rejected cleanly while `PDH 49673.90` remains untouched.
+- Trading decision:
+  - `PEPPERSTONE:XAUUSD`: `WAIT / NO CHASE / SHORT BIAS ONLY ON 4566.13 REJECTION OR 4574.69 SWEEP-FAILURE / LONGS ONLY ON FRESH 4554.15 DEFENSE + 4564.98 RECLAIM`
+  - `FOREXCOM:US30`: `WAIT / NO CHASE / LONG TRIGGER ALREADY RAN / LONGS ONLY IF 49110.45 HOLDS AND 49150.45 RECLAIMS / SHORTS ONLY ON 49188.95 SWEEP-REJECTION`
+  - cleaner symbol now: `PEPPERSTONE:XAUUSD`
+  - symbol to avoid forcing: `FOREXCOM:US30`
+  - biggest trap right now: treating the first open long expansion in either symbol as if it were still a fresh entry after the trigger already fired
+- 3-line conclusion in Spanish:
+  - `Oro si defendio la rama larga del open primero, pero el breakout ya fallo debajo de 4566.13 y ahora solo me interesa un retest limpio, no chase en medio.`
+  - `US30 tambien corrio la rama larga del baseline, pero el mejor tramo ya se dio hacia 49188.95; si estas flat, ahora toca paciencia y no persecucion.`
+  - `El chart mas limpio sigue siendo XAUUSD por alineacion HTF, pero en ambos la accion correcta es WAIT hasta que aparezca un retest nuevo y claro.`
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to separate the first open continuation from the only fresh post-open retests that still matter now
+- Articuno reinforcement:
+  - `XAUUSD`: liquidity precision moved the active short shelf up to `4566.13` and the live defense to `4554.15` once the original pair was used, while anti-chase discipline blocked treating the first reclaim as a fresh entry after the breakout failed
+  - `FOREXCOM:US30`: reinforcement kept `49188.95` as the meaningful sweep-rejection cap and `49110.45` as the real defense shelf, while psychology blocked promoting the current `49144.95` midrange tape as a fresh trade
+- Chart actions:
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` with preserved `Daily 4730.08 / 4510.31`, preserved `4H 4583.31 / 4500.57`, and refreshed `5m 4566.13 / 4554.15`
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` with preserved `Daily 49848.45 / 48465.90`, preserved `4H 49429.90 / 48897.90`, and refreshed `5m 49188.95 / 49110.45`
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `refreshed`
+  - `FOREXCOM:US30`: `refreshed`
+  - `refresh_reason`: `5m_far_from_price`
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION LONG 4548.24`
+    - became `INVALIDATED`: `5M EXECUTION SHORT 4560.68`
+    - new `ACTIVE`: `5M EXECUTION SHORT 4566.13`, `5M EXECUTION LONG 4554.15`
+  - `FOREXCOM:US30`
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION LONG 49065.40`
+    - became `INVALIDATED`: `5M EXECUTION SHORT 49114.95`
+    - new `ACTIVE`: `5M EXECUTION SHORT 49188.95`, `5M EXECUTION LONG 49110.45`
+- Labels repositioned:
+  - requested a full desired-state redraw for both symbols so the preserved `Daily / 4H` pair and the refreshed `5m` pair finish with one clean right-side label per owned level
+- Levels recolored / removed / replaced:
+  - recolored: none; semantic palette preserved
+  - removed / replaced: both prior `5m` pairs were replaced because the first open continuation already moved the live decision shelves higher
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que ambos charts primero validaron la rama larga del baseline, pero ya no estan en esa entrada fresca. Oro defendio `4548.24`, acepto sobre `4560.68` y luego fallo debajo de `4566.13-4574.69`; `US30` sostuvo `49065.40`, rompio `49114.95` y ya dejo rechazo desde `49188.95`.
+  - `Tesis:` eso debilita el fade inicial del open y obliga a leer esto como post-breakout, no como chase. `XAUUSD` sigue siendo el chart mas limpio porque el HTF bajista sigue vivo y el failed breakout deja mejor shelf para retest; en `US30` el primer long ya hizo el tramo bueno y ahora quiero paciencia.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4583.31 / 4500.57 | 5m 4566.13 / 4554.15` ; `US30 -> Daily 49848.45 / 48465.90 | 4H 49429.90 / 48897.90 | 5m 49188.95 / 49110.45`
+  - `Accion:` `WAIT`. `XAUUSD`: el long del open ya quedo `TRIGGERED`; nuevo short solo si `4566.13` rechaza otra vez o `4574.69` barre y falla. `US30`: el long del open ya trabajo; si estas flat, `DO NOT CHASE` y solo vale un retest nuevo sobre `49110.45` o un sweep-rejection en `49188.95`.
+- Spanish thread update: el open valido primero la rama larga en ambos symbols, asi que el fade inicial del baseline ya no era la entrada limpia. Ahora `XAUUSD` queda mas claro porque el breakout ya fallo debajo de `4566.13`, mientras `US30` ya gasto el primer long hacia `49188.95`. La accion correcta en los dos sigue siendo `WAIT`, no chase.
+- Discord summary written to payload:
+  - `[POST OPEN VALIDATION]`
+  - `Historia`
+  - `Oro defendio 4548.24, acepto sobre 4560.68 y luego fallo el primer breakout debajo de 4566.13-4574.69. US30 tambien sostuvo 49065.40, rompio 49114.95 y ya dejo rechazo desde 49188.95.`
+  - `Tesis`
+  - `Eso debilita el fade inicial del baseline y deja el open en modo post-breakout, no en entrada fresca. XAUUSD sigue siendo el chart mas limpio por alineacion HTF, pero en ambos el primer long ya paso y ahora manda el retest nuevo.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4583.31 / 4500.57 | 5m 4566.13 / 4554.15`
+  - `US30 -> Daily 49848.45 / 48465.90 | 4H 49429.90 / 48897.90 | 5m 49188.95 / 49110.45`
+  - `Accion`
+  - `WAIT. XAUUSD: el long del open ya quedo TRIGGERED; nuevo short solo si 4566.13 rechaza otra vez o 4574.69 barre y falla. US30: el long del open ya trabajo; si estas flat, DO NOT CHASE y solo vale un retest nuevo sobre 49110.45 o un sweep-rejection en 49188.95.`
+
+- 2026-05-05 | automation: Post Open Validation | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / VALIDATION REVIEW / BOTH 5M PAIRS REFRESHED`; both symbols fired the long-defense branch of the NY baseline first, which weakened the original fade read and pushed the old `5m` pairs behind price, so both desired-state maps were refreshed with `refresh_reason = 5m_far_from_price` while the `Daily / 4H` map stayed preserved | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4583.31 / 4500.57`, `5m 4566.13 / 4554.15`; US30 `Daily 49848.45 / 48465.90`, `4H 49429.90 / 48897.90`, `5m 49188.95 / 49110.45` | action state: `XAUUSD CLEANER / WAIT / LONG TRIGGERED EARLIER / SHORT SIDE ARMED ON 4566.13 REJECTION`, `US30 WAIT / LONG TRIGGERED EARLIER / DO NOT CHASE / WAIT FOR NEW RETEST OR 49188.95 SWEEP-REJECTION` | main lesson: when the open validates the alternative branch first, do not keep the original `5m` pair alive out of habit; raise the execution bracket to the new post-open shelves and force the action state back to patience.
+
+### Active Setup Detector - XAU Refreshed, US30 Preserved On 2026-05-05
+
+- Run time: `2026-05-05T07:07:53.7500810-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-05-05T07:05:29-06:00`
+  - fresh structured reads used for the detector:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-05T07:05:54-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-05T07:05:17-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / ACTIVE SETUP REVIEW / XAU 5M REFRESH / US30 PRESERVED`
+  - `XAUUSD` materially moved on from the post-open map because `4566.13` was accepted through, the pullback defended `4561.59`, and price swept `4574.69`, so the old `5m` pair no longer described the nearest live shelves
+  - `FOREXCOM:US30` did not justify a redraw because `49188.95` still holds as the clean sweep-rejection cap and `49110.45` still anchors the live 30m demand shelf under the post-open range
+  - `XAUUSD` remains the cleaner chart because it is pressing a real decision area into `4H SUPPLY 4583.31`, while `US30` is still trading more like a midrange post-open continuation without a fresh edge
+- XAUUSD result: `POST-OPEN LONG CONTINUATION IS CONFIRMING / OLD SHORT SHELF FAILED`
+- US30 result: `POST-OPEN BULLISH CORRECTION STILL LIVE / NO NEW CLEAN TRIGGER`
+- Setup status:
+  - `PEPPERSTONE:XAUUSD`: `WAIT`
+  - `FOREXCOM:US30`: `WAIT`
+- Key level being tested now:
+  - `XAUUSD`: `4574.69-4576.31` buy-side liquidity / sweep zone just under `4H SUPPLY 4583.31`
+  - `US30`: the reclaim area around `49150.45` inside the preserved `49110.45-49188.95` post-open bracket
+- Prior directional idea check:
+  - `XAUUSD`: the prior short idea at `4566.13` is failing because price accepted through it and extended above the prior session high, but the broader bearish HTF thesis is still intact below `4583.31`
+  - `US30`: the prior post-open idea is still the same; the first long branch already ran, and price is still confirming that correction without creating a cleaner fresh trigger
+- Structure and execution:
+  - `XAUUSD`: `30m` and `15m` now show a defended pullback from `4561.59` back through the opening-range high and into a fresh sweep of `4574.69`; `5m` remains `HH/HL`, so the long side is already `TRIGGERED` and the next clean decision is only a failure at `4576.31` or a fresh defense again at `4561.59`
+  - `US30`: `30m` still holds the fresh `49110.45-49190.95` demand shelf and `15m` stays `HH/HL`; `5m` reclaimed `49150+`, but that move is already underway and still sits inside the same preserved bracket, so patience remains cleaner than a redraw
+- Liquidity map:
+  - `XAUUSD`: nearest sell-side liquidity is `4561.59`; the market already swept the nearest buy-side shelf by printing `4576.31`, so the live question is whether that sweep fails under `4583.31` or keeps accepting higher
+  - `US30`: nearest buy-side liquidity remains around `49188.95-49190.95`; nearest sell-side liquidity is `49125.95`, and the market is still reacting inside that same post-open range rather than breaking into a new shelf
+- Opportunity timing state:
+  - `PEPPERSTONE:XAUUSD` overall opportunity: `WAIT`
+  - `PEPPERSTONE:XAUUSD` long side: `TRIGGERED / DO NOT CHASE`
+  - `PEPPERSTONE:XAUUSD` short side: `PRE-TRIGGER / WAIT FOR 4576.31 FAILURE OR 4583.31 REJECTION`
+  - `FOREXCOM:US30` overall opportunity: `WAIT`
+  - `FOREXCOM:US30` long side: `TRIGGERED / DO NOT CHASE`
+  - `FOREXCOM:US30` short side: `PRE-TRIGGER / WAIT FOR 49188.95 SWEEP-REJECTION`
+- Missing confirmation / invalidation:
+  - `XAUUSD`: a short still needs a real sweep-failure or rejection; without that, pressing inside `4576.31-4583.31` is not a fresh fade. The refreshed long shelf at `4561.59` fails if price accepts back below it.
+  - `US30`: a fresh long still needs a new pullback that holds the preserved demand shelf, and a fresh short still needs a proper rejection from `49188.95`. If price breaks and accepts below `49110.45`, the preserved long-defense map fails.
+- Trading decision:
+  - `PEPPERSTONE:XAUUSD`: `WAIT / NO CHASE / LONG TRIGGER ALREADY RAN / SHORTS ONLY ON 4576.31 FAILURE OR 4583.31 REJECTION / LONGS ONLY IF 4561.59 HOLDS AGAIN`
+  - `FOREXCOM:US30`: `WAIT / NO CHASE / LONG TRIGGER ALREADY RAN / LONGS ONLY ON A FRESH 49110.45-49125.95 DEFENSE / SHORTS ONLY ON 49188.95 SWEEP-REJECTION`
+  - cleaner symbol now: `PEPPERSTONE:XAUUSD`
+  - symbol to avoid forcing: `FOREXCOM:US30`
+  - biggest trap right now: fading `XAUUSD` only because it already feels extended without an actual failure signal, or chasing `US30` in the middle of the preserved bracket
+- Short execution-focused summary in Spanish:
+  - `Oro ya invalido el short viejo de 4566.13 y ahora esta barriendo 4574.69 hacia la cap 4H. Si estas flat, no quiero chase ni long ni short en medio; solo me interesa fallo real arriba o defensa nueva en 4561.59.`
+  - `US30 no esta roto, pero tampoco esta limpio. El primer long ya corrio y mientras siga entre 49110.45 y 49188.95, el trabajo es esperar el retest nuevo, no inventar entrada en medio.`
+- Transcript-derived refinement usage:
+  - used the promoted `indication -> correction -> continuation` filter and the anti-chase rule to avoid treating the already-running `XAUUSD` continuation or the midrange `US30` reclaim as fresh entries
+- Articuno reinforcement:
+  - `XAUUSD`: reinforcement removed the old `4566.13` cap because liquidity had already been reclaimed, promoted `4576.31` as the new sweep-failure shelf, and kept `4561.59` as the nearest real defense shelf
+  - `FOREXCOM:US30`: reinforcement favored preservation because the existing `49188.95 / 49110.45` bracket still matches the live liquidity map and no cleaner execution shelf replaced it yet
+- Chart actions:
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` with preserved `Daily 4730.08 / 4510.31`, preserved `4H 4583.31 / 4500.57`, and refreshed `5m 4576.31 / 4561.59`
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` untouched because the preserved `5m 49188.95 / 49110.45` pair remains `ACTIVE`
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `refreshed`
+  - `FOREXCOM:US30`: `preserved`
+  - `refresh_reason`: `5m_far_from_price` on `XAUUSD` only
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION LONG 4554.15`
+    - became `INVALIDATED`: `5M EXECUTION SHORT 4566.13`
+    - new `ACTIVE`: `5M EXECUTION SHORT 4576.31`, `5M EXECUTION LONG 4561.59`
+  - `FOREXCOM:US30`
+    - remained `ACTIVE`: `5M EXECUTION SHORT 49188.95`, `5M EXECUTION LONG 49110.45`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+- Labels repositioned:
+  - requested a full desired-state redraw for `XAUUSD` so the preserved `Daily / 4H` pair and the refreshed `5m` pair finish with one clean right-side label per owned level
+  - `US30` was preserved with no desired-state mutation this run
+- Levels recolored / removed / replaced:
+  - recolored: none; semantic palette preserved
+  - removed / replaced: `XAUUSD` replaced the prior `5m` pair because the old short shelf failed and the old long shelf fell behind the tape; `US30` preserved the current pair
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que oro ya acepto arriba de `4566.13`, defendio `4561.59` y ya esta barriendo `4574.69` rumbo a la cap `4H 4583.31`. `US30` tambien sostiene el rebote, pero sigue mas metido en la mitad del rango `49110.45-49188.95` que en una entrada nueva y limpia.
+  - `Tesis:` eso confirma que el short viejo de oro ya no sirve como mapa activo y obliga a subir el bracket a `4576.31 / 4561.59`. En `US30` no cambio la tesis: el primer long ya corrio, la estructura sigue `HH/HL`, pero todavia no me da una ubicacion nueva mejor que la que ya estaba preservada.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4583.31 / 4500.57 | 5m 4576.31 / 4561.59` ; `US30 -> Daily 49848.45 / 48465.90 | 4H 49429.90 / 48897.90 | 5m 49188.95 / 49110.45`
+  - `Accion:` `WAIT`. `XAUUSD`: el long ya quedo `TRIGGERED`; si estas flat, `DO NOT CHASE`. Nuevo short solo si `4576.31` falla o `4583.31` rechaza; nuevo long solo si `4561.59` vuelve a defender. `US30`: el chart sigue valido, pero menos limpio; long solo en retest nuevo de `49110.45-49125.95` y short solo en sweep-rejection de `49188.95`.
+- Spanish thread update: oro ya se movio por encima del short viejo y por eso el mapa activo sube a `4576.31 / 4561.59`; ahi esta el chart mas claro, pero sigue siendo `WAIT` porque el long ya corrio y el short todavia no confirma fallo. `US30` no cambio: el bracket `49188.95 / 49110.45` sigue vivo, pero el mejor tramo tambien ya paso, asi que la accion correcta en ambos sigue siendo paciencia, no chase.
+
+### Bias Integrity Check - Both Theses Hold, XAU Cleaner On 2026-05-05
+
+- Run time: `2026-05-05T07:24:40.4815597-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-05-05T07:21:07-06:00`
+  - fresh structured reads used for the integrity pass:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-05T07:21:32-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-05T07:21:59-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / BIAS INTACT / DESIRED STATE PRESERVED`
+  - neither symbol printed meaningful `30m / 15m` structural failure relative to the latest New York chain, so this was a bias check rather than a redraw trigger
+  - `PEPPERSTONE:XAUUSD` is now the cleaner chart because the sweep into `4H SUPPLY 4583.31` failed back under the cap, while `FOREXCOM:US30` is still rotating inside the same `49110.45 / 49188.95` post-open bracket
+- Bias verdict:
+  - `PEPPERSTONE:XAUUSD`: `BIAS INTACT`
+  - `FOREXCOM:US30`: `BIAS INTACT`
+- Which previously important level or structural condition is still holding:
+  - `XAUUSD`: `4H SUPPLY 4583.31` is still acting as the higher-timeframe cap after the `4584.70` sweep, and `4561.59` remains the nearest defended shelf under the post-open continuation
+  - `US30`: `49110.45` still anchors the live `30m` demand shelf, and `49188.95` continues to act as the clean sweep-rejection cap
+- Which important level or condition has failed, if any:
+  - `XAUUSD`: no fresh higher-timeframe failure printed in this pass; the new event was a sweep of `4584.70` that failed back under `4583.31`, which reinforces the cap instead of invalidating it
+  - `US30`: no meaningful structural failure printed; the market is only showing repeated rejection from `49188.95` without losing `49110.45`
+- Liquidity already taken or still untapped:
+  - `XAUUSD`: buy-side at `4574.69` and the session high `4584.70` has already been paid; the cleaner untouched downside shelf is still `4561.59`, and the larger higher-timeframe downside context remains `4H DEMAND 4500.57`
+  - `US30`: buy-side at `49188.95-49190.95` keeps getting raided but not accepted; sell-side at `49125.95` was tested, while the deeper live defense remains `49110.45`
+- Higher-timeframe thesis still usable:
+  - `XAUUSD`: `Yes`; Daily stays bearish below `4730.08` and the `4H` cap still did its job after the sweep
+  - `US30`: `Yes`; Daily remains corrective above `48465.90` and the post-open bullish correction is not structurally broken while `49110.45` holds
+- Same directional idea still deserves focus:
+  - `XAUUSD`: `Yes`, but only as shorts on a real `4576.31` failure after the `4584.70 / 4583.31` rejection; no chase in the middle
+  - `US30`: `Yes`, but only as long-defense if `49110.45-49125.95` defends again or as a reactive short on another `49188.95` sweep-rejection; the current middle is not a fresh long
+- Structural failure vs noise:
+  - `XAUUSD`: no higher-timeframe failure occurred; this is execution timing, not thesis damage
+  - `US30`: no meaningful `30m / 15m` failure occurred; the tape is mixed, but it is still inside the same preserved bracket rather than a new breakdown
+- Cleaner symbol now: `PEPPERSTONE:XAUUSD`
+- What to stop assuming if the thesis weakens:
+  - `XAUUSD`: stop assuming `4583.31` is still the active cap if price starts accepting above `4584.70` and then through the `30m` supply at `4591.35-4618.57`
+  - `US30`: stop assuming the bullish correction still has control if `49110.45` fails and price cannot reclaim `49125.95`
+- Opportunity timing state:
+  - `PEPPERSTONE:XAUUSD` overall opportunity: `WAIT`
+  - `PEPPERSTONE:XAUUSD` short side: `ARMED / 4583.31 rejection printed, but 4576.31 still needs to fail for the clean trigger`
+  - `PEPPERSTONE:XAUUSD` long side: `TRIGGERED EARLIER / DO NOT CHASE / ONLY REVISIT ON 4561.59 DEFENSE`
+  - `FOREXCOM:US30` overall opportunity: `WAIT`
+  - `FOREXCOM:US30` long side: `PRE-TRIGGER / 49110.45-49125.95 MUST DEFEND AGAIN`
+  - `FOREXCOM:US30` short side: `PRE-TRIGGER / 49188.95 STILL NEEDS A FRESH SWEEP-REJECTION, NOT MIDRANGE FADING`
+- Trading decision:
+  - `PEPPERSTONE:XAUUSD`: `WAIT / NO CHASE / SHORT BIAS ONLY ON 4576.31 FAILURE AFTER 4583.31 REJECTION / LONGS ONLY IF 4561.59 HOLDS AGAIN`
+  - `FOREXCOM:US30`: `WAIT / NO CHASE / LONG BIAS ONLY ON A FRESH 49110.45-49125.95 DEFENSE / SHORTS ONLY ON 49188.95 SWEEP-REJECTION`
+  - cleaner symbol now: `PEPPERSTONE:XAUUSD`
+  - symbol to avoid forcing: `FOREXCOM:US30`
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` and anti-chase discipline to keep both higher-timeframe theses intact while refusing to promote already-used reactions into fresh entries
+- Articuno reinforcement:
+  - `XAUUSD`: liquidity precision treated `4584.70` as paid buy-side and kept `4583.31 / 4576.31` as the real failure ladder instead of chasing the sweep
+  - `FOREXCOM:US30`: trigger-quality and psychology kept the existing bracket because `49188.95` still defines the rejection cap and `49110.45` still defines the defense shelf
+- Chart actions:
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` untouched because the preserved `5m` pair `4576.31 / 4561.59` still defines the nearest clean decision shelves
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` untouched because the preserved `5m` pair `49188.95 / 49110.45` still defines the live post-open bracket
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `preserved`
+  - `FOREXCOM:US30`: `preserved`
+  - `refresh_reason`: not applicable; no chart mutation was warranted in this bias-only preserve pass
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - remained `ACTIVE`: `5M EXECUTION SHORT 4576.31`, `5M EXECUTION LONG 4561.59`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+  - `FOREXCOM:US30`
+    - remained `ACTIVE`: `5M EXECUTION SHORT 49188.95`, `5M EXECUTION LONG 49110.45`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+- Labels repositioned:
+  - none; no desired-state mutation was required in this preserve pass
+- Levels recolored / removed / replaced:
+  - recolored: none; semantic palette preserved
+  - removed / replaced: none
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que oro ya barrió arriba de `4583.31` hasta `4584.70`, pero no consiguió aceptación y vuelve a quedar justo debajo de la cap `4H`. `US30` también volvió a tocar `49188.95`, pero sigue devolviendo dentro del mismo bracket post-open sin romper `49110.45`.
+  - `Tesis:` eso mantiene intacto el sesgo mayor en los dos, pero no con la misma limpieza. `XAUUSD` sigue siendo el chart más claro porque la cap `4H` sigue viva y el siguiente gatillo real es perder `4576.31`; en `US30` la corrección alcista no está rota, pero mientras `49188.95` siga frenando y `49110.45` no vuelva a defenderse de nuevo, no hay edge fresco.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4583.31 / 4500.57 | 5m 4576.31 / 4561.59` ; `US30 -> Daily 49848.45 / 48465.90 | 4H 49429.90 / 48897.90 | 5m 49188.95 / 49110.45`
+  - `Accion:` `WAIT`. `XAUUSD`: bias intacto, pero el short solo mejora si `4576.31` falla de verdad después del sweep en `4584.70`; si no, no quiero chase en medio. `US30`: bias intacto, pero el long solo vale con defensa nueva en `49110.45-49125.95` y el short solo si `49188.95` vuelve a barrer y rechazar. El foco limpio sigue siendo oro.
+- Spanish thread update: los dos sesgos siguen intactos con data estructurada valida, pero el chart mas limpio ahora es `XAUUSD` porque el sweep en `4584.70` no acepto arriba de la cap `4H 4583.31`. `US30` no esta roto, solo sigue atrapado en el mismo bracket `49110.45 / 49188.95`, asi que la accion correcta en ambos sigue siendo `WAIT / NO CHASE`.
+- Discord summary written to payload:
+  - `[BIAS INTEGRITY CHECK]`
+  - `Historia`
+  - `La historia ahora mismo es que oro ya barrio arriba de 4583.31 hasta 4584.70, pero no consiguio aceptacion y vuelve a quedar justo debajo de la cap 4H. US30 tambien volvio a tocar 49188.95, pero sigue devolviendo dentro del mismo bracket post-open sin romper 49110.45.`
+  - `Tesis`
+  - `Eso mantiene intacto el sesgo mayor en los dos, pero no con la misma limpieza. XAUUSD sigue siendo el chart mas claro porque la cap 4H sigue viva y el siguiente gatillo real es perder 4576.31; en US30 la correccion alcista no esta rota, pero mientras 49188.95 siga frenando y 49110.45 no vuelva a defenderse de nuevo, no hay edge fresco.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4583.31 / 4500.57 | 5m 4576.31 / 4561.59`
+  - `US30 -> Daily 49848.45 / 48465.90 | 4H 49429.90 / 48897.90 | 5m 49188.95 / 49110.45`
+  - `Accion`
+  - `WAIT. XAUUSD: bias intacto, pero el short solo mejora si 4576.31 falla de verdad despues del sweep en 4584.70; si no, no quiero chase en medio. US30: bias intacto, pero el long solo vale con defensa nueva en 49110.45-49125.95 y el short solo si 49188.95 vuelve a barrer y rechazar. El foco limpio sigue siendo oro.`
+
+- 2026-05-05 | automation: Bias Integrity Check | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / BIAS INTACT / DESIRED STATE PRESERVED`; both higher-timeframe theses stayed usable, `XAUUSD` held the `4H 4583.31` cap after a `4584.70` sweep, and `US30` stayed inside the preserved `49110.45 / 49188.95` bracket without a meaningful `30m / 15m` breakdown | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4583.31 / 4500.57`, `5m 4576.31 / 4561.59`; US30 `Daily 49848.45 / 48465.90`, `4H 49429.90 / 48897.90`, `5m 49188.95 / 49110.45` | action state: `XAUUSD WAIT / SHORT SIDE ARMED ONLY IF 4576.31 FAILS AFTER 4583.31 REJECTION`, `US30 WAIT / LONGS ONLY ON 49110.45-49125.95 DEFENSE OR SHORTS ONLY ON 49188.95 SWEEP-REJECTION` | main lesson: bias integrity is not a reason to redraw a late chart; when HTF still holds and the preserved `5m` pair still defines the nearest decision shelves, preserve the map and downgrade only execution freshness.
+
+### Asia Session Gold - XAUUSD Asia Baseline On 2026-05-05
+
+- Run time: `2026-05-05T16:34:47.2865146-06:00`
+- Symbol reviewed: `PEPPERSTONE:XAUUSD`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - fresh structured read used for the Asia baseline:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-05T16:32:46-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / ASIA SESSION GOLD / XAU 5M REFRESHED`
+  - `Daily` and `4H` stay aligned bearish below `4730.08` and `4583.31`
+  - the old NY `5m` pair `4576.31 / 4561.59` is now structurally far above live price and no longer defines Asia execution readiness, so a mandatory `5m_far_from_price` refresh was required
+  - higher timeframe structure did not materially change, so the `Daily / 4H` map was preserved and only the execution layer was refreshed
+- Higher-timeframe thesis:
+  - Daily bias: `BEARISH BELOW 4730.08`
+  - 4H bias: `BEARISH BELOW 4583.31` while `4500.57` remains the preserved support
+  - Alignment: `Yes`
+  - Bias strength: `Moderate`
+- Structure into Asia:
+  - `30m`: the tape accepted lower from `4558.23` into `4546.33`, so Asia opens after bearish expansion with price sitting on the floor rather than on a clean fresh continuation shelf
+  - `15m`: structure is noisy-to-mixed because the breakdown is real, but price is already pressing the low and still needs either a reclaim back above `4549.00` or a bounce into `4558.23` before a cleaner execution trigger exists
+  - current structure: `BREAKDOWN / TRANSITION`
+  - supply or demand being respected: near-term `15m` supply at `4558.23-4549.00` is being respected; downside liquidity at `4546.33` is being tested, but demand confirmation is not clean yet
+  - Asia condition: entering after bearish expansion, but at the edge of a local floor, so the honest read is `range / fade first` unless price cleanly accepts through one side
+- Liquidity and execution-readiness check:
+  - nearest buy-side liquidity: `4558.23`, then `4560.06`, then `4565.70`
+  - nearest sell-side liquidity: `4546.33`, then `PDL 4513.42`, then `4H DEMAND 4500.57`
+  - `PDH / PDL`: `4586.69 / 4513.42`
+  - `RANGE HIGH / RANGE LOW`: `4558.23 / 4546.33`
+  - `RSI 15m`: `22.58` as secondary context only; stretched, but not a trade signal by itself
+- What must happen during Asia:
+  - valid long: `4546.33` must hold or sweep and reclaim, then price must reaccept above `4549.00` and start opening room back toward `4551.13` and `4558.23`
+  - valid short: the bounce must retest or sweep `4558.23` and fail back under it; selling the middle before that is late
+  - should Asia wait for a liquidity sweep before any `5m` trigger: `Yes`. Do not short the floor into `4546.33`, and do not long blindly just because RSI is stretched.
+  - conditions favor right now: `FADE / RANGE FIRST`; breakout only becomes cleaner after real `15m` acceptance below `4546.33` or a reclaim back above `4558.23`
+  - what invalidates both sides right now: dead chop between `4546.33` and `4558.23` keeps both sides low quality; structurally, shorts degrade on clean `15m` acceptance above `4558.23`, while longs degrade if `4546.33` breaks and price still cannot recover `4549.00`
+  - what not to do now: do not chase the bearish breakdown into the floor, do not force a bottom pick without reclaim, and do not confuse oversold RSI with permission
+- `5m` execution lifecycle:
+  - remained `ACTIVE`: none
+  - became `STALE`: `5M EXECUTION SHORT 4576.31`
+  - became `INVALIDATED`: `5M EXECUTION LONG 4561.59`
+  - new `ACTIVE`: `5M EXECUTION SHORT 4558.23`, `5M EXECUTION LONG 4546.33`
+- Opportunity timing state:
+  - overall opportunity: `WAIT / NO CLEAR EDGE`
+  - long side: `ARMED / 4546.33 IS IN PLAY, BUT 4549.00 RECLAIM IS STILL MISSING`
+  - short side: `PRE-TRIGGER / WAIT FOR 4558.23 RETEST OR SWEEP-REJECTION`
+- Chart actions:
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` with preserved `Daily 4730.08 / 4510.31`, preserved `4H 4583.31 / 4500.57`, and refreshed `5m 4558.23 / 4546.33`
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` untouched because US30 does not block or participate in the Asia gold decision path
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `refreshed`
+  - `refresh_reason`: `5m_far_from_price`
+- Labels repositioned:
+  - `XAUUSD`: the desired-state redraw now reanchors the preserved `Daily / 4H` pair and the refreshed `5m` pair to the current right side
+- Levels recolored / removed / replaced:
+  - recolored: none; semantic palette preserved
+  - removed / replaced: replaced the stale NY `5m` pair `4576.31 / 4561.59` with the live Asia pair `4558.23 / 4546.33`
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que oro ya perdio el bracket viejo de NY y entra Asia apretado justo encima de `4546.33`, mientras `4558.23` queda como la primera oferta limpia por arriba. El `30m` ya hizo breakdown, pero el `15m` llega demasiado pegado al piso como para venderlo sin sweep o venderlo sin rebote.
+  - `Tesis:` eso mantiene el sesgo `Daily / 4H` bajista debajo de `4730.08 / 4583.31`, pero el timing inmediato sigue mixto. El mapa activo sube la precision para Asia: short solo si `4558.23` rechaza; long solo si `4546.33` sostiene y el precio recupera `4549.00`.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4583.31 / 4500.57 | 5m 4558.23 / 4546.33 | PDH 4586.69 | PDL 4513.42 | Range 4558.23 / 4546.33`
+  - `Accion:` `WAIT / NO CLEAR EDGE`. No quiero chase del breakdown en el piso. Asia favorece fade/range primero: short solo en sweep-rejection o rechazo limpio desde `4558.23`; long solo si `4546.33` sostiene y luego `4549.00` reacepta.
+- Three-line conclusion:
+  - `Bias Diario: bajista. Bias 4H: bajista. Alineacion: si, con fuerza moderada.`
+  - `Asia entra despues de expansion bajista, pero pegada al piso; por eso no quiero vender tarde ni comprar sin reclaim.`
+  - `El mejor trabajo ahora es esperar el sweep o el retest bueno; sin eso, no hay edge fresco.`
+- Spanish thread update: oro ya fue revisado para Asia. El sesgo sigue bajista por `Daily / 4H`, el mapa activo queda en `4558.23 / 4546.33`, y por ahora luce mejor para paciencia que para trade inmediato.
+
+- 2026-05-05 | automation: Asia Session Gold | symbols: PEPPERSTONE:XAUUSD | thesis result: XAUUSD enters Asia with `Daily / 4H` still aligned bearish below `4730.08 / 4583.31`, but the old NY execution pair `4576.31 / 4561.59` is no longer current because price already accepted down into `4546.33`; the workflow therefore refreshed the XAU `5m` map to `4558.23 / 4546.33` with `refresh_reason = 5m_far_from_price` while preserving HTF | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4583.31 / 4500.57`, `5m 4558.23 / 4546.33`, `PDH 4586.69`, `PDL 4513.42`, `RANGE 4558.23 / 4546.33` | action state: `WAIT / NO CLEAR EDGE / SHORTS ONLY ON 4558.23 REJECTION OR SWEEP-FAILURE / LONGS ONLY IF 4546.33 HOLDS AND 4549.00 RECLAIMS` | main lesson: when Asia inherits a valid bearish HTF thesis but price has already moved far below the old NY execution bracket, preserve HTF and refresh only the nearest 5m shelves instead of pretending the old pair is still actionable.
+
+### Asia Setup Detector - Early Asia Long Already Triggered, Fade Now Needs Confirmation On 2026-05-05
+
+- Run time: `2026-05-05T17:33:53.0170271-06:00`
+- Symbol reviewed: `PEPPERSTONE:XAUUSD`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - fresh structured reads visible to this detector:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-05T17:31:32-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-05T17:31:57-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / ASIA SETUP DETECTOR / XAU 5M REFRESHED`
+  - `US30` freshness remained secondary only and did not block the Asia gold decision path
+  - the preserved Asia pair `4558.23 / 4546.33` is now structurally far below current price after the long-defense branch fired first and price expanded back into `4H SUPPLY 4583.31` plus `PDH 4586.69`
+  - higher-timeframe structure did not materially change, so the `Daily / 4H` map was preserved and only the execution layer was refreshed with `refresh_reason = 5m_far_from_price`
+- Key level being tested now:
+  - `4H SUPPLY 4583.31` and `PDH 4586.69` after a `4590.65` sweep
+- Whether current price action is confirming or failing the Asia bias:
+  - the first Asia fade map failed as the immediate active branch because price reclaimed `4558.23` and the `4546.33` long branch already triggered
+  - the higher-timeframe bearish bias itself is not invalidated yet because price is still reacting around the `4H / PDH` cap rather than accepting cleanly above it
+- Structure now:
+  - `30m`: reclaimed above `4558.23`, expanded through `4577.23`, and is now rotating directly under the `4583.31 / 4586.69` cap
+  - `15m`: now reads `HH/HL` into resistance, cleaner than the earlier breakdown read, but already extended; fresh long quality only returns on a controlled pullback, not at the top
+- Liquidity and trigger quality:
+  - nearest buy-side liquidity: `4586.69`, then `4590.65`, then `4591.35-4618.57`
+  - nearest sell-side liquidity: `4579.36`, then `4577.23`, then `4569.32`
+  - exact trigger present: the sweep into `4590.65` and the rejection back under `PDH 4586.69`
+  - exact confirmation still missing: a clean `5m / 15m` loss of `4577.23` to confirm short continuation away from the cap
+  - what invalidates the short fade: clean `15m` acceptance back above `4586.69` and especially above `4590.65`
+- Conditions now favor:
+  - `FADE FIRST`, not breakout chase
+- `5m` execution lifecycle:
+  - became `STALE`: `5M EXECUTION LONG 4546.33`
+  - became `INVALIDATED`: `5M EXECUTION SHORT 4558.23`
+  - new `ACTIVE`: `5M EXECUTION SHORT 4586.69`, `5M EXECUTION LONG 4577.23`
+- Opportunity timing state:
+  - overall opportunity: `WAIT`
+  - short side: `ARMED / sweep-rejection already printed, but 4577.23 still needs to fail`
+  - long side: `TRIGGERED EARLIER / DO NOT CHASE / only revisit on a fresh defense of 4577.23`
+- Chart actions:
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` with preserved `Daily 4730.08 / 4510.31`, preserved `4H 4583.31 / 4500.57`, and refreshed `5m 4586.69 / 4577.23`
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` untouched because US30 remains outside the Asia trade-decision path
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `refreshed`
+  - `refresh_reason`: `5m_far_from_price`
+- Labels repositioned:
+  - `XAUUSD`: the desired-state redraw now reanchors the preserved `Daily / 4H` pair and the refreshed `5m` pair to the current right side
+- Levels recolored / removed / replaced:
+  - recolored: none; semantic palette preserved
+  - removed / replaced: replaced the old Asia pair `4558.23 / 4546.33` with the live cap-versus-pullback pair `4586.69 / 4577.23`
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que oro ya hizo la rama larga de Asia desde `4546.33`, recupero `4558.23`, y ahora esta peleando justo debajo de `4H 4583.31` y `PDH 4586.69` despues de barrer `4590.65`. El impulso existe, pero llega directo a techo mayor y ya no me deja comprarlo tarde.
+  - `Tesis:` eso no invalida el sesgo bajista mayor; solo me dice que el long temprano ya paso y que ahora el fade vuelve a ser la idea buena, pero solo si el rechazo se confirma. Mientras `4577.23` no ceda, esto sigue siendo espera con short lean, no short ejecutado.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4583.31 / 4500.57 | 5m 4586.69 / 4577.23 | sweep high 4590.65`
+  - `Accion:` `WAIT`. Short side `ARMED`: ya hubo barrida y rechazo en `4586.69-4590.65`, pero falta perder `4577.23` para activar continuation short. Long side `TRIGGERED` earlier desde `4546.33`; si estas flat, `DO NOT CHASE`. Nuevo long solo si `4577.23` vuelve a defender y el precio recupera `4586.69`.
+- Spanish thread update: oro ya activo el long temprano de Asia y ahora esta testeando la tapa `4583.31 / 4586.69`. El mapa sube a `4586.69 / 4577.23`: short `ARMED` solo si pierde `4577.23`; si no, la accion correcta sigue siendo `WAIT / DO NOT CHASE`.
+
+- 2026-05-05 | automation: Asia Setup Detector | symbols: PEPPERSTONE:XAUUSD | thesis result: the early Asia long branch from `4546.33` already triggered, price reclaimed `4558.23`, and the tape has now rotated back into `4H 4583.31 / PDH 4586.69`, so the old Asia execution pair no longer defined current readiness; HTF stayed preserved and the XAU `5m` map was refreshed to `4586.69 / 4577.23` with `refresh_reason = 5m_far_from_price` | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4583.31 / 4500.57`, `5m 4586.69 / 4577.23`, `sweep high 4590.65` | action state: `WAIT / SHORT SIDE ARMED ONLY IF 4577.23 FAILS AFTER THE 4586.69-4590.65 SWEEP-REJECTION / LONG SIDE TRIGGERED EARLIER AND NO LONGER CHASABLE` | main lesson: once the Asia defense branch has already fired and price rotates back into the higher-timeframe cap, stop anchoring to the old floor bracket; preserve HTF, lift the 5m map to the live cap-versus-pullback shelves, and keep the action state honest.
+
+### End-of-Day Review - Both Opening Long Branches Beat The Fade On 2026-05-05
+
+- Run time: `2026-05-05T22:33:58.4191166-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - fresh structured reads used for this review:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-05T22:32:00-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-05T22:31:25-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / REVIEW-ONLY / DESIRED STATE PRESERVED`
+  - the review used the full New York chain plus the latest structured close context to decide which ideas actually held and which execution maps were simply run over by the tape
+- Session review:
+  - `XAUUSD`: the NY bearish-cap idea held only for part of the day. The open long branch fired first, Asia later defended `4546.33`, reclaimed `4558.23`, then invalidated the later fade by holding `4577.23` and accepting through `4H 4583.31 / PDH 4586.69` into `4653.76`. The day finished as `FAILED 4H CAP FADE -> BULLISH CONTINUATION / SHORT SQUEEZE`.
+  - `US30`: the post-open bullish correction was the steadier tape. After the deep sweep to `49005.90`, price reclaimed through `49143.45` and `49188.95`, then continued into `49429.90 / 49461.90` and closed pressed against the `4H` cap rather than breaking back down. The day finished as `BULLISH CONTINUATION INTO 4H SUPPLY / LATE COMPRESSION`.
+- Levels that mattered most:
+  - `XAUUSD`: `4546.33`, `4558.23`, `4577.23`, `4583.31`, `4586.69`, `4590.65`, `4653.76`
+  - `US30`: `49005.90`, `49143.45`, `49188.95`, `49429.90`, `49433.90`, `49461.90`
+- Levels that failed:
+  - `XAUUSD`: `4H SUPPLY 4583.31` as an active fade cap, the earlier NY short shelf `4576.31`, and later the Asia fade shelf `4586.69`
+  - `US30`: no major bullish-framework failure printed; by the close the old `5m` pair `49188.95 / 49143.45` was simply behind price rather than still fresh
+- Which symbol was cleaner: `FOREXCOM:US30`
+- Best opportunity: the cleaner move was the `US30` reclaimed-demand continuation from `49143.45` back through `49188.95` into `49429.90`; the secondary opportunity was the `XAUUSD` Asia long-defense from `4546.33` and then the continuation once `4577.23` kept holding.
+- Biggest trap: insisting on `XAUUSD` shorts just because `4583.31 / 4586.69` printed a first sweep rejection even after `15m` kept holding `4577.23` and stepping higher, or chasing `US30` longs once buy-side had already been paid into `49429.90 / 49461.90`.
+- Strategy learning:
+  - today rewarded defended demand plus reclaim much more than first-touch fade; in both symbols the better branch was the one that actually held on `30m / 15m`, not the first cap touch
+  - Daily + `4H` stayed useful, but a `4H` cap by itself was not enough; `XAUUSD` showed that once `30m / 15m` keep printing `HH/HL`, the fade must lose priority even if the earlier higher-timeframe cap looked valid
+  - `5m` execution helped only while it framed the nearest shelf; once price moved well beyond `4576.31`, `4586.69`, and later `49188.95 / 49143.45`, the correct state was patience and review, not stubborn reuse of the old pair
+- `5m` execution lifecycle at close:
+  - `XAUUSD`: earlier NY short `4576.31` finished `STALE`; Asia floor-defense `4546.33` and later pullback-defense `4577.23` already `TRIGGERED`; late fade shelf `4586.69` finished `INVALIDATED` once price accepted above it and continued to `4653.76`
+  - `US30`: `49188.95` and `49143.45` finished `STALE` by the close because the continuation had already traveled into the `49429.90 / 49461.90` resistance pocket; the bullish session thesis held, but the owned `5m` map is no longer fresh for the current tape
+- Multi-day intelligence:
+  - `US30` keeps trading cleaner than `XAUUSD` when Daily demand stays intact and the intraday demand shelf steps higher after the open; `XAUUSD` trades cleaner when the `4H` cap gets confirmed by repeated failed retests, not by a single sweep alone
+  - recent reviews keep reinforcing the same rule: a liquidity sweep is not enough; when the sweep is not followed by `15m` acceptance back through the trigger shelf, the better read is continuation or `WAIT`, not automatic fade
+  - pre-market bias survives best only when the first `30m / 15m` retest accepts the intended shelf; when the open activates the opposite branch first, the old `5m` pair becomes stale quickly and should be downgraded instead of defended
+- Chart actions:
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` untouched because `End-of-Day Review` remains review-only
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` untouched because `End-of-Day Review` remains review-only
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `preserved`
+  - `FOREXCOM:US30`: `preserved`
+  - `refresh_reason`: not applicable in this review-only workflow
+- Labels repositioned:
+  - none, because desired state was not mutated in this workflow
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: none in desired state; continuity only
+- Trader-facing report:
+  - `Historia:` la historia del cierre es que `US30` fue el chart mas limpio del dia: la defensa y reclaim desde `49143.45 / 49188.95` si continuo hasta `49429.90 / 49461.90`. Oro hizo lo contrario de la lectura fade: sostuvo `4546.33`, recupero `4577.23` y termino aceptando arriba de `4583.31 / 4586.69` hasta `4653.76`.
+  - `Tesis:` eso deja una leccion clara. Hoy el mercado premio defensa + reclaim, no el primer fade por tocar cap. En `US30` el bias mayor aguanto y solo llega tarde al cierre; en `XAUUSD` el cap `4H` dejo de ser idea valida cuando `30m / 15m` siguieron imprimiendo `HH/HL` y el sweep de `PDH 4586.69` no logro continuation short.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4583.31 / 4500.57 | 5m 4586.69 / 4577.23` ; `US30 -> Daily 49848.45 / 48465.90 | 4H 49429.90 / 48897.90 | 5m 49188.95 / 49143.45`
+  - `Accion:` `CIERRE DE REVISION`. Lo que funciono fue esperar el shelf que de verdad defendio y reclamo; lo que fallo fue insistir en fades despues de que la liquidez ya habia sido pagada. Para manana: no quiero chase en ninguno; si el `5m` queda detras del precio, esperar refresh o retest nuevo.
+- Spanish thread update: cierre claro. `US30` fue el chart mas limpio porque la continuation desde `49143.45 / 49188.95` si sostuvo hasta la tapa `4H`, mientras `XAUUSD` castigo el fade y cerro en squeeze arriba de `4583.31 / 4586.69`. La leccion para manana es no enamorarse del primer sweep si `15m` nunca confirma el failure.
+- Discord summary written to payload:
+  - `[END-OF-DAY REVIEW]`
+  - `Historia`
+  - `US30 fue el chart mas limpio del dia: la defensa y reclaim desde 49143.45 / 49188.95 si continuo hasta 49429.90 / 49461.90. Oro hizo lo contrario de la lectura fade: sostuvo 4546.33, recupero 4577.23 y termino aceptando arriba de 4583.31 / 4586.69 hasta 4653.76.`
+  - `Tesis`
+  - `Hoy el mercado premio defensa + reclaim, no el primer fade por tocar cap. En US30 el bias mayor aguanto y solo llega tarde al cierre; en XAUUSD el cap 4H dejo de ser idea valida cuando 30m / 15m siguieron imprimiendo HH/HL y el sweep de PDH 4586.69 no logro continuation short.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4583.31 / 4500.57 | 5m 4586.69 / 4577.23`
+  - `US30 -> Daily 49848.45 / 48465.90 | 4H 49429.90 / 48897.90 | 5m 49188.95 / 49143.45`
+  - `Accion`
+  - `CIERRE DE REVISION. Lo que funciono fue esperar el shelf que de verdad defendio y reclamo; lo que fallo fue insistir en fades despues de que la liquidez ya habia sido pagada. Para manana: no quiero chase en ninguno; si el 5m queda detras del precio, esperar refresh o retest nuevo.`
+
+- 2026-05-05 | automation: End-of-Day Review | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / REVIEW-ONLY / DESIRED STATE PRESERVED`; `US30` was the cleaner tape because the reclaimed-demand branch from `49143.45 / 49188.95` held and continued into `49429.90 / 49461.90`, while `XAUUSD` punished the fade by defending `4546.33`, reclaiming `4577.23`, and accepting above `4583.31 / 4586.69` into `4653.76` | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4583.31 / 4500.57`, `5m 4586.69 / 4577.23`; US30 `Daily 49848.45 / 48465.90`, `4H 49429.90 / 48897.90`, `5m 49188.95 / 49143.45` | action state: `REVIEW-ONLY / US30 CLEANER / XAUUSD FAILED FADE / BOTH 5M PAIRS NOW BEHIND PRICE SO WAIT FOR NEW RETEST OR REFRESH` | main lesson: first-touch sweeps are not enough; when `30m / 15m` keep defending and reclaiming, respect continuation and stop forcing the fade after liquidity is already paid.
+
+### NY Open Levels - Fresh HTF Rebuild On 2026-05-06
+
+- Run time: `2026-05-06T05:35:39.8713164-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - fresh structured reads used for this baseline:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-06T05:32:00-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-06T05:31:57-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / NY OPEN LEVELS / HTF_CHANGED`
+  - both symbols passed the normal dual-symbol gate with fresh structured data
+  - both prior `5m` pairs were structurally behind live price and both prior `4H` caps were already invalidated by yesterday's continuation, so the baseline required a full desired-state rebuild with `refresh_reason = htf_changed`
+- Higher-timeframe thesis:
+  - `XAUUSD`: Daily is now constructive into `DAILY SUPPLY 4730.08` while `4H` is bullish above reclaimed `4H DEMAND 4660.27`; the tape is strong, but it is opening New York directly under `4H SUPPLY 4722.80`
+  - `US30`: Daily remains constructive into `DAILY SUPPLY 50000.90` while `4H` is bullish above reclaimed `4H DEMAND 49429.90`; the tape is cleaner than gold, but it is also opening right under `4H SUPPLY 49952.95`
+- Structure into the New York open:
+  - `XAUUSD`: `30m` and `15m` are both printing `HH/HL` from the `4660.27` reclaim into `4722.80`; `RSI 15m = 68.57`, so strength is real but already stretched into supply
+  - `US30`: `30m` and `15m` are both printing `HH/HL` from the `49429.90` reclaim into `49952.95`; `RSI 15m = 77.38`, so momentum is cleaner than gold but also extended into the high
+- Liquidity and execution-readiness check:
+  - `XAUUSD`: nearest buy-side liquidity is `4708.58`, then `4722.80`, then `4730.08`; nearest sell-side liquidity is `4695.56`, then `4677.34`; valid long requires renewed defense of `4695.56` plus reclaim back through `4708.58`, while valid short requires sweep-rejection into `4708.58 -> 4722.80 / 4730.08` and failure back away from that cap; no chase into the open
+  - `US30`: nearest buy-side liquidity is `49952.95`, then `50000.90`; nearest sell-side liquidity is `49860.95`, then `49769.95`; valid long requires `49860.95` to defend again, while valid short requires sweep-rejection into `49923.95 -> 49952.95`; no chase under the high
+- `5m` execution lifecycle:
+  - `XAUUSD`
+    - became `STALE`: `5M EXECUTION LONG 4577.23`
+    - became `INVALIDATED`: `5M EXECUTION SHORT 4586.69`
+    - new `ACTIVE`: `5M EXECUTION SHORT 4708.58`, `5M EXECUTION LONG 4695.56`
+  - `US30`
+    - became `STALE`: `5M EXECUTION LONG 49143.45`
+    - became `INVALIDATED`: `5M EXECUTION SHORT 49188.95`
+    - new `ACTIVE`: `5M EXECUTION SHORT 49923.95`, `5M EXECUTION LONG 49860.95`
+- Opportunity timing state:
+  - `XAUUSD`: overall `WAIT`; long side `ARMED` only on fresh `4695.56` defense plus reclaim; short side `PRE-TRIGGER` until the high gets swept and rejected
+  - `US30`: overall `WAIT`; long side `ARMED` while `49860.95` remains the defense; short side `PRE-TRIGGER` until `49923.95 / 49952.95` actually sweeps and rejects
+- Chart actions:
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` with `Daily 4730.08 / 4510.31`, `4H 4722.80 / 4660.27`, and `5m 4708.58 / 4695.56`
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` with `Daily 50000.90 / 48465.90`, `4H 49952.95 / 49429.90`, and `5m 49923.95 / 49860.95`
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `refreshed`
+  - `FOREXCOM:US30`: `refreshed`
+  - `refresh_reason`: `XAUUSD = htf_changed`, `US30 = htf_changed`
+- Labels repositioned:
+  - both symbols will re-anchor the preserved `Daily / 4H` pair and the refreshed `5m` pair to the current right side on the next chart-runtime apply
+- Levels recolored / removed / replaced:
+  - recolored: none; semantic palette preserved
+  - removed / replaced: `XAUUSD` replaced `4586.69 / 4577.23` with `4708.58 / 4695.56`; `US30` replaced `49188.95 / 49143.45` with `49923.95 / 49860.95`
+- Refinement note:
+  - transcript / Articuno reinforcement used: yes; the read tightened level selection around the nearest real liquidity, kept the continuation thesis honest, and enforced anti-chase discipline because both symbols are already pressing buy-side into the open
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que los dos llegan a Nueva York fuertes, pero ya pegados al techo. Oro viene en `HH/HL` desde el reclaim de `4660.27` y abre debajo de `4722.80 / 4730.08`; `US30` sigue empujando desde `49429.90` y ya esta atacando `49952.95` con `50000.90` encima.
+  - `Tesis:` eso favorece continuidad solo si aparece defensa nueva, no chase del primer impulso. `XAUUSD` entra alcista pero comprimido bajo supply diaria; `US30` sigue mas limpio, aunque tambien llega estirado. El mapa nuevo queda en modo `WAIT` con long lean en defensa y short lean solo en sweep-rejection del techo.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4722.80 / 4660.27 | 5m 4708.58 / 4695.56` ; `US30 -> Daily 50000.90 / 48465.90 | 4H 49952.95 / 49429.90 | 5m 49923.95 / 49860.95`
+  - `Accion:` `WAIT`. `XAUUSD`: long solo si `4695.56` vuelve a defender y `4708.58` se reclama; short solo en sweep-rejection de `4708.58` hacia `4722.80 / 4730.08`. `US30`: long solo si `49860.95` sostiene otra vez; short solo si `49923.95-49952.95` barre y rechaza. El foco mas limpio para el open es `US30`. No quiero chase aqui.
+- Spanish thread update: los dos simbolos ya quedaron revisados para el baseline de NY. `XAUUSD` llega fuerte pero comprimido bajo `4722.80 / 4730.08`; `US30` llega mas limpio, pero tambien pegado a `49952.95 / 50000.90`. Se redibujo HTF + `5m` en ambos y la accion correcta por ahora sigue siendo `WAIT / NO CHASE`.
+- Discord summary written to payload:
+  - `[NY OPEN LEVELS]`
+  - `Historia`
+  - `La historia ahora mismo es que los dos llegan a NY fuertes, pero ya pegados a techo. Oro viene en HH/HL desde 4660.27 y abre debajo de 4722.80 / 4730.08; US30 sigue empujando desde 49429.90 y ya esta atacando 49952.95 con 50000.90 encima.`
+  - `Tesis`
+  - `Eso favorece continuidad solo si aparece defensa nueva, no chase del primer impulso. XAUUSD entra alcista pero comprimido bajo supply diaria; US30 sigue mas limpio, aunque tambien llega estirado. El mapa nuevo queda en WAIT con long lean en defensa y short lean solo en sweep-rejection del techo.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4722.80 / 4660.27 | 5m 4708.58 / 4695.56`
+  - `US30 -> Daily 50000.90 / 48465.90 | 4H 49952.95 / 49429.90 | 5m 49923.95 / 49860.95`
+  - `Accion`
+  - `WAIT. XAUUSD: long solo si 4695.56 vuelve a defender y 4708.58 se reclama; short solo en sweep-rejection de 4708.58 hacia 4722.80 / 4730.08. US30: long solo si 49860.95 sostiene otra vez; short solo si 49923.95-49952.95 barre y rechaza. Foco limpio: US30. No quiero chase aqui.`
+
+- 2026-05-06 | automation: NY Open Levels | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: both symbols returned fresh structured live state in normal runtime mode and both prior `5m` pairs plus both prior `4H` caps were already invalidated by yesterday's continuation, so the New York baseline was fully rebuilt with `refresh_reason = htf_changed`; XAUUSD now preserves `Daily 4730.08 / 4510.31`, flips `4H` to `4722.80 / 4660.27`, and realigns `5m` to `4708.58 / 4695.56`, while US30 preserves `Daily 50000.90 / 48465.90`, flips `4H` to `49952.95 / 49429.90`, and realigns `5m` to `49923.95 / 49860.95` | action state: `WAIT / LONG LEAN ONLY ON DEFENSE / SHORT LEAN ONLY ON SWEEP-REJECTION / DO NOT CHASE`, with `US30` cleaner for the open | main lesson: when the close already reclaimed the prior `4H` cap and the fresh open is pressing buy-side under daily supply, refresh the whole map, keep the continuation thesis honest, and demand new defense or a real sweep-rejection instead of chasing the first impulse.
+
+### Post Open Validation - Both 5m Pairs Refreshed On 2026-05-06
+
+- Run time: `2026-05-06T06:48:55.9060333-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-05-06T06:46:10-06:00`
+  - fresh structured reads used for the validation:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-06T06:46:35-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-06T06:47:01-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / VALIDATION REVIEW / BOTH 5M PAIRS REFRESHED`
+  - both symbols passed the normal dual-symbol gate, but the New York open already used the original sweep-rejection branch and then sold through the original long-defense shelves
+  - both baseline `5m` pairs were structurally behind the live tape, so both desired-state maps were refreshed with `refresh_reason = 5m_far_from_price` while preserving the `Daily / 4H` layer
+  - `XAUUSD` is the cleaner chart after the open because the post-open retest shelves are tighter and less midrange than `US30`
+- XAUUSD result: `PARTIALLY REJECTED PRE-MARKET THESIS`
+- US30 result: `PARTIALLY REJECTED PRE-MARKET THESIS`
+- Open validation:
+  - `XAUUSD`: the open swept `4H SUPPLY 4722.80`, rejected that high, and then sold through the original `4695.56` defense into `4660.61`; the move is now a post-sweep selloff followed by a corrective bounce, not a clean bullish continuation.
+  - `US30`: the open swept `4H SUPPLY 49952.95`, rejected the high, and then lost the original `49860.95` defense into `49624.95`; the move is likewise a post-sweep selloff followed by a corrective rebound, with more midrange noise than gold.
+- Structure and execution:
+  - `XAUUSD`: `30m` rolled over from `4722.80` into `4660.61`, `15m` printed bearish displacement and is now stalling under `4688.60 / 4693.16`, and `5m` is `LH/LL`; a fresh short only improves on another rejection from `4688.60-4693.16`, while a fresh long needs `4677.94` to defend and `4688.60` to reclaim.
+  - `US30`: `30m` broke down from `49952.95` into `49624.95`, `15m` bounced but is still capped below `49752.95 / 49763.45`, and `5m` is also `LH/LL`; a fresh short only improves on rejection back into `49752.95-49763.45`, while a fresh long needs `49712.45` to keep holding and `49752.95` to reclaim cleanly.
+- Opportunity timing state:
+  - `PEPPERSTONE:XAUUSD` overall opportunity: `PRE-TRIGGER`
+  - `PEPPERSTONE:XAUUSD` original short branch: `TRIGGERED EARLIER / DO NOT CHASE`
+  - `PEPPERSTONE:XAUUSD` original long branch: `EXPIRED / LONG DEFENSE FAILED`
+  - `PEPPERSTONE:XAUUSD` refreshed short branch: `PRE-TRIGGER / WAIT FOR 4688.60-4693.16 REJECTION`
+  - `PEPPERSTONE:XAUUSD` refreshed long branch: `PRE-TRIGGER / WAIT FOR 4677.94 DEFENSE + 4688.60 RECLAIM`
+  - `FOREXCOM:US30` overall opportunity: `PRE-TRIGGER`
+  - `FOREXCOM:US30` original short branch: `TRIGGERED EARLIER / DO NOT CHASE`
+  - `FOREXCOM:US30` original long branch: `EXPIRED / LONG DEFENSE FAILED`
+  - `FOREXCOM:US30` refreshed short branch: `PRE-TRIGGER / WAIT FOR 49752.95-49763.45 REJECTION`
+  - `FOREXCOM:US30` refreshed long branch: `PRE-TRIGGER / WAIT FOR 49712.45 DEFENSE + 49752.95 RECLAIM`
+- Level interaction:
+  - `XAUUSD`: `5M EXECUTION SHORT 4708.58` already fired with the sweep into `4722.80` and can no longer stay as the live cap; `5M EXECUTION LONG 4695.56` failed as the active defense; nearest buy-side is now `4688.60` and the reclaimed live support is `4677.94`, while `4H DEMAND 4660.27` still preserves the bigger constructive thesis.
+  - `US30`: `5M EXECUTION SHORT 49923.95` already fired with the sweep into `49952.95` and can no longer stay as the live cap; `5M EXECUTION LONG 49860.95` failed as the active defense; nearest buy-side is now `49752.95` and the reclaimed live support is `49712.45`, while `4H DEMAND 49429.90` still preserves the bigger constructive thesis.
+- Trading decision:
+  - `PEPPERSTONE:XAUUSD`: `WAIT / ORIGINAL SHORT TRIGGERED EARLIER / DO NOT CHASE / NEW SHORT ONLY ON 4688.60-4693.16 REJECTION / LONGS ONLY IF 4677.94 HOLDS AND 4688.60 RECLAIMS`
+  - `FOREXCOM:US30`: `WAIT / ORIGINAL SHORT TRIGGERED EARLIER / DO NOT CHASE / NEW SHORT ONLY ON 49752.95-49763.45 REJECTION / LONGS ONLY IF 49712.45 HOLDS AND 49752.95 RECLAIMS`
+  - cleaner symbol now: `PEPPERSTONE:XAUUSD`
+  - symbol to avoid forcing: `FOREXCOM:US30`
+  - biggest trap right now: treating the open short that already paid as if it were still a fresh entry, or forcing a long in the middle of the corrective bounce before the new defense shelves prove themselves
+- 3-line conclusion in Spanish:
+  - `El open ya barrio techo en los dos, rechazo, y dejo el short inicial trabajado; eso ya no es entrada fresca.`
+  - `Ahora oro queda un poco mas limpio debajo de 4688.60 / 4693.16, mientras US30 sigue mas midrange entre 49712.45 y 49752.95.`
+  - `La accion correcta es WAIT: no chase del short viejo, solo retest nuevo o defensa nueva.`
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to separate the already-triggered open short from the next retest shelf that would actually be tradable now
+- Articuno reinforcement:
+  - `XAUUSD`: reinforcement kept `4688.60-4693.16` as the real post-open sell shelf, blocked reuse of `4708.58` after liquidity was already paid, and kept `4677.94` as the nearest meaningful defense instead of promoting a random micro pivot
+  - `US30`: reinforcement kept `49752.95-49763.45` as the meaningful rebound cap, blocked reuse of `49923.95` after the selloff already expanded, and kept `49712.45` as the nearest reclaimed defense shelf
+- Chart actions:
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` with preserved `Daily 4730.08 / 4510.31`, preserved `4H 4722.80 / 4660.27`, and refreshed `5m 4688.60 / 4677.94`
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` with preserved `Daily 50000.90 / 48465.90`, preserved `4H 49952.95 / 49429.90`, and refreshed `5m 49752.95 / 49712.45`
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `refreshed`
+  - `FOREXCOM:US30`: `refreshed`
+  - `refresh_reason`: `5m_far_from_price`
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - became `TRIGGERED EARLIER`: `5M EXECUTION SHORT 4708.58` into the `4722.80` sweep-rejection
+    - became `INVALIDATED`: `5M EXECUTION LONG 4695.56`
+    - new `ACTIVE`: `5M EXECUTION SHORT 4688.60`, `5M EXECUTION LONG 4677.94`
+  - `FOREXCOM:US30`
+    - became `TRIGGERED EARLIER`: `5M EXECUTION SHORT 49923.95` into the `49952.95` sweep-rejection
+    - became `INVALIDATED`: `5M EXECUTION LONG 49860.95`
+    - new `ACTIVE`: `5M EXECUTION SHORT 49752.95`, `5M EXECUTION LONG 49712.45`
+- Labels repositioned:
+  - both symbols will re-anchor the preserved `Daily / 4H` pair and the refreshed `5m` pair to the current right side on the next chart-runtime apply
+- Levels recolored / removed / replaced:
+  - recolored: none; semantic palette preserved
+  - removed / replaced: `XAUUSD` replaced `4708.58 / 4695.56` with `4688.60 / 4677.94`; `US30` replaced `49923.95 / 49860.95` with `49752.95 / 49712.45`
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que los dos ya barrieron el techo del baseline, rechazaron, y despues rompieron la defensa larga original. Oro cayo de `4722.80` hasta `4660.61` y ahora rebota debajo de `4688.60 / 4693.16`; `US30` cayo de `49952.95` hasta `49624.95` y ahora rebota hacia `49752.95 / 49763.45`.
+  - `Tesis:` eso no cambia el mapa HTF, pero si mata el `5m` original como mapa operativo. El short del open ya paso; ahora el trabajo es esperar retest nuevo, no perseguir extension. `XAUUSD` queda un poco mas limpio; `US30` esta mas midrange y por eso lo quiero menos.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4722.80 / 4660.27 | 5m 4688.60 / 4677.94` ; `US30 -> Daily 50000.90 / 48465.90 | 4H 49952.95 / 49429.90 | 5m 49752.95 / 49712.45`
+  - `Accion:` `WAIT`. `XAUUSD`: short nuevo solo si `4688.60-4693.16` vuelve a rechazar; long solo si `4677.94` sostiene y `4688.60` se reclama. `US30`: short nuevo solo si `49752.95-49763.45` falla otra vez; long solo si `49712.45` sostiene y `49752.95` se recupera. No quiero chase aqui.
+- Spanish thread update: el open ya rechazo el techo y trabajo el short inicial en los dos simbolos, asi que el mapa del baseline quedo viejo. `XAUUSD` queda un poco mas limpio con nuevo bracket `4688.60 / 4677.94`, `US30` queda mas mixto con `49752.95 / 49712.45`, y la accion correcta por ahora sigue siendo `WAIT / DO NOT CHASE`.
+- Discord summary written to payload:
+  - `[POST OPEN VALIDATION]`
+  - `Historia`
+  - `El open ya barrio 4722.80 en oro y 49952.95 en US30, rechazo esos techos y ademas rompio las defensas 4695.56 y 49860.95. Ahora los dos estan en rebote post-caida: XAUUSD frena debajo de 4688.60 / 4693.16 y US30 rebota hacia 49752.95 / 49763.45.`
+  - `Tesis`
+  - `Eso no cambia el HTF, pero si deja viejo el mapa 5m del baseline. El short del open ya se dio y no lo voy a perseguir; lo que importa ahora es esperar un retest limpio al nuevo techo intradia o una nueva defensa clara abajo. XAUUSD sigue un poco mas limpio; US30 esta mas midrange.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4722.80 / 4660.27 | 5m 4688.60 / 4677.94`
+  - `US30 -> Daily 50000.90 / 48465.90 | 4H 49952.95 / 49429.90 | 5m 49752.95 / 49712.45`
+  - `Accion`
+  - `WAIT. XAUUSD: el short viejo ya quedo TRIGGERED; nuevo short solo si 4688.60-4693.16 vuelve a rechazar, long solo si 4677.94 defiende y 4688.60 se reclama. US30: el short del open ya corrio; nuevo short solo si 49752.95-49763.45 falla otra vez, long solo si 49712.45 sostiene y 49752.95 se recupera. No quiero chase aqui.`
+
+- 2026-05-06 | automation: Post Open Validation | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / VALIDATION REVIEW / BOTH 5M PAIRS REFRESHED`; both symbols swept their baseline resistance, rejected, and then broke the original long-defense shelves, so the open short branch already triggered and the original `5m` pairs were behind price; the desired-state maps were refreshed with `refresh_reason = 5m_far_from_price` while the `Daily / 4H` layer stayed preserved | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4722.80 / 4660.27`, `5m 4688.60 / 4677.94`; US30 `Daily 50000.90 / 48465.90`, `4H 49952.95 / 49429.90`, `5m 49752.95 / 49712.45` | action state: `XAUUSD CLEANER / WAIT / ORIGINAL SHORT TRIGGERED EARLIER / NEW SHORT PRE-TRIGGER AT 4688.60-4693.16`, `US30 WAIT / ORIGINAL SHORT TRIGGERED EARLIER / NEW BRACKET PRE-TRIGGER / DO NOT CHASE` | main lesson: once the open already sweeps the high, rejects, and breaks the original defense shelf, stop treating that first short as fresh; preserve HTF, lower the `5m` bracket to the live retest shelves, and force the action state back to patience.
+
+### Active Setup Detector - Both 5m Pairs Preserved On 2026-05-06
+
+- Run time: `2026-05-06T07:03:03.3040277-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-05-06T07:01:04-06:00`
+  - fresh structured reads used for this detector run:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-06T07:01:29-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-06T07:01:57-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / ACTIVE SETUP REVIEW / BOTH 5M PAIRS PRESERVED`
+  - both symbols passed the normal dual-symbol gate and the workflow stayed in normal mode, not stall recovery
+  - the post-open `5m` pair for each symbol still defines the nearest clean execution shelves, so no desired-state refresh was warranted on this cycle
+- Higher-timeframe thesis:
+  - `XAUUSD`: Daily remains constructive into `DAILY SUPPLY 4730.08` and `4H` still holds above `4H DEMAND 4660.27`, but the intraday tape remains corrective below `4H SUPPLY 4722.80`
+  - `US30`: Daily remains constructive into `DAILY SUPPLY 50000.90` and `4H` still holds above `4H DEMAND 49429.90`, but the session remains corrective below `4H SUPPLY 49952.95`
+- Active setup status:
+  - `XAUUSD`: `WAIT`; key level under test is `5M EXECUTION SHORT 4688.60` inside fresh `15m` supply `4688.60-4693.16`; price is confirming the post-open bounce-into-supply idea, but the short still needs an actual rejection to become valid
+  - `US30`: `WAIT`; key level under test is `5M EXECUTION LONG 49712.45`; price is trying to defend the post-open demand shelf, but that only weakens the short idea and still does not confirm a fresh long until `49752.95` is reclaimed
+- Structure and execution:
+  - `XAUUSD`: `30m` still shows the lower-high rotation after the `4722.80` sweep-rejection, `15m` has bounced from `4660.61` back into the fresh `4693.16` supply, and `5m` is testing the live short shelf after printing `LH/LL`; the exact short trigger is a fresh rejection back away from `4688.60-4693.16`, while the long side still needs `4677.94` to hold and price to accept back above `4688.60`
+  - `US30`: `30m` is still a corrective rebound after the break from `49952.95` to `49624.95`, `15m` recovered into `49763.45` and rolled back, and `5m` is sitting on the active long shelf without reclaiming the short cap; the exact long trigger is defense of `49712.45` followed by a clean reclaim of `49752.95`, while the short side only becomes fresh again on rejection back into `49752.95-49763.45`
+- Liquidity and timing:
+  - `XAUUSD`: nearest buy-side liquidity is `4688.60`, then `4693.16`; nearest sell-side liquidity is `4671.75`, then `4660.61`; current opportunity timing is `ARMED` on the short shelf, not `TRIGGERED`, because price is at the zone but the rejection candle is still missing
+  - `US30`: nearest buy-side liquidity is `49752.95`, then `49763.45`; nearest sell-side liquidity is `49624.95`; current opportunity timing is `PRE-TRIGGER` overall because the active defense is visible, but the reclaim that would upgrade the long is still missing
+- Invalidations and freshness:
+  - `XAUUSD`: short idea weakens if `4693.16` is accepted through; long idea weakens again if `4677.94` fails and price reopens the path back to `4660.61`
+  - `US30`: long idea weakens if `49712.45` fails and `49624.95` comes back into play; short idea is not fresh until price returns to `49752.95-49763.45`
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - remained `ACTIVE`: `5M EXECUTION SHORT 4688.60`, `5M EXECUTION LONG 4677.94`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+  - `FOREXCOM:US30`
+    - remained `ACTIVE`: `5M EXECUTION SHORT 49752.95`, `5M EXECUTION LONG 49712.45`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+- Trading decision:
+  - `PEPPERSTONE:XAUUSD`: `WAIT / SHORT SIDE ARMED ONLY ON 4688.60-4693.16 REJECTION / LONGS ONLY IF 4677.94 HOLDS AND 4688.60 ACCEPTS`
+  - `FOREXCOM:US30`: `WAIT / LONGS ONLY IF 49712.45 HOLDS AND 49752.95 RECLAIMS / SHORTS ONLY ON FRESH 49752.95-49763.45 REJECTION`
+  - cleaner symbol now: `PEPPERSTONE:XAUUSD`
+  - symbol to avoid forcing: `FOREXCOM:US30`
+  - biggest trap right now: promoting the touch itself as the trigger before the rejection or reclaim actually prints
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to keep the short retest on XAU separate from a confirmed trigger, and to keep the US30 defense test from being mislabeled as a ready long before the reclaim exists
+- Articuno reinforcement:
+  - `XAUUSD`: reinforcement kept the active sell shelf tight at `4688.60-4693.16`, respected the fresh `15m` supply, and blocked a late chase after the earlier open short already worked
+  - `US30`: reinforcement kept the map honest by preserving `49712.45` as defense but refusing to call it a fresh long without `49752.95` reclaim and refusing to redraw a new short shelf away from current liquidity
+- Chart actions:
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` untouched because `Daily 4730.08 / 4510.31`, `4H 4722.80 / 4660.27`, and `5m 4688.60 / 4677.94` remain the active map
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` untouched because `Daily 50000.90 / 48465.90`, `4H 49952.95 / 49429.90`, and `5m 49752.95 / 49712.45` remain the active map
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `preserved`
+  - `FOREXCOM:US30`: `preserved`
+  - `refresh_reason`: none written because no desired-state mutation was warranted
+- Labels repositioned:
+  - no desired-state rewrite was needed, so the active right-side labels stay preserved with the current runtime-owned map
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: none
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que oro ya volvio a tocar `4688.60` y `US30` esta sentado sobre `49712.45`, pero ninguno termino de confirmar. `XAUUSD` rebota despues del selloff del open directo contra supply fresca `4688.60-4693.16`; `US30` rebota desde `49624.95`, pero sigue sin recuperar `49752.95`.
+  - `Tesis:` eso mantiene vivo el mapa post-open y no obliga un redraw nuevo. Oro sigue siendo el chart mas limpio porque esta justo en el techo operativo y una falla ahi activaria mejor el short; `US30` sigue mas mixto porque la defensa existe, pero el reclaim que daria permiso al long todavia no aparece.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4722.80 / 4660.27 | 5m 4688.60 / 4677.94` ; `US30 -> Daily 50000.90 / 48465.90 | 4H 49952.95 / 49429.90 | 5m 49752.95 / 49712.45`
+  - `Accion:` `WAIT`. `XAUUSD`: short solo si `4688.60-4693.16` rechaza de nuevo; long solo si `4677.94` sostiene y `4688.60` se acepta. `US30`: long solo si `49712.45` aguanta y `49752.95` se recupera; short solo en rechazo fresco de `49752.95-49763.45`. No quiero chase aqui.
+- Spanish thread update: oro es el chart mas limpio porque ya esta otra vez en `4688.60-4693.16`, pero el rechazo todavia no imprime; `US30` sigue defendiendo `49712.45`, aunque sin reclaim no hay long limpio. La accion correcta por ahora sigue siendo `WAIT`.
+- Discord summary written to payload:
+  - `[ACTIVE SETUP DETECTOR]`
+  - `Historia`
+  - `La historia ahora mismo es que oro ya volvio a tocar 4688.60 y US30 esta sentado sobre 49712.45, pero ninguno termino de confirmar. XAUUSD rebota despues del selloff del open directo contra supply fresca 4688.60-4693.16; US30 rebota desde 49624.95, pero sigue sin recuperar 49752.95.`
+  - `Tesis`
+  - `Eso mantiene vivo el mapa post-open y no obliga redraw nuevo. Oro sigue siendo el chart mas limpio porque esta justo en el techo operativo y una falla ahi activaria mejor el short; US30 sigue mas mixto porque la defensa existe, pero el reclaim que daria permiso al long todavia no aparece.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4722.80 / 4660.27 | 5m 4688.60 / 4677.94`
+  - `US30 -> Daily 50000.90 / 48465.90 | 4H 49952.95 / 49429.90 | 5m 49752.95 / 49712.45`
+  - `Accion`
+  - `WAIT. XAUUSD: short side ARMED only if 4688.60-4693.16 rejects; long only if 4677.94 holds and 4688.60 accepts. US30: long only if 49712.45 holds and 49752.95 reclaims; short only on fresh 49752.95-49763.45 rejection. Foco: XAUUSD. No quiero chase aqui.`
+
+- 2026-05-06 | automation: Active Setup Detector | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / ACTIVE SETUP REVIEW / BOTH 5M PAIRS PRESERVED`; both structured reads stayed fresh, the workflow stayed out of recovery mode, and the post-open `5m` pairs still match the nearest clean execution shelves, so the desired-state maps were preserved | key levels in play: XAUUSD testing `4688.60-4693.16` from below with `4677.94` as defense; US30 testing `49712.45` as defense with `49752.95-49763.45` still the cap to reclaim or reject | action state: `XAUUSD CLEANER / WAIT / SHORT SIDE ARMED`, `US30 WAIT / LONG DEFENSE TEST / RECLAIM STILL MISSING` | main lesson: when the refreshed `5m` map still sits exactly on current liquidity, do not redraw out of impatience; keep the map, demand the actual trigger, and refuse to turn a touch into a trade.
+
+### Bias Integrity Check - XAU Holds The Tape While US30 Loses First Defense On 2026-05-06
+
+- Run time: `2026-05-06T07:24:48.6625586-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-05-06T07:22:03-06:00`
+  - fresh structured reads used for this integrity run:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-06T07:22:32-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-06T07:23:02-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / BIAS INTEGRITY CHECK / DESIRED STATE PRESERVED`
+  - both symbols passed the normal dual-symbol gate and the workflow stayed in normal mode, not stall recovery
+  - no desired-state refresh was warranted on this pass: `XAUUSD` still uses the active post-open bracket cleanly, and `US30` did weaken below `49712.45`, but the tape has not yet produced a cleaner promoted replacement level that justifies redrawing the owned `5m` map
+- Higher-timeframe thesis:
+  - `XAUUSD`: Daily remains constructive into `DAILY SUPPLY 4730.08` and `4H` still holds above `4H DEMAND 4660.27`, but the live session remains corrective below `4H SUPPLY 4722.80`
+  - `US30`: Daily remains constructive into `DAILY SUPPLY 50000.90` and `4H` still holds above `4H DEMAND 49429.90`, but the session remains corrective below `4H SUPPLY 49952.95` and the first post-open defense shelf has softened
+- Bias verdict:
+  - `XAUUSD`: `BIAS INTACT`; the important condition still holding is the fresh `15m` supply `4688.60-4693.16`, which capped the rebound again after price tagged `4692.39`, while `4677.94` still remains the nearest defended reclaim shelf above the open low
+  - `US30`: `BIAS WEAKENED`; the higher-timeframe map is still usable, but the first defense condition at `49712.45` failed on the latest `15m` rotation and price still has not reclaimed `49752.95-49763.45`, so the long side lost quality and the short side remains incomplete until a cleaner retest forms
+- Structure and liquidity:
+  - `XAUUSD`: `30m` still reads as a lower-high bounce after the `4722.80` sweep-rejection, `15m` held fresh supply at `4693.16`, and `5m` printed a rejection from `4692.39` back to `4682.44`; buy-side liquidity at `4688.60-4692.39` was probed and rejected, while the next sell-side pools stay `4671.75` and then `4660.61`
+  - `US30`: `30m` and `15m` both rolled back lower after the `49752.95-49763.45` rebound cap, `5m` lost `49712.45` and closed back under it, and the market is now leaning on `49657.45`; buy-side liquidity at `49752.95-49763.45` was already tested and rejected, while the next sell-side pools are `49657.45` and then `49624.95`
+- Higher-timeframe usability and directional focus:
+  - `XAUUSD`: the higher-timeframe thesis is still usable and the same post-open short-retest idea still deserves focus
+  - `US30`: the higher-timeframe thesis is still usable, but the same directional idea deserves less conviction until price either reclaims `49712.45` and then `49752.95`, or prints a cleaner fresh rejection back into the upper shelf
+- What to stop assuming if the thesis is weakening:
+  - stop assuming `US30` can stay constructive intraday just because `49712.45` was the first defense shelf earlier; that shelf no longer has permission by itself
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - remained `ACTIVE`: `5M EXECUTION SHORT 4688.60`, `5M EXECUTION LONG 4677.94`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+    - opportunity timing: short side moved from `ARMED` to `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST` after the rejection from `4692.39`
+  - `FOREXCOM:US30`
+    - remained `ACTIVE`: `5M EXECUTION SHORT 49752.95`
+    - remained `ACTIVE` as a nearby decision shelf, but weakened: `5M EXECUTION LONG 49712.45`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+    - opportunity timing: overall `WAIT / BIAS WEAKENED`; no fresh long until `49712.45` reclaims and no fresh short until price retests `49752.95-49763.45`
+- Trading decision:
+  - `PEPPERSTONE:XAUUSD`: `BIAS INTACT / SHORT THESIS STILL USABLE / IF FLAT DO NOT CHASE THE REJECTION THAT ALREADY PRINTED`
+  - `FOREXCOM:US30`: `BIAS WEAKENED / REDUCE CONVICTION / WAIT FOR RECLAIM OR A CLEANER UPPER RETEST`
+  - cleaner symbol now: `PEPPERSTONE:XAUUSD`
+  - symbol to avoid forcing: `FOREXCOM:US30`
+  - biggest trap right now: treating `US30` as if the `49712.45` defense is still clean just because the HTF map above `49429.90` remains alive
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to avoid redrawing the map just because `US30` slipped below first defense once, while still upgrading `XAUUSD` from `ARMED` to a spent short rejection instead of pretending the trigger is still ahead
+- Articuno reinforcement:
+  - `XAUUSD`: reinforcement kept the focus on the already-paid buy-side probe into `4688.60-4693.16`, confirmed that the rejection improved the short thesis quality, and blocked any chase language after the trigger actually printed
+  - `US30`: reinforcement blocked premature promotion of `49657.45` into a new owned execution shelf, kept `49752.95-49763.45` as the real cap that still matters, and forced the write-up to weaken conviction instead of inventing a fresh long from a broken first-defense level
+- Chart actions:
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` untouched because `Daily 4730.08 / 4510.31`, `4H 4722.80 / 4660.27`, and `5m 4688.60 / 4677.94` still describe the live map honestly
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` untouched because `Daily 50000.90 / 48465.90`, `4H 49952.95 / 49429.90`, and `5m 49752.95 / 49712.45` still frame the nearest decision shelves, even though the long-defense branch is weaker and conviction has to be reduced
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `preserved`
+  - `FOREXCOM:US30`: `preserved`
+  - `refresh_reason`: none written because no desired-state mutation was warranted
+- Labels repositioned:
+  - no desired-state rewrite was needed, so the active right-side labels stay preserved with the current runtime-owned map
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: none
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que oro si volvio al sell shelf `4688.60-4693.16`, rechazo otra vez, y sigue dejando la correccion pesada debajo de ese techo. `US30` en cambio no sostuvo `49712.45`, perdio esa primera defensa y ahora rota por debajo del reclaim que necesitaba para volver a limpiarse.
+  - `Tesis:` eso deja intacta la idea post-open en `XAUUSD`: el rechazo si aparece, pero si estas flat ya no quiero chase del short que ya reacciono. En `US30` el mapa HTF sigue vivo arriba de `49429.90`, pero la tesis intradia se debilita porque la defensa inmediata ya no aguanto y el reclaim sigue faltando. El foco sigue siendo oro.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4722.80 / 4660.27 | 5m 4688.60 / 4677.94` ; `US30 -> Daily 50000.90 / 48465.90 | 4H 49952.95 / 49429.90 | 5m 49752.95 / 49712.45`
+  - `Accion:` `WAIT`. `XAUUSD`: bias intacta, pero si ya no estabas dentro no persigas el rechazo que ya imprimio; solo me sirve un retest nuevo o una defensa nueva abajo. `US30`: bias weakened; deja de asumir que `49712.45` aguanta por si sola. Solo me vuelve a interesar si recupera `49712.45` y despues `49752.95`, o si sube de nuevo y falla limpio mas arriba. No quiero chase aqui.
+- Spanish thread update: `XAUUSD` mantiene la bias intacta porque el rechazo en `4688.60-4693.16` si aparecio y el mapa post-open sigue vigente; `US30` queda `BIAS WEAKENED` porque ya perdio `49712.45` y sigue sin reclaim de `49752.95`. El simbolo que todavia merece foco es oro, y el plan correcto ahora es mantener el mapa pero bajar conviccion en `US30`.
+- Discord summary written to payload:
+  - `[BIAS INTEGRITY CHECK]`
+  - `Historia`
+  - `La historia ahora mismo es que oro si volvio al sell shelf 4688.60-4693.16, rechazo otra vez, y sigue dejando la correccion pesada debajo de ese techo. US30 en cambio no sostuvo 49712.45, perdio esa primera defensa y ahora rota por debajo del reclaim que necesitaba para volver a limpiarse.`
+  - `Tesis`
+  - `Eso deja intacta la idea post-open en XAUUSD: el rechazo si aparece, pero si estas flat ya no quiero chase del short que ya reacciono. En US30 el mapa HTF sigue vivo arriba de 49429.90, pero la tesis intradia se debilita porque la defensa inmediata ya no aguanto y el reclaim sigue faltando. Foco: oro.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4722.80 / 4660.27 | 5m 4688.60 / 4677.94`
+  - `US30 -> Daily 50000.90 / 48465.90 | 4H 49952.95 / 49429.90 | 5m 49752.95 / 49712.45`
+  - `Accion`
+  - `WAIT. XAUUSD: bias intacta, pero si estas flat no quiero chase del rechazo ya impreso; solo me sirve retest nuevo o defensa nueva. US30: bias weakened; deja de asumir que 49712.45 aguanta por si sola. Solo me interesa si recupera 49712.45 y despues 49752.95, o si vuelve a fallar mas arriba con rechazo limpio.`
+
+- 2026-05-06 | automation: Bias Integrity Check | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / BIAS INTEGRITY CHECK / DESIRED STATE PRESERVED`; `XAUUSD` kept the post-open short thesis intact by rejecting `4688.60-4693.16` again, while `US30` weakened by losing the first defense shelf at `49712.45` without reclaiming `49752.95-49763.45`, so conviction dropped but no cleaner `5m` replacement was ready to promote | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4722.80 / 4660.27`, `5m 4688.60 / 4677.94`; US30 `Daily 50000.90 / 48465.90`, `4H 49952.95 / 49429.90`, `5m 49752.95 / 49712.45` | action state: `XAUUSD CLEANER / BIAS INTACT / SHORT REJECTION ALREADY PRINTED / DO NOT CHASE`, `US30 BIAS WEAKENED / WAIT / REDUCE CONVICTION` | main lesson: integrity checks should protect the thesis without redrawing out of reflex; keep the live map when it still frames the tape honestly, but reduce conviction immediately when the first defense shelf fails and the reclaim never comes.
+
+### Live Reassessment Trigger - Both 5m Brackets Moved Higher On 2026-05-06
+
+- Run time: `2026-05-06T07:45:00.3369708-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-05-06T07:44:41-06:00`
+  - fresh structured reads used for this reassessment:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-06T07:43:57-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-06T07:44:28-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / LIVE REASSESSMENT / BOTH 5M PAIRS REFRESHED`
+  - both symbols passed the normal dual-symbol gate and the workflow stayed in normal mode, not stall recovery
+  - a full reassess + redraw was required because both active `5m` pairs were structurally behind current price and no longer defined the nearest clean execution shelves, so the refresh writes `refresh_reason = 5m_far_from_price`
+- Higher-timeframe thesis:
+  - `XAUUSD`: Daily remains constructive inside `DAILY DEMAND 4510.31` and below `DAILY SUPPLY 4730.08`, while `4H` still holds above `4H DEMAND 4660.27`; the intraday tape remains corrective below `4H SUPPLY 4722.80`, but there is no material HTF change
+  - `US30`: Daily remains constructive above `DAILY DEMAND 48465.90` and below `DAILY SUPPLY 50000.90`, while `4H` still holds above `4H DEMAND 49429.90`; the session remains below `4H SUPPLY 49952.95`, but there is no material HTF change
+- Structure and liquidity:
+  - `XAUUSD`: `30m` and `15m` accepted back above the old `4688.60-4693.16` sell shelf, `5m` reclaimed `4691.30`, nearest buy-side liquidity is now `4705.49`, nearest sell-side liquidity is `4691.30`, and the market is rotating higher into the next buy-side pool instead of respecting the old short line
+  - `US30`: `30m` and `15m` swept above `49837.95` into `49879.90` and then fell back, `5m` reclaimed `49780.95` before rejecting from the upper pool, nearest buy-side liquidity is `49837.95`, nearest sell-side liquidity is `49780.95`, and the upper short branch already printed once
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - remained `ACTIVE`: none from the prior pair
+    - became `STALE`: `5M EXECUTION LONG 4677.94`
+    - became `INVALIDATED`: `5M EXECUTION SHORT 4688.60`
+    - new `ACTIVE`: `5M EXECUTION SHORT 4705.49`, `5M EXECUTION LONG 4691.30`
+    - opportunity timing: overall `ARMED` on the long-defense branch because `4691.30` has been reclaimed, but `4705.49` still has to accept; the short branch resets to `PRE-TRIGGER` until that upper pool is swept or rejected
+  - `FOREXCOM:US30`
+    - remained `ACTIVE`: none from the prior pair
+    - became `STALE`: `5M EXECUTION LONG 49712.45`
+    - became `INVALIDATED`: `5M EXECUTION SHORT 49752.95`
+    - new `ACTIVE`: `5M EXECUTION SHORT 49837.95`, `5M EXECUTION LONG 49780.95`
+    - opportunity timing: upper short branch is already `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST` because the sweep into `49837.95-49879.90` already rejected; the long branch stays `PRE-TRIGGER` unless `49780.95` holds and `49837.95` reclaims
+- Trading decision:
+  - `PEPPERSTONE:XAUUSD`: `WAIT / LONG BRANCH ARMED / SHORT SIDE ONLY ON NEW UPPER SWEEP-REJECTION`
+  - `FOREXCOM:US30`: `WAIT / SHORT BRANCH ALREADY TRIGGERED / DO NOT CHASE / LONG SIDE STILL INCOMPLETE`
+  - cleaner symbol now: `PEPPERSTONE:XAUUSD`
+  - symbol to avoid forcing: `FOREXCOM:US30`
+  - biggest trap right now: selling `XAUUSD` in the middle of the rebound before `4705.49`, or chasing `US30` after the upper rejection already printed
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to avoid treating the first `XAUUSD` reclaim above `4691.30` as automatic continuation before `4705.49` is reclaimed, and to keep `US30` honest as a spent upper rejection instead of recycling it as a fresh short
+- Articuno reinforcement:
+  - `XAUUSD`: reinforcement blocked reuse of `4688.60` after acceptance through the old sell shelf, promoted `4705.49 / 4691.30` as the current liquidity-defined execution bracket, and kept the anti-chase rule active while price is still between those shelves
+  - `US30`: reinforcement anchored the short side to the meaningful buy-side pool at `49837.95`, promoted `49780.95` as the nearest defended decision shelf, and blocked any attempt to keep `49712.45` as if it were still the live defense
+- Chart actions:
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` with preserved `Daily 4730.08 / 4510.31`, preserved `4H 4722.80 / 4660.27`, and refreshed `5m 4705.49 / 4691.30`
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` with preserved `Daily 50000.90 / 48465.90`, preserved `4H 49952.95 / 49429.90`, and refreshed `5m 49837.95 / 49780.95`
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `refreshed`
+  - `FOREXCOM:US30`: `refreshed`
+  - `refresh_reason`: `5m_far_from_price`
+- Labels repositioned:
+  - both symbols now request `full_symbol_redraw`, so the runtime should rebuild one clean right-side label for every preserved HTF level and every current `5m` level
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: `XAUUSD` replaced `4688.60 / 4677.94` with `4705.49 / 4691.30`; `US30` replaced `49752.95 / 49712.45` with `49837.95 / 49780.95`
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que oro ya acepto arriba de `4688.60`, convirtio `4691.30` en la nueva defensa del rebote y ahora empuja hacia la siguiente liquidez en `4705.49`. `US30` si barrio `49837.95` hasta `49879.90`, rechazo arriba y volvio a `49780.95`, asi que el retest alto ya imprimio y el bracket viejo quedo atras.
+  - `Tesis:` eso no cambia el HTF en ninguno, pero si obliga mover el mapa `5m` a niveles que si mandan la ejecucion ahora. `XAUUSD` queda `ARMED` por el lado largo solo si `4691.30` sostiene y `4705.49` se reclama; `US30` ya dejo un short `TRIGGERED` arriba, asi que si estas flat no quiero chase y toca esperar retest nuevo.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4722.80 / 4660.27 | 5m 4705.49 / 4691.30` ; `US30 -> Daily 50000.90 / 48465.90 | 4H 49952.95 / 49429.90 | 5m 49837.95 / 49780.95`
+  - `Accion:` `WAIT`. `XAUUSD`: long solo si `4691.30` aguanta y `4705.49` acepta; short solo en sweep-rejection de `4705.49`. `US30`: el short del techo ya quedo `TRIGGERED / DO NOT CHASE`; si estas flat espera retest nuevo de `49837.95`, y long solo si `49780.95` sostiene y `49837.95` se recupera. Foco: `XAUUSD`.
+- Spanish thread update: los dos mapas `5m` del post-open quedaron viejos y hubo que subir el bracket operativo. `XAUUSD` queda mas limpio con `4691.30 / 4705.49` y una rama larga `ARMED`; `US30` ya gasto el short del techo en `49837.95-49879.90`, asi que la accion correcta ahi es `WAIT / DO NOT CHASE`.
+- Discord summary written to payload:
+  - `[LIVE REASSESSMENT TRIGGER]`
+  - `Historia`
+  - `La historia ahora mismo es que oro ya acepto arriba de 4688.60, convirtio 4691.30 en la nueva defensa del rebote y ahora empuja hacia la siguiente liquidez en 4705.49. US30 si barrio 49837.95 hasta 49879.90, rechazo arriba y volvio a 49780.95, asi que el retest alto ya imprimio y el bracket viejo quedo atras.`
+  - `Tesis`
+  - `Eso no cambia el HTF en ninguno, pero si obliga mover el mapa 5m a niveles que si mandan la ejecucion ahora. XAUUSD queda ARMED por el lado largo solo si 4691.30 sostiene y 4705.49 se reclama; US30 ya dejo un short TRIGGERED arriba, asi que si estas flat no quiero chase y toca esperar retest nuevo.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4722.80 / 4660.27 | 5m 4705.49 / 4691.30`
+  - `US30 -> Daily 50000.90 / 48465.90 | 4H 49952.95 / 49429.90 | 5m 49837.95 / 49780.95`
+  - `Accion`
+  - `WAIT. XAUUSD: long solo si 4691.30 aguanta y 4705.49 acepta; short solo en sweep-rejection de 4705.49. US30: short del techo ya quedo TRIGGERED / DO NOT CHASE; si estas flat espera retest nuevo de 49837.95, y long solo si 49780.95 sostiene y 49837.95 se recupera. Foco: XAUUSD.`
+
+- 2026-05-06 | automation: Live Reassessment Trigger | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / LIVE REASSESSMENT / BOTH 5M PAIRS REFRESHED`; HTF structure stayed preserved in both symbols, but the old post-open `5m` brackets were behind current price, so the execution layer was redrawn with `refresh_reason = 5m_far_from_price` | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4722.80 / 4660.27`, `5m 4705.49 / 4691.30`; US30 `Daily 50000.90 / 48465.90`, `4H 49952.95 / 49429.90`, `5m 49837.95 / 49780.95` | action state: `XAUUSD CLEANER / WAIT / LONG BRANCH ARMED`, `US30 WAIT / UPPER SHORT TRIGGERED / DO NOT CHASE` | main lesson: when both live execution shelves migrate higher, preserve HTF, rebuild only the `5m` layer, and stop pretending the old bracket still owns execution.
+
+- 2026-05-06 | manual runtime fix: embedded centered line text | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: no strategy change; this was a rendering-contract upgrade across the workflow and automation stack. All automation-owned line draws now carry their own text embedded in the line, centered, instead of using detached right-side labels | key drawn levels after forced redraw: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4722.80 / 4660.27`, `5m 4705.49 / 4695.56`; US30 `Daily 50000.90 / 48465.90`, `4H 49952.95 / 49429.90`, `5m 49837.95 / 49780.95` | action state: `RUNTIME VERIFIED / EMBEDDED TEXT ACTIVE` | main lesson: the executor, workflow rules, and shared memory must agree on the same visual contract or the chart will drift back into mixed label behavior.
+
+### Manual Reassessment - XAU 5m Label Realigned On 2026-05-06
+
+- Run time: `2026-05-06T07:50:09.3295147-06:00`
+- Symbol reviewed: `PEPPERSTONE:XAUUSD`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `PEPPERSTONE:XAUUSD as_of = 2026-05-06T07:49:24-06:00`
+  - `data_confidence = FULL_DATA`
+- Workflow result:
+  - this correction finished `FULL_DATA / MANUAL REASSESSMENT / XAU 5M LONG REALIGNED`
+  - the issue was not HTF drift; the text on the active `5m` gold long draw was behind the live shelf
+  - `4705.49` remains the active upper `5m` short test, but the active lower `5m` defense has stepped up from `4691.30` to `4695.56`
+- Higher-timeframe thesis:
+  - `XAUUSD`: Daily remains constructive below `DAILY SUPPLY 4730.08` and above `DAILY DEMAND 4510.31`, while `4H` still holds above `4H DEMAND 4660.27`; there is no material HTF change here
+- Structure and liquidity:
+  - `30m` and `15m` continue to hold the rebound off `4668.70`, `5m` reclaimed and reacted at `4695.56`, nearest buy-side liquidity remains `4705.49`, nearest sell-side liquidity is now `4695.56`, and the old `4691.30` text no longer matches the nearest live defense shelf
+- `5m` execution lifecycle:
+  - remained `ACTIVE`: `5M EXECUTION SHORT 4705.49`
+  - became `STALE`: `5M EXECUTION LONG 4691.30`
+  - became `INVALIDATED`: none
+  - new `ACTIVE`: `5M EXECUTION LONG 4695.56`
+  - opportunity timing: overall `ARMED` on the long branch because `4695.56` is the active reclaimed defense and `4705.49` is still the exact reclaim that would flip continuation cleaner
+- Trading decision:
+  - `PEPPERSTONE:XAUUSD`: `WAIT / LONG BRANCH ARMED / SHORT ONLY ON 4705.49 SWEEP-REJECTION`
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to keep the long branch tied to the higher reclaimed shelf instead of leaving the chart stuck on an older correction low
+- Articuno reinforcement:
+  - reinforcement blocked keeping `4691.30` as the active long text once `4695.56` became the real defended shelf beside current price
+- Chart actions:
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` with preserved HTF, preserved `5M EXECUTION SHORT 4705.49`, and refreshed `5M EXECUTION LONG 4695.56`
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `refreshed`
+  - `refresh_reason`: `manual_reassessment`
+- Labels repositioned:
+  - forced a fresh runtime redraw through desired-state version bump so the right-side gold `5m` text can realign with the updated shelf
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: replaced `5M EXECUTION LONG 4691.30` with `5M EXECUTION LONG 4695.56`
+
+### Mid-Session Reassessment - XAU Steps Higher While US30 Stays Rotational On 2026-05-06
+
+- Run time: `2026-05-06T08:19:21.1670350-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - `last_full_valid_cycle_at = 2026-05-06T08:18:55-06:00`
+  - fresh structured reads used for this reassessment:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-06T08:18:14-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-06T08:18:43-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / MID-SESSION REASSESSMENT / XAU 5M REFRESHED / US30 PRESERVED`
+  - both symbols passed the normal dual-symbol gate and the workflow stayed in normal mode, not stall recovery
+  - `XAUUSD` required a `5m_far_from_price` refresh because the active `4705.49 / 4695.56` pair was already behind price and no longer defined the nearest live execution shelf
+  - `US30` did not need a redraw because `49780.95` still acts as the defended decision shelf and `49837.95` still frames the reclaim pivot even though the nearest buy-side liquidity has shifted up to `49869.90`
+- Higher-timeframe thesis:
+  - `XAUUSD`: Daily remains constructive above `DAILY DEMAND 4510.31` and below `DAILY SUPPLY 4730.08`, while `4H` is now pressing directly into `4H SUPPLY 4722.80`; there is no material HTF change
+  - `US30`: Daily remains constructive above `DAILY DEMAND 48465.90` and below `DAILY SUPPLY 50000.90`, while `4H` still trades below `4H SUPPLY 49952.95`; there is no material HTF change here either
+- Morning-thesis status:
+  - the original constructive intraday idea is still alive in both symbols
+  - the best easy continuation in `XAUUSD` is no longer ahead; it already triggered through the reclaim
+  - `US30` remains tradable only with patience because the session keeps rotating instead of cleanly trending away from the bracket
+- Structure and liquidity:
+  - `XAUUSD`: `30m` and `15m` continued the rebound from `4668.70`, price accepted above `4705.49`, and the nearest buy-side liquidity at `4715.50-4716.92` has now been tested with a live `5m` rejection; nearest sell-side liquidity is `4707.83`, so the tape is no longer trading off the old `4695.56` defense
+  - `US30`: `30m` and `15m` are still rotational, `49780.95` has kept acting as the live defense shelf, and price is recycling back into `49837.95` with the next buy-side pool at `49869.90-49879.90`; obvious upper liquidity has been tested once, but acceptance still has not stayed clean
+- Open-structure evolution:
+  - `XAUUSD`: `continuation` already printed on the long side and is now running into HTF resistance
+  - `US30`: `dead-range / rotation` behavior still dominates inside the current execution band
+- Momentum vs patience:
+  - patience is now better than momentum in both symbols
+  - `XAUUSD` long continuation is already late unless it pulls back and rebuilds
+  - `US30` still needs a cleaner break or a cleaner upper failure before it deserves aggression
+- `5m` execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`
+    - remained `ACTIVE`: none from the prior pair
+    - became `STALE`: `5M EXECUTION SHORT 4705.49`, `5M EXECUTION LONG 4695.56`
+    - became `INVALIDATED`: none
+    - new `ACTIVE`: `5M EXECUTION SHORT 4715.50`, `5M EXECUTION LONG 4707.83`
+    - opportunity timing: long continuation is now `TRIGGERED / DO NOT CHASE / WAIT FOR NEW RETEST`; fresh short branch is `PRE-TRIGGER` until `4715.50-4722.80` prints a clean sweep-rejection
+  - `FOREXCOM:US30`
+    - remained `ACTIVE`: `5M EXECUTION SHORT 49837.95`, `5M EXECUTION LONG 49780.95`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+    - opportunity timing: overall `ARMED` only if `49780.95` keeps holding and `49837.95` accepts through into `49869.90`; without that acceptance the tape stays `WAIT`
+- Trading decision:
+  - `PEPPERSTONE:XAUUSD`: `WAIT / LONG CONTINUATION ALREADY TRIGGERED / DO NOT CHASE / FRESH SHORTS ONLY ON UPPER SWEEP-REJECTION`
+  - `FOREXCOM:US30`: `WAIT / LONG BRANCH STILL INCOMPLETE / SHORTS ONLY ON A CLEANER NEW UPPER FAILURE`
+  - cleaner symbol now: `PEPPERSTONE:XAUUSD`
+  - symbol to avoid forcing: `FOREXCOM:US30`
+  - biggest trap right now: buying `XAUUSD` after the reclaim already paid, or pretending `US30` stopped being rotational just because it bounced back into `49837.95`
+- Best remaining opportunity:
+  - `XAUUSD`: a fresh upper rejection into `4715.50-4722.80`, or a cleaner pullback that defends `4707.83` and rebuilds
+  - `US30`: only a confirmed hold of `49780.95` plus acceptance above `49837.95` toward `49869.90`, or a cleaner fresh failure from the upper shelf
+- What not to chase now:
+  - do not chase the gold long continuation that already reclaimed and expanded
+  - do not force a US30 breakout until acceptance above `49837.95` actually stays
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to classify the gold reclaim as already-spent continuation instead of recycling it as a fresh long, and to keep `US30` in patience mode until the reclaim actually proves itself
+- Articuno reinforcement:
+  - `XAUUSD`: reinforcement promoted the live liquidity-defined shelf from `4705.49 / 4695.56` to `4715.50 / 4707.83`, blocked chase language after the continuation already printed, and kept the short idea tied to a real upper liquidity test instead of a random micro pivot
+  - `US30`: reinforcement kept the current bracket preserved because `49780.95` still has structural function and `49837.95` still matters as the reclaim pivot, while refusing to promote a fresh higher `5m` pair before cleaner acceptance or failure appears
+- Chart actions:
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` with preserved `Daily 4730.08 / 4510.31`, preserved `4H 4722.80 / 4660.27`, and refreshed `5m 4715.50 / 4707.83`
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` untouched because `49837.95 / 49780.95` still defines the live reclaim-vs-defense decision honestly enough for this cycle
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `refreshed`
+  - `FOREXCOM:US30`: `preserved`
+  - `refresh_reason`: `5m_far_from_price` on `XAUUSD` only
+- Labels repositioned:
+  - `XAUUSD`: full desired-state redraw requested so the embedded `5m` text recenters on `4715.50` and `4707.83`
+  - `US30`: preserved; no re-centering rewrite needed
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: `XAUUSD` replaced `4705.49 / 4695.56` with `4715.50 / 4707.83`; `US30` none
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que `XAUUSD` ya acepto arriba de `4705.49` y fue a pagar `4715.50-4716.92`, asi que el long de continuacion ya corrio y ahora toca leer si ese techo rechaza o si `4707.83` se convierte en defensa real. `US30` sigue reciclando `49780.95` como piso, pero arriba todavia choca con `49837.95` y la liquidez de `49869.90-49879.90`, asi que sigue mas rotacional que limpio.
+  - `Tesis:` HTF no cambia en ninguno, pero el move facil de oro ya no esta adelante. `XAUUSD` sigue siendo el chart mas claro porque ahora tiene techo definido contra `4715.50-4722.80`; `US30` necesita aceptar arriba antes de dejar de ser rango. Paciencia sigue ganando.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4722.80 / 4660.27 | 5m 4715.50 / 4707.83` ; `US30 -> Daily 50000.90 / 48465.90 | 4H 49952.95 / 49429.90 | 5m 49837.95 / 49780.95`
+  - `Accion:` `WAIT`. `XAUUSD`: long de continuacion ya quedo `TRIGGERED / DO NOT CHASE`; short fresco solo si `4715.50-4722.80` barre y rechaza, o long nuevo si `4707.83` defiende y `4715.50` se recupera otra vez. `US30`: no quiero force aqui; long solo si `49780.95` sostiene y `49837.95` acepta hacia `49869.90`, short solo en rechazo nuevo del techo alto. Foco: `XAUUSD`.
+- Spanish thread update: `XAUUSD` sigue siendo el simbolo mas limpio, pero el long facil ya paso y ahora la lectura correcta es `WAIT / DO NOT CHASE` hasta ver si `4715.50-4722.80` rechaza o si `4707.83` defiende un pullback. `US30` sigue vivo, pero mas sucio y mas rotacional; sin aceptacion arriba de `49837.95`, no merece fuerza.
+- Discord summary written to payload:
+  - `[MID-SESSION REASSESSMENT]`
+  - `Historia`
+  - `La historia ahora mismo es que XAUUSD ya acepto arriba de 4705.49 y fue a pagar 4715.50-4716.92, asi que el long de continuacion ya corrio y ahora toca leer si ese techo rechaza o si 4707.83 se convierte en defensa real. US30 sigue reciclando 49780.95 como piso, pero arriba todavia choca con 49837.95 y la liquidez de 49869.90-49879.90, asi que sigue mas rotacional que limpio.`
+  - `Tesis`
+  - `HTF no cambia en ninguno, pero el move facil de oro ya no esta adelante. XAUUSD sigue siendo el chart mas claro porque ahora tiene techo definido contra 4715.50-4722.80; US30 necesita aceptar arriba antes de dejar de ser rango. Paciencia sigue ganando.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4722.80 / 4660.27 | 5m 4715.50 / 4707.83`
+  - `US30 -> Daily 50000.90 / 48465.90 | 4H 49952.95 / 49429.90 | 5m 49837.95 / 49780.95`
+- `Accion`
+- `WAIT. XAUUSD: long de continuacion ya quedo TRIGGERED / DO NOT CHASE; short fresco solo si 4715.50-4722.80 barre y rechaza, o long nuevo si 4707.83 defiende y 4715.50 se recupera otra vez. US30: no quiero force aqui; long solo si 49780.95 sostiene y 49837.95 acepta hacia 49869.90, short solo en rechazo nuevo del techo alto. Foco: XAUUSD.`
+
+- 2026-05-06 | automation: Mid-Session Reassessment | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / MID-SESSION REASSESSMENT / XAU 5M REFRESHED / US30 PRESERVED`; both symbols stayed valid in normal mode, gold had already pushed beyond its old `4705.49 / 4695.56` bracket so the `5m` map stepped up to `4715.50 / 4707.83` with `refresh_reason = 5m_far_from_price`, while `US30` kept the existing `49837.95 / 49780.95` bracket because it still frames the live reclaim-vs-defense rotation honestly | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4722.80 / 4660.27`, `5m 4715.50 / 4707.83`; US30 `Daily 50000.90 / 48465.90`, `4H 49952.95 / 49429.90`, `5m 49837.95 / 49780.95` | action state: `XAUUSD CLEANER / LONG CONTINUATION TRIGGERED / DO NOT CHASE / UPPER SHORT PRE-TRIGGER`, `US30 WAIT / ROTATIONAL / LONG BRANCH ARMED ONLY WITH REAL ACCEPTANCE` | main lesson: once a continuation reclaim already paid, promote the next live shelf and stop pretending the spent bracket still owns execution; if a rotational market still respects the same defense and reclaim pivots, preserve the map and demand cleaner acceptance.
+
+- 2026-05-06 | manual runtime hardening: embedded centered line text enforced everywhere | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: no strategy change; this pass fixed automation drift after gold was redrawn by an older live writer that still had the pre-hard-rule marking model loaded. The workflow hard rule is now explicit for both charts and every automation-owned line draw, and the chart watchdog now reloads the runtime modules on every cycle so future marking-rule changes do not stay trapped in a stale in-memory process | key drawn levels preserved for redraw: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4722.80 / 4660.27`, `5m 4715.50 / 4707.83`; US30 `Daily 50000.90 / 48465.90`, `4H 49952.95 / 49429.90`, `5m 49837.95 / 49780.95` | action state: `RUNTIME HARD RULE ACTIVE / RE-MARK XAU / FULL OWNED-LAYER REDRAW BOTH SYMBOLS` | main lesson: if the workflow spec, executor code, and long-running writer are not all aligned, gold can fall back into legacy label behavior even when the desired state is correct; the rule has to live in memory, code, and runtime together.
+
+### Asia Session Gold - XAU Compresses Back Into 4699.88 / 4693.16 On 2026-05-06
+
+- Run time: `2026-05-06T16:34:56.1768069-06:00`
+- Symbol reviewed: `PEPPERSTONE:XAUUSD`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - fresh structured reads visible to this Asia baseline:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-06T16:32:27-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` remained valid too, but its freshness stayed secondary and did not block the Asia gold decision path
+- Workflow result:
+  - this run finished `FULL_DATA / ASIA SESSION GOLD / XAU 5M REFRESHED`
+  - `XAUUSD` required a `5m_far_from_price` refresh because the saved NY pair `4715.50 / 4707.83` is now structurally above the live Asia tape and no longer defines execution readiness
+  - higher-timeframe structure did not materially change, so the `Daily / 4H` map was preserved and only the execution layer was refreshed to `4699.88 / 4693.16`
+- Higher-timeframe thesis:
+  - Daily bias: constructive above `DAILY DEMAND 4510.31`, but still capped below `DAILY SUPPLY 4730.08`
+  - `4H` bias: constructive above `4H DEMAND 4660.27`, but still under `4H SUPPLY 4722.80`
+  - alignment: `yes`
+  - bias strength: `moderate`
+- Structure and liquidity:
+  - `30m`: after the strong rebound, price is now compressing below `4699.88-4700.25` instead of extending cleanly; this looks more like `consolidation / transition` than fresh expansion
+  - `15m`: setup quality is mixed because price sits inside overlapping reaction structure; the live pivot is the reclaimed `4693.16` shelf, but the upper buy-side has not been accepted cleanly yet
+  - nearest buy-side liquidity: `4698.49`, then the equal-high pocket around `4699.88-4700.25`
+  - nearest sell-side liquidity: `4693.16`, then the live range low at `4685.06`
+  - supply / demand behavior: demand is still being respected above `4660.27`, but local supply is still capping the tape under `4699.88-4700.25`
+- Asia session framing:
+  - conditions favor `fade / range` first, not blind breakout chase
+  - Asia should wait for a liquidity sweep or a clean reclaim before promoting a fresh `5m` trigger
+  - price is entering Asia in `range / compression` conditions, not in a clean continuation expansion
+- RSI context:
+  - `15m RSI 14 ~= 55.80`
+  - `5m RSI 14 ~= 57.71`
+  - RSI stayed secondary and did not drive the decision
+- `5m` execution lifecycle:
+  - remained `ACTIVE`: none from the prior pair
+  - became `STALE`: `5M EXECUTION SHORT 4715.50`, `5M EXECUTION LONG 4707.83`
+  - became `INVALIDATED`: none
+  - new `ACTIVE`: `5M EXECUTION SHORT 4699.88`, `5M EXECUTION LONG 4693.16`
+  - opportunity timing:
+    - long branch: `PRE-TRIGGER` until `4693.16` defends and `4698.49-4699.88` reclaims cleanly
+    - short branch: `PRE-TRIGGER` until `4699.88-4700.25` sweeps and rejects, or until `4693.16` breaks and fails on reclaim
+- Trading decision:
+  - `PEPPERSTONE:XAUUSD`: `WAIT / NO CLEAR EDGE`
+  - valid long during Asia: only if `4693.16` holds and price re-accepts `4698.49-4699.88`
+  - valid short during Asia: only on `4699.88-4700.25` sweep-rejection, or on a clean loss of `4693.16` followed by reclaim-failure
+  - what invalidates both sides right now: unresolved chop in the middle of `4693.16-4699.88` without clean reclaim or clean rejection
+  - what not to do now: do not chase the middle, do not buy directly into `4698.49-4699.88` without acceptance, and do not sell the floor while `4693.16` still holds
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to avoid recycling the old NY continuation bracket and to keep the new Asia pair tied to the live reclaim-vs-cap shelves
+- Articuno reinforcement:
+  - reinforcement refused to preserve `4715.50 / 4707.83` once those lines stopped defining live execution readiness
+  - reinforcement promoted `4693.16` because it is the real reclaimed pivot inside the current tape, and kept the short idea tied to a real buy-side sweep zone at `4699.88-4700.25` instead of a random micro pivot
+- Chart actions:
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` with preserved `Daily 4730.08 / 4510.31`, preserved `4H 4722.80 / 4660.27`, and refreshed `5m 4699.88 / 4693.16`
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` untouched because `US30` is not an Asia trade-decision symbol
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `refreshed`
+  - `FOREXCOM:US30`: `preserved`
+  - `refresh_reason`: `5m_far_from_price`
+- Labels repositioned:
+  - `XAUUSD`: full desired-state redraw requested so the embedded `5m` text recenters on `4699.88` and `4693.16`
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: replaced `4715.50 / 4707.83` with `4699.88 / 4693.16`
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que oro llega a Asia despues del rebote fuerte del dia, pero el bracket de NY ya quedo atras y ahora comprime debajo de `4699.88` mientras `4693.16` manda como pivote de corto plazo. El `30m` y el `15m` vienen mixtos, asi que todavia no hay breakout limpio ni sweep claro.
+  - `Tesis:` eso mantiene `Daily / 4H` constructivos arriba de `4510.31 / 4660.27`, pero el tape entra a Asia en rango bajo oferta local. El mapa activo queda en `4699.88 / 4693.16`: long solo si `4693.16` defiende y `4698.49-4699.88` reacepta; short solo si `4699.88-4700.25` barre y rechaza o si `4693.16` se pierde y falla el reclaim.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4722.80 / 4660.27 | 5m 4699.88 / 4693.16 | PDH 4722.80 | PDL 4546.19 | Range 4699.88 / 4685.06`
+  - `Accion:` `WAIT / NO CLEAR EDGE`. Asia favorece paciencia y `fade / range` primero. No quiero chase en medio del bracket.
+- Three-line conclusion:
+  - `Bias Diario: alcista moderado. Bias 4H: alcista moderado. Alineacion: si, pero debajo de oferta.`
+  - `Asia entra en compresion, no en expansion limpia; por eso no quiero breakout ciego ni fade sin sweep.`
+  - `El trabajo bueno ahora es esperar reclaim real o barrida clara; sin eso, no hay edge fresco.`
+- Spanish thread update: oro ya fue revisado para Asia. El sesgo mayor sigue constructivo arriba de `4660.27`, el mapa activo queda en `4699.88 / 4693.16`, y por ahora luce mejor para paciencia que para trade inmediato.
+
+### Asia Setup Detector - XAU Still Trapped Under 4699.88 On 2026-05-06
+
+- Run time: `2026-05-06T17:33:20.8693099-06:00`
+- Symbol reviewed: `PEPPERSTONE:XAUUSD`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - fresh structured reads visible to this detector:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-06T17:31:53-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-06T17:31:16-06:00` | `data_confidence = FULL_DATA`, but it stayed secondary and did not block the Asia gold decision path
+- Workflow result:
+  - this run finished `FULL_DATA / ASIA SETUP DETECTOR / XAU PRESERVED`
+  - `XAUUSD` did not require a redraw because the active Asia pair `4699.88 / 4693.16` still brackets the live tape honestly enough for execution readiness
+  - the micro support hold at `4692.43-4692.44` is informative, but it is not yet a cleaner replacement for the preserved long shelf; tightening the map to that level here would overfit the chop
+  - `Daily / 4H` were re-evaluated and did not materially change, so HTF stayed preserved
+- Asia setup status:
+  - `PEPPERSTONE:XAUUSD`: `WAIT / NO CLEAR EDGE`
+  - current opportunity timing: `ARMED` on the short branch, but not `TRIGGERED`; long branch remains `PRE-TRIGGER`
+- Higher-timeframe thesis:
+  - Daily bias: constructive above `DAILY DEMAND 4510.31`, but still capped below `DAILY SUPPLY 4730.08`
+  - `4H` bias: constructive above `4H DEMAND 4660.27`, but still under `4H SUPPLY 4722.80`
+  - alignment: `yes`
+  - bias strength: `moderate`
+- Current structure and liquidity:
+  - key level being tested now: the preserved `4693.16` pivot with live sell-side support at `4692.43-4692.44`
+  - `30m`: still compression with a slight lower drift under `4699.88`; this is not clean continuation expansion
+  - `15m`: mixed and still noisy; price is printing under `4693.16`, but without decisive downside acceptance yet
+  - nearest buy-side liquidity: `4698.49`, then `4699.88-4700.25`
+  - nearest sell-side liquidity: `4692.43`, then `4685.06`
+  - current price action vs Asia bias: it confirms the earlier `fade / range` baseline and still fails to confirm bullish re-acceptance above the cap
+- Exact trigger and missing confirmation:
+  - exact trigger present: no fully active setup; the only live signal is a short-lean reclaim-fail attempt under `4693.16`
+  - exact confirmation still missing:
+    - long: reclaim and hold back above `4693.16`, then clean re-acceptance of `4698.49-4699.88`
+    - short: clean acceptance below `4692.43` followed by failed reclaim back into `4693.16`, or an upper sweep-rejection through `4699.88-4700.25`
+  - what invalidates the short lean: sustained reclaim and hold above `4698.49-4699.88`
+  - what invalidates the long branch: acceptance below `4692.43` that opens `4685.06` without recovery
+- Conditions and execution lifecycle:
+  - conditions still favor `fade / range` over breakout
+  - `5m` execution lines remained `ACTIVE`: `5M EXECUTION SHORT 4699.88`, `5M EXECUTION LONG 4693.16`
+  - became `STALE`: none
+  - became `INVALIDATED`: none
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to avoid promoting the first loss of `4693.16` into a fresh short before the correction proves acceptance lower
+- Articuno reinforcement:
+  - reinforcement kept the preserved pair because `4699.88` still owns the clean upper sweep zone and `4693.16` still marks the pivot whose reclaim-fail matters for the short branch
+  - reinforcement blocked a premature refresh down to `4692.43` because that shelf is still micro and unproven as the cleaner execution-long anchor
+- Chart actions:
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` untouched because the active Asia pair stayed structurally valid
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` untouched because `US30` is not an Asia trade-decision symbol
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `preserved`
+  - `FOREXCOM:US30`: `preserved`
+- Labels repositioned:
+  - none
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: none
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que oro sigue comprimido debajo de `4699.88`, y aunque ya perdio momentaneamente `4693.16`, todavia no logra convertir esa perdida en continuation limpia porque `4692.43` sigue defendiendo por abajo. El tape sigue mas de rango corto y fade que de breakout real.
+  - `Tesis:` eso mantiene intacto el marco `Daily / 4H`, pero tambien mantiene la misma disciplina de Asia: paciencia primero. El long no confirma mientras no recupere `4693.16` y luego `4698.49-4699.88`; el short tiene mejor sesgo, pero todavia necesita acceptance abajo o barrida/rechazo arriba.
+  - `Niveles:` `XAUUSD -> Daily 4730.08 / 4510.31 | 4H 4722.80 / 4660.27 | 5m 4699.88 / 4693.16 | sell-side 4692.43 | buy-side 4698.49-4700.25`
+  - `Accion:` `WAIT / NO CLEAR EDGE`. Short side `ARMED`, no `TRIGGERED`: quiero ver perdida limpia de `4692.43` con reclaim-fail en `4693.16`, o sweep-rejection en `4699.88-4700.25`. Long side sigue `PRE-TRIGGER`; sin re-aceptacion arriba, no quiero chase.
+- Spanish thread update: oro sigue revisado para Asia y el mapa no cambia. El sesgo mayor sigue constructivo arriba de `4660.27`, pero la ejecucion inmediata sigue en `WAIT`: short side `ARMED` si pierde `4692.43`, long solo si recupera `4693.16` y reacepta arriba.
+
+- 2026-05-06 | automation: Asia Setup Detector | symbols: PEPPERSTONE:XAUUSD | thesis result: XAUUSD kept the Asia `4699.88 / 4693.16` bracket active because price is still rotating inside the same fade/range structure, testing below `4693.16` but still finding support at `4692.43`, so there is no clean downside acceptance yet and no bullish re-acceptance either | key drawn levels: XAUUSD `Daily 4730.08 / 4510.31`, `4H 4722.80 / 4660.27`, `5m 4699.88 / 4693.16`, live micro liquidity `4692.43 / 4698.49-4700.25` | action state: `WAIT / NO CLEAR EDGE / SHORT SIDE ARMED / LONG SIDE PRE-TRIGGER` | main lesson: when the live tape is only nibbling under the pivot without true acceptance lower, do not shrink the map to a micro shelf just because it printed once; keep the cleaner preserved pair and wait for the actual confirmation.
+
+### End-of-Day Review - XAU Swept Both Sides While US30 Closed Cleaner Into Supply On 2026-05-06
+
+- Run time: `2026-05-06T22:35:39.3798698-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - fresh structured reads used for this review:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-06T22:35:33-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-06T22:34:48-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / REVIEW-ONLY / DESIRED STATE PRESERVED`
+  - the review used the full New York chain plus the latest structured close context to decide which ideas actually held after the morning baseline, the post-open short branch, and the later reversal / recovery sequence
+- Session review:
+  - `XAUUSD`: the New York baseline did not survive as a one-direction day. The open sweep-rejection short worked first and the post-open map rotated lower into `4685.15`, but that sell-side payment became the real defense. Gold then reclaimed through the midday long shelf, paid `4715.50-4721.43`, and the latest structured close rolled back under `4698.49` with `LH/LL` microstructure. The day finished as `TWO-WAY SESSION / OPEN SHORT -> MIDDAY LONG CONTINUATION -> LATE REJECTION BACK BELOW THE RECLAIM SHELF`.
+  - `US30`: the opening bearish branch never became a clean bearish session. The post-open weakness only weakened the long thesis for a while, then the market rebuilt above `49780.95`, kept stepping through `49837.95`, and the latest structured close is still holding above `49966.40` while pressing `49985.40 / 50000.90 / 50016.40`. The day finished as `ROTATIONAL BULLISH CONTINUATION INTO 4H SUPPLY / PDH`.
+- Levels that mattered most:
+  - `XAUUSD`: `4708.58`, `4688.60`, `4677.94`, `4685.15`, `4707.83`, `4715.50`, `4721.43`, `4698.49`
+  - `US30`: `49923.95`, `49752.95`, `49712.45`, `49780.95`, `49837.95`, `49966.40`, `49985.40`, `50000.90-50016.40`
+- Levels that failed:
+  - `XAUUSD`: the morning continuation-defense shelf `4708.58`, the post-open bearish map once `4685.15` held and the reclaim rebuilt, and the late continuation long as a fresh idea once `4715.50-4721.43` was already paid
+  - `US30`: the first bearish continuation branch below `49712.45` failed to stay in control; by the close the remaining upside is crowded into nearby supply rather than wide open
+- Which symbol was cleaner: `PEPPERSTONE:XAUUSD` gave the clearer intraday inflection, but `FOREXCOM:US30` kept the cleaner closing structure. Carry-forward into tomorrow is cleaner on `US30`.
+- Best opportunity: the best high-quality move was the `XAUUSD` defense from `4685.15` back through the reclaim shelf into `4715.50-4721.43`; the steadier secondary move was `US30` holding `49780.95` and grinding into `49985.40 / 50000.90`
+- Biggest trap: keep selling gold after the sell-side had already been paid and the reclaim was visible, or keep forcing fresh US30 shorts while the tape kept printing `HH/HL` back into supply instead of giving real downside acceptance
+- Strategy learning:
+  - today rewarded patience, confirmation, and defended reclaim much more than attachment to the first open bias
+  - Daily + `4H` still mattered as context: gold respected the `4H` cap near `4722.80`, and `US30` still finished compressed under `4H SUPPLY 50000.90`, but higher timeframe alone did not decide the intraday side
+  - `5m` execution helped only while it stayed near price; once the market moved beyond `4708.58 / 4695.56`, `4688.60 / 4677.94`, and `49752.95 / 49712.45`, the right move was to downgrade the old pair instead of recycling it
+- `5m` execution lifecycle at close:
+  - `XAUUSD`: the earlier New York pairs `4708.58 / 4695.56` and `4688.60 / 4677.94` finished spent; the midday continuation through `4715.50 / 4707.83` already `TRIGGERED`, and the current preserved pair `4709.92 / 4702.23` now sits back above price, so the close ends `WAIT / NO CLEAR EDGE / DO NOT CHASE`
+  - `US30`: the earlier New York pairs finished stale, but the current preserved pair `49985.40 / 49966.40` is still near price; long defense already held, yet the upside is too close to `50000.90 / 50016.40` to justify chase, so the close ends `ARMED / WAIT FOR CLEAN ACCEPTANCE OR CLEAN REJECTION`
+- Multi-day intelligence:
+  - across the prior valid close reviews on `2026-04-29`, `2026-04-30`, `2026-05-01`, and `2026-05-05`, `US30` finished cleaner on three of four days; today keeps that pattern cleaner into the close even though `XAUUSD` gave the sharper intraday reversal
+  - recent daily reviews keep repeating the same rule: pre-market bias survives best when the first `30m / 15m` retest accepts the intended shelf; when the open activates the opposite branch first, the old `5m` map becomes stale quickly
+  - `PDH` / session-high sweeps still do not earn standalone fades. The sweep only matters if `15m` accepts the failure; otherwise the better trade keeps being defended reclaim or patience
+  - the preferred setup keeps working best on defended demand + reclaim days in `US30`, and worst when `XAUUSD` is already paying liquidity and the workflow keeps trying to reuse a spent fade
+- Chart actions:
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` untouched because `End-of-Day Review` remains review-only
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` untouched because `End-of-Day Review` remains review-only
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `preserved`
+  - `FOREXCOM:US30`: `preserved`
+  - `refresh_reason`: not applicable in this review-only workflow
+- Labels repositioned:
+  - none, because desired state was not mutated in this workflow
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: none in desired state; continuity only
+- Trader-facing report:
+  - `Historia:` la historia del cierre es que oro si dio el short de apertura, pero no dejo una direccion unica: defendio `4685.15`, reclamo el tramo medio, pago `4715.50-4721.43` y luego cerro otra vez debajo de `4698.49`. `US30` fue mas lento, pero mas ordenado al final: sostuvo `49966.40` y termino apretado contra `49985.40 / 50000.90`.
+  - `Tesis:` eso deja una leccion buena para manana. Hoy gano la paciencia y la confirmacion, no el apego al primer bias. En `XAUUSD` el error era seguir vendiendo despues de que la defensa ya habia aparecido; en `US30` el cierre queda mas limpio, pero ya demasiado cerca de supply como para perseguir.
+  - `Niveles:` `XAUUSD -> Daily 4857.02 / 4654.86 | 4H 4722.80 / 4700.26 | 5m 4709.92 / 4702.23` ; `US30 -> Daily 50523.30 / 49089.00 | 4H 50000.90 / 49075.90 | 5m 49985.40 / 49966.40`
+  - `Accion:` `CIERRE DE REVISION`. Lo que funciono fue dejar morir el `5m` gastado y esperar el shelf que si defendio. Para manana: `XAUUSD` necesita retest o rechazo limpio otra vez; `US30` solo merece continuidad si acepta arriba de `49985.40 / 50000.90`. Si ya se movio, no perseguir.
+- Spanish thread update: cierre mixto, pero con leccion clara. `XAUUSD` dio el giro intradia mas fuerte y luego devolvio parte del move; `US30` dejo el cierre mas limpio, aunque ya pegado a supply. Para manana manda la misma disciplina: sin acceptance o retest real, no hay chase.
+- Discord summary written to payload:
+  - `[END-OF-DAY REVIEW]`
+  - `Historia`
+  - `XAUUSD dio el giro mas violento del dia: el short de apertura si trabajo hasta 4685.15, pero luego esa defensa reclamo 4707.83, pago 4715.50-4721.43 y al cierre volvio a quedar debajo de 4698.49. US30 fue mas lento pero mas ordenado: reconstruyo desde 49780.95, sostuvo 49966.40 y cerro pegado a 49985.40 / 50000.90.`
+  - `Tesis`
+  - `Hoy el mercado premio paciencia y confirmacion, no apego al primer bias. En oro, el error era seguir vendiendo despues de que 4685.15 defendio y el reclaim ya habia cambiado la historia; en US30, el sesgo termino mas limpio al cierre, pero tambien tarde para chase porque ya esta debajo de supply corta y buy-side inmediata.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4857.02 / 4654.86 | 4H 4722.80 / 4700.26 | 5m 4709.92 / 4702.23`
+  - `US30 -> Daily 50523.30 / 49089.00 | 4H 50000.90 / 49075.90 | 5m 49985.40 / 49966.40`
+  - `Accion`
+  - `CIERRE DE REVISION. Lo que funciono fue dejar morir el 5m gastado y esperar el shelf que si defendio. Para manana: XAUUSD necesita retest o rechazo limpio otra vez; US30 solo merece continuidad si acepta arriba de 49985.40 / 50000.90. Si ya se movio, no perseguir.`
+
+- 2026-05-06 | automation: End-of-Day Review | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / REVIEW-ONLY / DESIRED STATE PRESERVED`; `XAUUSD` became the sharper two-way tape because the open short paid into `4685.15` before the defended reclaim rotated price back through `4707.83` into `4715.50-4721.43`, while `US30` failed as a bearish continuation and instead closed as a cleaner `HH/HL` grind into `49985.40 / 50000.90 / 50016.40` | key drawn levels: XAUUSD current preserved map `Daily 4857.02 / 4654.86`, `4H 4722.80 / 4700.26`, `5m 4709.92 / 4702.23`; US30 current preserved map `Daily 50523.30 / 49089.00`, `4H 50000.90 / 49075.90`, `5m 49985.40 / 49966.40` | action state: `REVIEW-ONLY / XAUUSD WAIT / NO CLEAR EDGE / US30 ARMED BUT TOO LATE TO CHASE` | main lesson: when the open pays liquidity and the reclaimed shelf survives on `15m`, kill the old `5m` fade fast and let patience, not bias attachment, decide the next trade.
+
+### NY Open Levels - Both Symbols Rebuilt After Reclaiming The Prior 4H Caps On 2026-05-07
+
+- Run time: `2026-05-07T05:38:24-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - fresh structured reads used for this baseline:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-07T05:34:15-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-07T05:34:50-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / NY OPEN BASELINE / DESIRED STATE REFRESHED`
+  - both prior `5m` pairs had become structurally far from price and no longer described live execution readiness
+  - both prior `4H SUPPLY` shelves had already been accepted or reclaimed, so the refresh upgraded from `5m_far_from_price` into `htf_changed`
+  - `US30` opens cleaner than `XAUUSD`; gold is constructive, but its open is more two-way inside the fresh bracket
+- Macro context:
+  - `XAUUSD`: price remains inside `MONTHLY 5597.91 / 4099.02` and `WEEKLY 4889.44 / 4402.72`; macro still supports the bigger constructive read while price stays far from macro supply
+  - `US30`: price remains inside `MONTHLY 50523.30 / 44810.55` and `WEEKLY 50523.30 / 45715.50`; macro still supports continuation, but the market is now trading close enough to overhead macro supply that chase discipline matters
+- Higher-timeframe bias:
+  - `XAUUSD`: `Daily` stays constructive above `4654.86`; `4H` accepted above the old `4722.80` cap and the fresh structural pair is now `4H SUPPLY 4753.54` / `4H DEMAND 4700.95`; `1H` tactical bracket is `4740.05 / 4721.92`
+  - `US30`: `Daily` stays constructive above `49089.00`; `4H` reclaimed the old `50000.90` cap and the fresh structural pair is now `4H SUPPLY 50104.45` / `4H DEMAND 49903.95`; `1H` tactical bracket is `50057.45 / 49933.95`
+- Current structure and liquidity:
+  - `XAUUSD`: `30m` and `15m` are still constructive but mixed at the open; price is rotating inside `4731.94-4737.20` with nearest buy-side at `4736.32` and nearest sell-side at `4733.86`
+  - `US30`: `30m` and `15m` remain cleaner in `HH/HL`; price reclaimed `PDH 50016.40`, holds above `50004.95`, and points toward nearest buy-side `50057.45`
+- Conditions and execution lifecycle:
+  - `XAUUSD`:
+    - remained `ACTIVE`: none from the prior NY map
+    - became `STALE`: `5M EXECUTION SHORT 4709.92`, `5M EXECUTION LONG 4702.23`
+    - became `INVALIDATED`: old `4H SUPPLY 4722.80` as the active cap
+    - replaced with: `5M EXECUTION SHORT 4736.32`, `5M EXECUTION LONG 4731.94`
+    - current opportunity timing: `WAIT / NO CLEAR EDGE`; long branch is `PRE-TRIGGER` unless `4731.94` defends and `4736.32` accepts, while short branch is `ARMED` only on sweep-rejection through `4736.32-4740.05`
+  - `US30`:
+    - remained `ACTIVE`: none from the prior NY map
+    - became `STALE`: `5M EXECUTION SHORT 49985.40`, `5M EXECUTION LONG 49966.40`
+    - became `INVALIDATED`: old `4H SUPPLY 50000.90` as the active cap
+    - replaced with: `5M EXECUTION SHORT 50057.45`, `5M EXECUTION LONG 50004.95`
+    - current opportunity timing: `ARMED` on the long branch if `50004.95` retests and holds; short branch remains `PRE-TRIGGER` unless `50057.45` sweeps and rejects or `50004.95` fails cleanly
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to avoid chasing the first NY expansion candle in either symbol and to keep the new `5m` brackets tied to defended reclaim or sweep-rejection behavior
+- Articuno reinforcement:
+  - `XAUUSD`: reinforcement refused to keep `4709.92 / 4702.23` because the open is now organizing around `4731.94 / 4736.32`; it also refused an aggressive long promotion because the fresh buy-side at `4736.32` is still being defended by sellers
+  - `US30`: reinforcement supported the bullish reclaim of `50000.90 / 50016.40`, promoted `50004.95` as the cleaner defense shelf, and kept the short branch tied only to a real sweep-rejection at `50057.45`
+- Chart actions:
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` with preserved macro / Daily context, refreshed `4H 4753.54 / 4700.95`, refreshed `1H 4740.05 / 4721.92`, and refreshed `5m 4736.32 / 4731.94`
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` with preserved macro / Daily context, refreshed `4H 50104.45 / 49903.95`, refreshed `1H 50057.45 / 49933.95`, and refreshed `5m 50057.45 / 50004.95`
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `refreshed`
+  - `FOREXCOM:US30`: `refreshed`
+  - `refresh_reason`: `htf_changed`
+- Labels repositioned:
+  - both symbols requested a full desired-state redraw so all embedded text recenters on the active macro / `Daily` / `4H` / `1H` / `5m` lines
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: removed legacy automation-owned `30M` / `15M` desired-state lines from both symbols so the owned map returns to the approved `MONTHLY / WEEKLY / DAILY / 4H / 1H / 5M` structure
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que NY abre con los dos fuertes y encima del viejo techo. Oro ya acepto arriba de `4722.80`, pero rota dentro de `4731.94-4737.20`; `US30` ya reclamo `50000.90 / 50016.40` y sigue en `HH/HL` camino a `50057.45`.
+  - `Tesis:` eso mantiene sesgo alcista en ambos, pero no quiero chase del primer impulso. `XAUUSD` queda mas mixto porque sigue topando oferta en `4736.32-4740.05`; `US30` sigue mas limpio si vuelve a defender `50004.95`.
+  - `Niveles:` `XAUUSD -> Monthly 5597.91 / 4099.02 | Weekly 4889.44 / 4402.72 | Daily 4857.02 / 4654.86 | 4H 4753.54 / 4700.95 | 1H 4740.05 / 4721.92 | 5m 4736.32 / 4731.94 | PDH 4722.80 | PDL 4546.19` ; `US30 -> Monthly 50523.30 / 44810.55 | Weekly 50523.30 / 45715.50 | Daily 50523.30 / 49089.00 | 4H 50104.45 / 49903.95 | 1H 50057.45 / 49933.95 | 5m 50057.45 / 50004.95 | PDH 50016.40 | PDL 49242.40`
+  - `Accion:` `WAIT`. Oro: long solo si `4731.94` sigue defendiendo y `4736.32` cede con aceptacion; short solo si `4736.32-4740.05` barre y rechaza o si `4731.94` se pierde y falla el reclaim. `US30`: prefiero long solo si `50004.95` defiende otra vez camino a `50057.45 / 50104.45`; short solo en sweep-rejection de `50057.45` o perdida limpia de `50004.95`. Foco mas limpio: `US30`. No quiero chase aqui.
+- Spanish thread update: NY ya queda re-mapeado con brackets frescos. `XAUUSD` sigue constructivo pero mas mixto dentro de `4736.32 / 4731.94`; `US30` llega mas limpio sobre `50004.95` con `50057.45` como proximo buy-side. Disciplina por ahora: `WAIT`, sin chase del primer impulso.
+
+- 2026-05-07 | automation: NY Open Levels | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / NY OPEN BASELINE / DESIRED STATE REFRESHED`; both prior `5m` pairs had become structurally stale, both prior active `4H SUPPLY` shelves were reclaimed, `XAUUSD` reset into a mixed but constructive `4736.32 / 4731.94` opening-range bracket, and `US30` reset into a cleaner bullish `50057.45 / 50004.95` bracket above reclaimed `50000.90 / 50016.40` | key drawn levels: XAUUSD `Daily 4857.02 / 4654.86`, `4H 4753.54 / 4700.95`, `1H 4740.05 / 4721.92`, `5m 4736.32 / 4731.94`; US30 `Daily 50523.30 / 49089.00`, `4H 50104.45 / 49903.95`, `1H 50057.45 / 49933.95`, `5m 50057.45 / 50004.95` | action state: `WAIT / XAUUSD MIXED / US30 CLEANER LONG-LEAN ON RETEST / NO CHASE` | main lesson: when NY opens through the old `4H` cap, stop recycling the previous `5m` continuation pair and rebuild the map around the fresh reclaim shelf and the first untouched buy-side above.
+
+### Post Open Validation - XAU Refreshed At Supply While US30 Preserved The Baseline Bracket On 2026-05-07
+
+- Run time: `2026-05-07T06:49:14.0667970-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - fresh structured reads used for this validation:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-07T06:46:06-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-07T06:46:39-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / POST OPEN VALIDATION / XAUUSD 5M REFRESHED / US30 DESIRED STATE PRESERVED`
+  - `XAUUSD` validated the higher-timeframe bullish bias, but the opening long already left the `4736.32 / 4731.94` bracket behind price, so the execution map had to refresh to the fresh supply-vs-retest pair
+  - `US30` also validated the higher-timeframe bullish bias, but its current `50057.45 / 50004.95` pair still describes the nearest clean long/short decision shelves, so that map stayed active
+- Open validation:
+  - `XAUUSD`: the open broke above `4736.32`, defended the reclaim around `4737.72 / 4737.16`, and expanded into `4750.77 / 4752.64` under `4H SUPPLY 4753.54`; that confirms the constructive read, but the long continuation is no longer fresh
+  - `US30`: the open held above `50004.95`, reclaimed `PDH 50016.40`, expanded into `50057.45 / 50061.95`, and is pulling back without breaking the `HH/HL` structure; that keeps the bullish read valid, but the first long continuation is already advanced
+- Structure and execution:
+  - `XAUUSD`:
+    - `30m`: bullish continuation after the defended reclaim, but now compressing under fresh buy-side and `4H SUPPLY`
+    - `15m`: clean bullish sequence, yet the latest bar shows first rejection at the top of the move rather than a fresh continuation trigger
+    - `5m`: long branch already `TRIGGERED` from the `4737.72 / 4737.16` reclaim and should now be treated as `DO NOT CHASE / WAIT FOR NEW RETEST`; short branch is `ARMED` only if `4750.77-4753.54` sweeps/rejects and the tape accepts back below that shelf
+    - liquidity: nearest buy-side `4750.77` has already been tested, nearest sell-side `4737.72` is now the defended reclaim shelf
+  - `US30`:
+    - `30m`: still the cleaner `HH/HL` continuation above reclaimed `PDH`
+    - `15m`: constructive, but the market is already leaning into the first buy-side rather than building a fresh long entry
+    - `5m`: long branch from `50004.95` already `TRIGGERED`; short branch is only `ARMED` if the sweep of `50057.45` turns into a cleaner failure below `50027.45`
+    - liquidity: nearest buy-side `50057.45` has already been tagged, nearest sell-side remains `50027.45`
+- 5m execution lifecycle:
+  - `XAUUSD`:
+    - remained `ACTIVE`: none from the baseline pair
+    - became `STALE`: `5M EXECUTION SHORT 4736.32`, `5M EXECUTION LONG 4731.94`
+    - became `INVALIDATED`: none in the HTF layer; `4H SUPPLY 4753.54` remains valid
+    - replaced with: `5M EXECUTION SHORT 4750.77`, `5M EXECUTION LONG 4737.72`
+    - opportunity timing: `WAIT / LONG TRIGGERED / SHORT ARMED`
+  - `US30`:
+    - remained `ACTIVE`: `5M EXECUTION SHORT 50057.45`, `5M EXECUTION LONG 50004.95`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+    - replaced with: none
+    - opportunity timing: `WAIT / LONG TRIGGERED / SHORT ARMED`
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to refuse chasing the first bullish extension in both symbols after the reclaim already did the real work
+- Articuno reinforcement:
+  - `XAUUSD`: reinforcement confirmed that `4736.32 / 4731.94` had moved structurally behind price, promoted `4737.72` as the defended reclaim shelf, and kept the fade idea limited to a real rejection at `4750.77-4753.54`
+  - `US30`: reinforcement kept the baseline pair because `50004.95` still defines the clean defense shelf and `50057.45` still defines the nearest buy-side fade zone, but it blocked fresh long enthusiasm because the first target has already been pressed
+- Chart actions:
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` with preserved macro / Daily / `4H` / `1H` context and refreshed `5m 4750.77 / 4737.72`
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` untouched because the active `5m 50057.45 / 50004.95` pair remains the nearest clean execution map
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `refreshed`
+  - `FOREXCOM:US30`: `preserved`
+  - `refresh_reason`: `5m_far_from_price` on `XAUUSD`
+- Labels repositioned:
+  - `XAUUSD`: the active `5m` pair will be rebuilt so the embedded text recenters on the refreshed execution lines
+  - `US30`: none
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: `XAUUSD` replaced `5M EXECUTION SHORT 4736.32` / `5M EXECUTION LONG 4731.94` with `5M EXECUTION SHORT 4750.77` / `5M EXECUTION LONG 4737.72`
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que el open si valido el tono alcista en los dos, pero ya no en el mismo punto. Oro reclamo `4737.72`, corrio hasta `4750.77-4752.64` y ahora esta chocando con `4H SUPPLY 4753.54`; `US30` sostuvo `50004.95`, reclamo `PDH 50016.40` y ya pago `50057.45 / 50061.95` antes de aflojar un poco.
+  - `Tesis:` eso confirma el bias mayor, pero tambien mata la entrada limpia del baseline. En `XAUUSD` el long bueno ya quedo `TRIGGERED`, por eso el mapa `5m` se refresca a `4750.77 / 4737.72`: arriba busco rejection real, abajo solo me interesa nuevo retest defendido. En `US30` el bracket `50057.45 / 50004.95` sigue vigente, pero el continuation long tambien ya se alejo y no quiero chase debajo de `4H SUPPLY 50104.45`.
+  - `Niveles:` `XAUUSD -> Monthly 5597.91 / 4099.02 | Weekly 4889.44 / 4402.72 | Daily 4857.02 / 4654.86 | 4H 4753.54 / 4700.95 | 1H 4740.05 / 4721.92 | 5m 4750.77 / 4737.72 | PDH 4722.80 | PDL 4546.19` ; `US30 -> Monthly 50523.30 / 44810.55 | Weekly 50523.30 / 45715.50 | Daily 50523.30 / 49089.00 | 4H 50104.45 / 49903.95 | 1H 50057.45 / 49933.95 | 5m 50057.45 / 50004.95 | PDH 50016.40 | PDL 49242.40`
+  - `Accion:` `WAIT`. `XAUUSD`: short solo si `4750.77-4753.54` barre y rechaza con aceptacion abajo; long solo en nuevo retest defendido de `4737.72`. `US30`: long solo en nuevo hold de `50004.95`; short solo si la barrida de `50057.45` falla de verdad y pierde `50027.45`. Si ya se movio, no perseguir.
+- Spanish thread update: post-open validado, pero sin chase. `XAUUSD` ya dejo viejo el bracket del baseline y ahora queda re-mapeado en `4750.77 / 4737.72`; `US30` mantiene `50057.45 / 50004.95` y sigue mas limpio, pero la entrada fresca ya no esta arriba. Accion correcta por ahora: `WAIT`.
+- Discord summary written to payload:
+  - `[POST OPEN VALIDATION]`
+  - `Historia`
+  - `El open si valido el tono alcista en los dos, pero ya no en el mismo punto. Oro reclamo 4737.72, corrio hasta 4750.77-4752.64 y ahora esta chocando con 4H SUPPLY 4753.54; US30 sostuvo 50004.95, reclamo PDH 50016.40 y ya pago 50057.45 / 50061.95 antes de aflojar un poco.`
+  - `Tesis`
+  - `Eso confirma el bias mayor, pero tambien mata la entrada limpia del baseline. En XAUUSD el long bueno ya quedo TRIGGERED, por eso el mapa 5m se refresca a 4750.77 / 4737.72: arriba busco rejection real, abajo solo me interesa nuevo retest defendido. En US30 el bracket 50057.45 / 50004.95 sigue vigente, pero el continuation long tambien ya se alejo y no quiero chase debajo de 4H SUPPLY 50104.45.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4857.02 / 4654.86 | 4H 4753.54 / 4700.95 | 1H 4740.05 / 4721.92 | 5m 4750.77 / 4737.72`
+  - `US30 -> Daily 50523.30 / 49089.00 | 4H 50104.45 / 49903.95 | 1H 50057.45 / 49933.95 | 5m 50057.45 / 50004.95`
+  - `Accion`
+  - `WAIT. XAUUSD: short solo si 4750.77-4753.54 barre y rechaza con aceptacion abajo; long solo en nuevo retest defendido de 4737.72. US30: long solo en nuevo hold de 50004.95; short solo si la barrida de 50057.45 falla de verdad y pierde 50027.45. Si ya se movio, no perseguir.`
+
+- 2026-05-07 | automation: Post Open Validation | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / POST OPEN VALIDATION / XAUUSD 5M REFRESHED / US30 PRESERVED`; both symbols validated the NY baseline bias, but `XAUUSD` already pushed far enough through `4736.32 / 4731.94` that the post-open map had to refresh into `4750.77 / 4737.72`, while `US30` kept the cleaner bullish bracket `50057.45 / 50004.95` even though the first continuation long is already `TRIGGERED` and no longer chaseable | key drawn levels: XAUUSD `Daily 4857.02 / 4654.86`, `4H 4753.54 / 4700.95`, `1H 4740.05 / 4721.92`, `5m 4750.77 / 4737.72`; US30 preserved map `Daily 50523.30 / 49089.00`, `4H 50104.45 / 49903.95`, `1H 50057.45 / 49933.95`, `5m 50057.45 / 50004.95` | action state: `WAIT / XAUUSD LONG TRIGGERED SHORT ARMED / US30 LONG TRIGGERED SHORT ARMED / NO CHASE` | main lesson: once the defended reclaim already did the real continuation work, kill the old opening bracket and force the next decision to come from the fresh retest shelf or the real supply rejection, not from FOMO.
+
+### Active Setup Detector - Both 5M Pairs Preserved While XAU Holds The Reclaim And US30 Tests 50004.95 On 2026-05-07
+
+- Run time: `2026-05-07T07:03:12.6260457-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - fresh structured reads used for this detector:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-07T07:02:46-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-07T07:02:02-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / ACTIVE SETUP REVIEW / BOTH 5M PAIRS PRESERVED`
+  - both automation-owned `5m` pairs remain structurally close enough to price to classify live execution readiness, so no redraw was warranted
+  - `XAUUSD` is correcting from the `4750.77-4753.54` rejection back toward the defended reclaim shelf
+  - `US30` already paid the `50057.45` sweep and is now sitting back on the `50004.95` long-defense shelf, which keeps the map live but makes the tape dirtier
+- Higher-timeframe bias:
+  - `XAUUSD`: `Daily` remains constructive above `4654.86`; `4H SUPPLY 4753.54` still capped the first extension and `4H DEMAND 4700.95` still defines the live support floor; `1H 4740.05 / 4721.92` remains the tactical bracket
+  - `US30`: `Daily` remains constructive above `49089.00`; `4H SUPPLY 50104.45` is still untouched overhead and `4H DEMAND 49903.95` still backs the broader reclaim; `1H 50057.45 / 49933.95` remains the tactical bracket
+- Current structure and liquidity:
+  - `XAUUSD`: `30m` is still constructive but now in correction after the `4752.64` test; `15m` shows first rejection from `4H SUPPLY` rather than a clean continuation candle; nearest buy-side remains `4744.11`, nearest sell-side remains `4737.72`, and price is reacting between those shelves after the upper rejection
+  - `US30`: `30m` and `15m` both rolled back from `50061.95` into the defense shelf; nearest buy-side is now `50010.90`, nearest sell-side remains `50004.95`, and price is testing that shelf instead of expanding cleanly
+- 5m execution lifecycle:
+  - `XAUUSD`:
+    - remained `ACTIVE`: `5M EXECUTION SHORT 4750.77`, `5M EXECUTION LONG 4737.72`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+    - replaced with: none
+    - current opportunity timing: `ARMED`
+    - detector state: `WAIT`
+    - key level under test: `4740.05 / 4737.72`
+    - exact trigger present: the prior supply rejection already happened at `4750.77-4753.54`, but confirmation is still incomplete because price has not cleanly lost `4737.72` and has not yet defended it into a fresh reclaim of `4744.11`
+    - exact confirmation still missing: long side needs `4737.72` to hold and `4744.11` to accept again; short side needs clean acceptance below `4737.72` after the earlier rejection
+    - invalidation: long idea weakens if `4737.72` fails and price starts accepting below `1H 4740.05`; short idea weakens if the correction reclaims `4744.11` and re-presses `4750.77`
+  - `US30`:
+    - remained `ACTIVE`: `5M EXECUTION SHORT 50057.45`, `5M EXECUTION LONG 50004.95`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+    - replaced with: none
+    - current opportunity timing: `ARMED`
+    - detector state: `WAIT`
+    - key level under test: `50004.95`
+    - exact trigger present: the `50057.45` sweep already happened, but the market is now back at the long-defense shelf and still needs a clean decision there
+    - exact confirmation still missing: long side needs `50004.95` to defend and `50016.40 / 50020.90` to reclaim; short side needs clean failure through `50004.95` so the sweep rejection becomes real continuation lower
+    - invalidation: long idea weakens if price accepts below `50004.95` toward `49933.95`; short idea weakens if `50004.95` holds and `PDH 50016.40` is reclaimed cleanly
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to refuse a late chase in both symbols and to classify both current shelves as live retest decisions, not fresh breakout entries
+- Articuno reinforcement:
+  - `XAUUSD`: reinforcement keeps the preserved pair because `4737.72` is still the defended reclaim shelf and `4750.77-4753.54` still defines the live fade zone, but it blocks both sides until the correction resolves cleanly
+  - `US30`: reinforcement keeps the preserved pair because `50004.95` is still the operative defense line and `50057.45` still marks the paid sweep zone, but it refuses to call the tape clean while price sits back on the shelf
+- Chart actions:
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` untouched because `5M EXECUTION SHORT 4750.77` and `5M EXECUTION LONG 4737.72` remain `ACTIVE`
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` untouched because `5M EXECUTION SHORT 50057.45` and `5M EXECUTION LONG 50004.95` remain `ACTIVE`
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `preserved`
+  - `FOREXCOM:US30`: `preserved`
+  - `refresh_reason`: none
+- Labels repositioned:
+  - none
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: none
+- Cleaner symbol:
+  - `PEPPERSTONE:XAUUSD`
+- Symbol to avoid forcing:
+  - `FOREXCOM:US30` while it is still resolving whether `50004.95` is support or a failed reclaim
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que el open ya no esta regalando continuation limpia. Oro rechazo `4750.77-4753.54` y ahora corrige hacia `4740.05 / 4737.72`; `US30` ya pago `50057.45` y volvio a sentarse encima de `50004.95`.
+  - `Tesis:` eso mantiene el sesgo mayor constructivo, pero no me da permiso de entrada fresca todavia. En `XAUUSD` quiero ver si `4737.72` se defiende y recupera `4744.11`, o si esa defensa se pierde y convierte la reaccion desde supply en short real. En `US30` el long solo vive si `50004.95` aguanta y re-acepta `50016.40 / 50020.90`; si no, la barrida de `50057.45` se convierte en fallo.
+  - `Niveles:` `XAUUSD -> Daily 4857.02 / 4654.86 | 4H 4753.54 / 4700.95 | 1H 4740.05 / 4721.92 | 5m 4750.77 / 4737.72` ; `US30 -> Daily 50523.30 / 49089.00 | 4H 50104.45 / 49903.95 | 1H 50057.45 / 49933.95 | 5m 50057.45 / 50004.95`
+  - `Accion:` `WAIT`. `XAUUSD` queda `ARMED` pero sin confirmacion: long solo si `4737.72` defiende y `4744.11` vuelve a aceptar; short solo si pierde `4737.72` despues del rechazo en `4750.77-4753.54`. `US30` tambien queda `ARMED` pero mas sucio: long solo si `50004.95` aguanta y recupera `50016.40 / 50020.90`; short solo si `50004.95` cede limpio. Si ya se movio, no perseguir.
+- Spanish thread update: active setup revisado y no hay permiso fresco todavia. `XAUUSD` sigue siendo el mas limpio mientras sostenga `4737.72`; `US30` queda mas binario encima de `50004.95`. Accion correcta por ahora: `WAIT`.
+- Discord summary written to payload:
+  - `[ACTIVE SETUP DETECTOR]`
+  - `Historia`
+  - `El open ya no esta regalando continuation limpia. Oro rechazo 4750.77-4753.54 y ahora corrige hacia 4740.05 / 4737.72; US30 ya pago 50057.45 y volvio a sentarse encima de 50004.95.`
+  - `Tesis`
+  - `Eso mantiene el sesgo mayor constructivo, pero no da permiso fresco todavia. En XAUUSD quiero ver si 4737.72 se defiende y recupera 4744.11, o si esa defensa se pierde y convierte la reaccion desde supply en short real. En US30 el long solo vive si 50004.95 aguanta y re-acepta 50016.40 / 50020.90; si no, la barrida de 50057.45 se convierte en fallo.`
+  - `Niveles`
+  - `XAUUSD -> Daily 4857.02 / 4654.86 | 4H 4753.54 / 4700.95 | 1H 4740.05 / 4721.92 | 5m 4750.77 / 4737.72`
+  - `US30 -> Daily 50523.30 / 49089.00 | 4H 50104.45 / 49903.95 | 1H 50057.45 / 49933.95 | 5m 50057.45 / 50004.95`
+  - `Accion`
+  - `WAIT. XAUUSD queda ARMED pero sin confirmacion: long solo si 4737.72 defiende y 4744.11 vuelve a aceptar; short solo si pierde 4737.72 despues del rechazo en 4750.77-4753.54. US30 tambien queda ARMED pero mas sucio: long solo si 50004.95 aguanta y recupera 50016.40 / 50020.90; short solo si 50004.95 cede limpio. Si ya se movio, no perseguir.`
+
+- 2026-05-07 | automation: Active Setup Detector | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / ACTIVE SETUP REVIEW / BOTH 5M PAIRS PRESERVED`; `XAUUSD` is correcting from `4750.77-4753.54` back into the defended reclaim at `4740.05 / 4737.72`, while `US30` already paid the `50057.45` sweep and is now resolving whether `50004.95` still holds as support | key drawn levels: XAUUSD preserved map `Daily 4857.02 / 4654.86`, `4H 4753.54 / 4700.95`, `1H 4740.05 / 4721.92`, `5m 4750.77 / 4737.72`; US30 preserved map `Daily 50523.30 / 49089.00`, `4H 50104.45 / 49903.95`, `1H 50057.45 / 49933.95`, `5m 50057.45 / 50004.95` | action state: `WAIT / XAUUSD ARMED AT 4737.72 / US30 ARMED AT 50004.95 / NO CHASE` | main lesson: when the first continuation and the first fade have already shown themselves, do not redraw just to stay busy; keep the live shelf, wait for the correction to confirm, and let the next acceptance or failure do the real work.
+
+### Bias Integrity Check - Both Biases Hold While US30 Retakes The Cleaner Lead On 2026-05-07
+
+- Run time: `2026-05-07T07:24:33.8096958-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - fresh structured reads used for this integrity check:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-07T07:23:19-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-07T07:23:56-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / BIAS INTEGRITY CHECK / DESIRED STATE PRESERVED`
+  - both higher-timeframe theses remain usable
+  - neither symbol printed genuine structural failure, so the desired-state map stays intact
+  - `US30` retakes the cleaner directional case because `50004.95` failed to break and price reclaimed `50016.40` again
+- Bias verdict:
+  - `PEPPERSTONE:XAUUSD`: `BIAS INTACT`
+  - `FOREXCOM:US30`: `BIAS INTACT`
+- Higher-timeframe and structure check:
+  - `PEPPERSTONE:XAUUSD`:
+    - still holding: `4H DEMAND 4700.95`, defended `5M EXECUTION LONG 4737.72`, and the constructive `Daily` structure above `4654.86`
+    - failed or weakened condition: the first rejection from `4750.77-4753.54` never converted into clean bearish acceptance below `4737.72`
+    - liquidity already taken: session buy-side at `4752.64`
+    - liquidity still relevant: immediate buy-side `4744.11` and overhead `4H SUPPLY 4753.54`
+    - higher-timeframe thesis use: still valid, but execution stays mixed and late
+    - what to stop assuming: do not assume the first upper rejection automatically became a live short while `4737.72` keeps reclaiming
+  - `FOREXCOM:US30`:
+    - still holding: `4H DEMAND 49903.95`, `5M EXECUTION LONG 50004.95`, and the reclaimed `PDH 50016.40`
+    - failed or weakened condition: the attempted loss of `50004.95` failed; sellers never kept acceptance below that shelf
+    - liquidity already taken: `50057.45 / 50061.95` buy-side sweep
+    - liquidity still relevant: immediate buy-side `50030.95` and overhead `4H SUPPLY 50104.45`
+    - higher-timeframe thesis use: still valid and still the cleaner same-direction idea
+    - what to stop assuming: do not assume fresh continuation is still chaseable after the reclaim already printed
+- Integrity conclusion:
+  - thesis damage came from short-term noise and post-sweep rotation, not from higher-timeframe failure
+  - same directional idea still deserves focus in both symbols, but with more confidence on `US30`
+- 5m execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`:
+    - remained `ACTIVE`: `5M EXECUTION SHORT 4750.77`, `5M EXECUTION LONG 4737.72`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+    - replaced with: none
+    - current opportunity timing: `WAIT / LONG RECLAIM ALREADY REACTED / SHORT NOT CONFIRMED / NO CHASE`
+  - `FOREXCOM:US30`:
+    - remained `ACTIVE`: `5M EXECUTION SHORT 50057.45`, `5M EXECUTION LONG 50004.95`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+    - replaced with: none
+    - current opportunity timing: `WAIT / LONG RECLAIM ALREADY REACTED / DO NOT CHASE / BEST RETEST STILL US30`
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to reject late entries after both reclaims already reacted and to separate genuine thesis failure from normal post-sweep rotation
+- Articuno reinforcement:
+  - `PEPPERSTONE:XAUUSD`: reinforcement kept the bullish thesis intact because `4737.72` defended again, but it refused to promote a fresh long while `4744.11` still needs acceptance and refused to promote a short without real continuation below the shelf
+  - `FOREXCOM:US30`: reinforcement confirmed that the failed breakdown under `50004.95` strengthens the bullish thesis quality, but it still blocks chasing because the reclaim leg already worked back into `50030.95`
+- Chart actions:
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` untouched because `5M EXECUTION SHORT 4750.77` and `5M EXECUTION LONG 4737.72` remain the correct live decision shelves
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` untouched because `5M EXECUTION SHORT 50057.45` and `5M EXECUTION LONG 50004.95` still frame the live tape honestly
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `preserved`
+  - `FOREXCOM:US30`: `preserved`
+  - `refresh_reason`: none
+- Labels repositioned:
+  - none
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: none
+- Cleaner symbol:
+  - `FOREXCOM:US30`
+- Symbol to avoid forcing:
+  - `PEPPERSTONE:XAUUSD`
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que los dos sostuvieron el sesgo mayor, pero no con la misma limpieza. Oro rechazo `4750.77-4753.54`, defendio `4737.72` otra vez y recupero `4740.05`; `US30` perdio `50004.95` por un momento, lo reclamo de nuevo y volvio arriba de `50016.40`.
+  - `Tesis:` eso deja ambos biases intactos. En `XAUUSD` la reaccion desde supply todavia no rompe la estructura alcista porque nunca hubo aceptacion real debajo de `4737.72`; en `US30` la idea alcista sigue siendo la mas limpia mientras `50004.95` siga defendiendo. Lo que no quiero asumir ahora es que la primera reaccion de oro ya sea short confirmado o que `US30` todavia regale continuation por extension.
+  - `Niveles:` `XAUUSD -> Daily 4857.02 / 4654.86 | 4H 4753.54 / 4700.95 | 1H 4740.05 / 4721.92 | 5m 4750.77 / 4737.72` ; `US30 -> Daily 50523.30 / 49089.00 | 4H 50104.45 / 49903.95 | 1H 50057.45 / 49933.95 | 5m 50057.45 / 50004.95`
+  - `Accion:` `WAIT`. `XAUUSD`: no quiero short sin aceptacion real debajo de `4737.72` y no quiero long si `4744.11` no acepta. `US30`: si ya no estas dentro, espero nuevo retest defendido de `50004.95`; si esa base se pierde limpio, reduzco conviccion rapido. Foco mas limpio por ahora: `US30`. No quiero chase aqui.
+- Spanish thread update: bias check limpio: `XAUUSD` sigue intacto pero mas mixto; `US30` sigue intacto y vuelve a ser el caso mas claro. Mantengo el plan general, pero el foco operativo queda en `US30` y sin perseguir extension.
+
+- 2026-05-07 | automation: Bias Integrity Check | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / BIAS INTEGRITY CHECK / DESIRED STATE PRESERVED`; both higher-timeframe theses stayed intact, `XAUUSD` defended `4737.72` so the first rejection from `4750.77-4753.54` did not become a clean short continuation, and `US30` reclaimed `50004.95 / 50016.40` again so the bullish continuation thesis retook the cleaner lead | key drawn levels: XAUUSD preserved map `Daily 4857.02 / 4654.86`, `4H 4753.54 / 4700.95`, `1H 4740.05 / 4721.92`, `5m 4750.77 / 4737.72`; US30 preserved map `Daily 50523.30 / 49089.00`, `4H 50104.45 / 49903.95`, `1H 50057.45 / 49933.95`, `5m 50057.45 / 50004.95` | action state: `WAIT / BOTH BIASES INTACT / US30 CLEANER / DO NOT CHASE` | main lesson: bias integrity is lost only when the defended shelf actually fails; a paid sweep or first rejection is not enough to redraw or flip the thesis by itself.
+
+### Mid-Session Reassessment - XAU Pair Preserved While US30 Breaks The Morning Bracket On 2026-05-07
+
+- Run time: `2026-05-07T08:20:55.3104116-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - fresh structured reads used for this reassessment:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-07T08:16:19-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-07T08:15:34-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / MID-SESSION REASSESSMENT / XAUUSD PRESERVED / US30 HTF+5M REFRESHED`
+  - `XAUUSD` keeps the same higher-timeframe map and the same active `5m` pair because `4750.77 / 4737.72` still frames the live decision honestly
+  - `FOREXCOM:US30` no longer qualifies for preserve-only handling because the old `50057.45 / 50004.95` execution pair is structurally far above current price and the defended `4H / 1H` demand shelf failed
+  - momentum already paid the obvious continuation in both symbols; patience is better than chasing here
+- Higher-timeframe bias:
+  - `XAUUSD`: `Daily` stays constructive above `4654.86`; `4H SUPPLY 4753.54` still caps the extension zone and `4H DEMAND 4700.95` still backs the session floor; `1H 4740.05 / 4721.92` remains the tactical bracket
+  - `US30`: `Daily` context stays constructive above `49089.00`, but the morning bullish continuation thesis is no longer clean because `4H DEMAND 49903.95` and `1H DEMAND 49933.95` both failed; `4H SUPPLY 50104.45` remains the structural cap and the useful live tactical shelf is now `1H SUPPLY 49916.90`
+- Current structure and liquidity:
+  - `XAUUSD`: the open turned into continuation into `4H SUPPLY`, then rotation. Price already swept `4758.03`, came back under `4753.54`, and still has `nearest buy-side 4752.64` above and `nearest sell-side 4737.72` below. `30m` and `15m` keep the bullish day alive, but the short is not clean until price accepts back below `4744.11 / 4737.72`
+  - `US30`: the open evolved from bullish continuation into reversal/rotation after the `50124.90` sweep. Price is now trading below the broken `50004.95 / 49903.95` shelf, with `nearest buy-side 49916.90` overhead and the current sell-side sweep at `49767.90` underneath. `30m` and `15m` both printed bearish displacement, so the old long bracket is no longer executable
+- 5m execution lifecycle:
+  - `XAUUSD`:
+    - remained `ACTIVE`: `5M EXECUTION SHORT 4750.77`, `5M EXECUTION LONG 4737.72`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+    - replaced with: none
+    - current opportunity timing: `ARMED`
+    - detector state: `WAIT`
+    - key level under test: `4750.77-4753.54`
+    - exact trigger present: the sweep into supply already happened, but the market still needs clean acceptance back below `4744.11` and then `4737.72` to turn that reaction into a real short continuation
+    - exact confirmation still missing: short side needs acceptance below `4744.11 / 4737.72`; long side only becomes fresh again on a new defended retest of `4737.72`
+    - invalidation: short weakens if price reclaims `4753.54` and holds above the sweep; long weakens if `4737.72` loses cleanly
+  - `FOREXCOM:US30`:
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION SHORT 50057.45`
+    - became `INVALIDATED`: `5M EXECUTION LONG 50004.95`
+    - replaced with: `5M EXECUTION SHORT 49916.90`, `5M EXECUTION LONG 49767.90`
+    - current opportunity timing: `PRE-TRIGGER`
+    - detector state: `WAIT`
+    - key level under test: `49767.90`
+    - exact trigger present: the old bullish trigger is dead; the fresh map now waits for either a failed reclaim into `49916.90` for shorts or a real sweep-hold at `49767.90` for a countertrend bounce
+    - exact confirmation still missing: short side needs `49844.90 / 49916.90` to reject as reclaim failure; long side needs `49767.90` to hold and then reclaim `49844.90`
+    - invalidation: the refreshed short weakens if price accepts back above `49916.90`; the refreshed long weakens if `49767.90` breaks and keeps accepting lower
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to keep `XAUUSD` in `ARMED` instead of forcing a late short and to refuse reusing the broken `US30` long bracket after its continuation already failed
+- Articuno reinforcement:
+  - `XAUUSD`: reinforcement preserved the pair because the `4750.77-4753.54` supply test is still the clean short-quality shelf and `4737.72` is still the real defense line; it blocks both sides until one actually confirms
+  - `US30`: reinforcement removed the old pair because the broken `50004.95 / 49903.95` shelf no longer has structural quality; the replacement map now uses the nearest failed reclaim shelf `49916.90` and the live sell-side sweep `49767.90` instead of chasing the old morning continuation
+- Chart actions:
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` untouched because `5M EXECUTION SHORT 4750.77` and `5M EXECUTION LONG 4737.72` remain the correct live decision shelves
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` with `refresh_reason = htf_changed`
+  - removed `4H DEMAND 49903.95` and `1H DEMAND 49933.95`
+  - replaced `1H SUPPLY 50057.45` with `1H SUPPLY 49916.90`
+  - replaced the stale `5m` pair `50057.45 / 50004.95` with `49916.90 / 49767.90`
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `preserved`
+  - `FOREXCOM:US30`: `refreshed`
+  - `refresh_reason`: `htf_changed`
+- Labels repositioned:
+  - none
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: `US30 4H DEMAND 49903.95`, `US30 1H DEMAND 49933.95`, `US30 1H SUPPLY 50057.45 -> 49916.90`, `US30 5m 50057.45 / 50004.95 -> 49916.90 / 49767.90`
+- Cleaner symbol:
+  - `PEPPERSTONE:XAUUSD`
+- Symbol to avoid forcing:
+  - `FOREXCOM:US30`
+- Best remaining opportunity:
+  - `XAUUSD` short only if `4750.77-4753.54` rejects again and price starts accepting below `4744.11 / 4737.72`
+- Biggest trap still present:
+  - treating the old `US30` `50004.95` long as if it were still live after the shelf already failed
+- What not to chase now:
+  - `XAUUSD` continuation longs after the `4737.72` reclaim already paid into supply
+  - `US30` downside after the flush already stretched into `49767.90` without reclaim confirmation
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que oro sigue fuerte, pero ya volvio a la zona que importa arriba. Hizo la extension hasta `4758.03`, rechazo otra vez desde `4750.77-4753.54` y todavia no decide si eso va a convertirse en short real o solo en otra correccion antes de seguir. `US30` es distinto: la continuation alcista de la manana ya fallo, barro `50124.90`, perdio `50004.95 / 49903.95` y ahora rota debajo del viejo bracket.
+  - `Tesis:` eso deja viva la idea mayor de `XAUUSD`, pero el long bueno ya paso y lo que queda es paciencia o confirmacion de short. En `US30` ya no quiero defender el mapa viejo: el open evoluciono a reversal / rotation, asi que el refresh baja el foco a `49916.90` como reclaim fallido potencial y `49767.90` como sweep que tendria que sostener si quiere bounce. El simbolo mas limpio sigue siendo `XAUUSD`.
+  - `Niveles:` `XAUUSD -> Daily 4857.02 / 4654.86 | 4H 4753.54 / 4700.95 | 1H 4740.05 / 4721.92 | 5m 4750.77 / 4737.72` ; `US30 -> Daily 50523.30 / 49089.00 | 4H SUPPLY 50104.45 | 1H SUPPLY 49916.90 | 5m 49916.90 / 49767.90`
+  - `Accion:` `WAIT`. `XAUUSD` queda `ARMED`: short solo si `4750.77-4753.54` vuelve a rechazar y pierde `4744.11 / 4737.72`; long solo en nuevo retest defendido de `4737.72`. `US30` queda `PRE-TRIGGER` despues del refresh: short solo si `49916.90` falla como reclaim; long solo si `49767.90` barre y se defiende. Si ya se movio, no perseguir.
+- Spanish thread update: mid-session limpio: `XAUUSD` sigue siendo el mejor mapa, pero en paciencia y esperando confirmacion; `US30` rompio el bracket de la manana y por eso se refresco a `49916.90 / 49767.90`. La accion correcta ahora mismo sigue siendo `WAIT`.
+
+- 2026-05-07 | automation: Mid-Session Reassessment | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / MID-SESSION REASSESSMENT / XAUUSD PRESERVED / US30 HTF+5M REFRESHED`; `XAUUSD` kept the live pair `4750.77 / 4737.72` because the supply-vs-reclaim decision is still current, while `US30` lost the defended `50004.95 / 49903.95` shelf and required a full refresh to `49916.90 / 49767.90` with broken `4H / 1H` demand removed | key drawn levels: XAUUSD preserved map `Daily 4857.02 / 4654.86`, `4H 4753.54 / 4700.95`, `1H 4740.05 / 4721.92`, `5m 4750.77 / 4737.72`; US30 refreshed map `Daily 50523.30 / 49089.00`, `4H SUPPLY 50104.45`, `1H SUPPLY 49916.90`, `5m 49916.90 / 49767.90` | action state: `WAIT / XAUUSD ARMED / US30 PRE-TRIGGER AFTER REFRESH / NO CHASE` | main lesson: when the defended morning shelf actually fails, stop narrating the old continuation and force the map to move closer to live price instead of protecting stale execution lines.
+
+### Live Reassessment Trigger - Gold Resets Into 4H Demand While US30 Pulls The 5m Bracket Closer On 2026-05-07
+
+- Run time: `2026-05-07T13:33:00.360311-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - structured reads used for this reassessment:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-07T13:29:49-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-07T13:30:25-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / LIVE REASSESSMENT / XAUUSD HTF+5M REFRESHED / US30 5M REFRESHED`
+  - `XAUUSD` no longer qualifies for preserve-only handling because the old `4750.77 / 4737.72` pair is structurally behind price and the prior `1H DEMAND 4721.92` failed
+  - `FOREXCOM:US30` keeps the same higher-timeframe map, but the `49916.90 / 49767.90` pair is too far above live price to define execution readiness honestly
+- Higher-timeframe bias:
+  - `XAUUSD`: `Daily` stays constructive above `4654.86`; `4H DEMAND 4700.95` is now the active live floor and `4H SUPPLY 4753.54` remains the larger cap; `1H SUPPLY 4740.05` still matters overhead, but `1H DEMAND 4721.92` is no longer valid as active support
+  - `US30`: `Daily` context stays constructive above `49089.00`, but intraday control remains bearish below `1H SUPPLY 49916.90` and `4H SUPPLY 50104.45`; no new HTF shelf was needed for this reassessment
+- Current structure and liquidity:
+  - `XAUUSD`: the rejection from `4750.77-4753.54` already converted into a move back to `4H DEMAND 4700.95`. `30m` and `15m` are now compressing under the broken `4707.30` shelf, price already wicked through `4700.95`, and the immediate liquidity is `nearest buy-side 4705.96` above versus `nearest sell-side 4704.26` below
+  - `US30`: the market remains in `LH/LL` intraday structure. The latest 5m/15m action keeps failing under `49612.40`, while the nearest sell-side draw is now `49512.90`; the old `49916.90 / 49767.90` bracket is no longer the live decision frame
+- 5m execution lifecycle:
+  - `PEPPERSTONE:XAUUSD`:
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION SHORT 4750.77`
+    - became `INVALIDATED`: `5M EXECUTION LONG 4737.72`
+    - replaced with: `5M EXECUTION SHORT 4707.30`, `5M EXECUTION LONG 4700.95`
+    - current opportunity timing: `ARMED`
+    - detector state: `WAIT`
+    - key level under test: `4H DEMAND 4700.95`
+    - exact trigger present: the sweep below `4700.95` already happened intrabar, but the market still needs either a clean `4707.30 / 4705.96` reclaim for longs or a clean failure back through `4700.95` for shorts
+    - exact confirmation still missing: long side needs `4700.95` to keep defending and `4707.30` to accept; short side needs `4700.95` to lose or `4707.30` to reject again as failed reclaim
+    - invalidation: long weakens if price accepts below `4700.95` toward `4688.12`; short weakens if `4707.30` reclaims and `15m` starts holding above it
+  - `FOREXCOM:US30`:
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION SHORT 49916.90`
+    - became `INVALIDATED`: `5M EXECUTION LONG 49767.90`
+    - replaced with: `5M EXECUTION SHORT 49612.40`, `5M EXECUTION LONG 49512.90`
+    - current opportunity timing: `PRE-TRIGGER`
+    - detector state: `WAIT`
+    - key level under test: `49556.40-49568.40`
+    - exact trigger present: none yet; price is still between the new failed-reclaim shelf and the new sell-side sweep level
+    - exact confirmation still missing: short side needs `49612.40` to reject as failed reclaim; long side needs `49512.90` to sweep-hold and then reclaim back above `49556.40`
+    - invalidation: short weakens if price accepts above `49612.40`; long weakens if `49512.90` breaks and keeps accepting lower
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to separate the already-finished morning brackets from the current live decision shelves and to block late entries on both symbols
+- Articuno reinforcement:
+  - `XAUUSD`: reinforcement kept the bullish higher-timeframe thesis alive because `4H DEMAND 4700.95` is still active, but it refused to preserve `4737.72` after price accepted well through it and forced the execution map down to the broken `4707.30` shelf versus live demand
+  - `US30`: reinforcement preserved the bearish intraday read and pulled the execution pair down to `49612.40 / 49512.90` because those are now the nearest real reclaim-vs-sweep shelves; it blocked any attempt to keep the old bracket as if it were still actionable
+- Chart actions:
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` with `refresh_reason = htf_changed`
+  - removed `XAUUSD 1H DEMAND 4721.92`
+  - replaced the stale / invalidated XAU `5m` pair `4750.77 / 4737.72` with `4707.30 / 4700.95`
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` with `refresh_reason = 5m_far_from_price`
+  - preserved `US30` HTF levels and replaced the stale / invalidated `5m` pair `49916.90 / 49767.90` with `49612.40 / 49512.90`
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `refreshed`
+  - `FOREXCOM:US30`: `refreshed`
+- Labels repositioned:
+  - none
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: `XAUUSD 1H DEMAND 4721.92`, `XAUUSD 5m 4750.77 / 4737.72 -> 4707.30 / 4700.95`, `US30 5m 49916.90 / 49767.90 -> 49612.40 / 49512.90`
+- Cleaner symbol:
+  - `PEPPERSTONE:XAUUSD`
+- Symbol to avoid forcing:
+  - `FOREXCOM:US30`
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que oro ya no esta negociando el bracket viejo; la reaccion desde `4750.77-4753.54` ya lo trajo directo a `4H DEMAND 4700.95`, y ahora la pelea real esta entre esa defensa y el `4707.30` roto. `US30` tambien se movio de mapa: el bracket `49916.90 / 49767.90` ya quedo atras y el tape se aprieta mas abajo entre `49612.40` y `49512.90`.
+  - `Tesis:` eso obliga refresh en los dos, pero no cambia la disciplina. En `XAUUSD` el sesgo mayor sigue vivo mientras `4700.95` sostenga, aunque el `1H` ya no acepta arriba como antes; el long fresco necesita defensa de `4700.95` y reclaim de `4707.30`, y el short limpio necesita perder `4700.95` o fallar otra vez debajo de `4707.30`. En `US30` no quiero vender tarde ni comprar a ciegas: el short bueno sigue siendo reclaim fallido de `49612.40`, y el long solo existe si `49512.90` barre y aguanta.
+  - `Niveles:` `XAUUSD -> Daily 4857.02 / 4654.86 | 4H 4753.54 / 4700.95 | 1H 4740.05 | 5m 4707.30 / 4700.95` ; `US30 -> Daily 50523.30 / 49089.00 | 4H 50104.45 | 1H 49916.90 | 5m 49612.40 / 49512.90`
+  - `Accion:` `WAIT`. `XAUUSD` queda `ARMED`: si ya tomaste el breakdown previo, toca gestionar; si estas flat, no quiero chase y espero que `4700.95` defienda con reclaim de `4707.30` o que se pierda limpio. `US30` queda `PRE-TRIGGER`: no hago nada en el medio y solo actuo si `49612.40` falla como reclaim o si `49512.90` barre y sostiene.
+- Spanish thread update: live reassessment listo. `XAUUSD` baja el mapa a `4707.30 / 4700.95` y queda `ARMED` en la defensa de `4H DEMAND`; `US30` refresca a `49612.40 / 49512.90` y sigue `PRE-TRIGGER`. Accion correcta: `WAIT`, sin perseguir.
+
+### Asia Session Gold - XAU Opens Asia Under Failed 4700.95 On 2026-05-07
+
+- Run time: `2026-05-07T16:35:28.0345399-06:00`
+- Symbol reviewed: `PEPPERSTONE:XAUUSD`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - fresh structured reads visible to this Asia baseline:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-07T16:33:29-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` remained valid too, but its freshness stayed secondary and did not block the Asia gold decision path
+- Workflow result:
+  - this run finished `FULL_DATA / ASIA SESSION GOLD / XAU HTF+5M REFRESHED`
+  - `XAUUSD` required a full refresh because the saved NY pair `4707.30 / 4700.95` is now structurally behind price and the old `4H DEMAND 4700.95` is no longer the live floor after two consecutive `4H` closes below it
+  - higher-timeframe structure did materially change, so the workflow refreshed the tactical HTF layer and the execution layer with `refresh_reason = htf_changed`
+- Higher-timeframe thesis:
+  - Daily bias: constructive above `DAILY DEMAND 4654.86`, but still capped below `DAILY SUPPLY 4857.02`
+  - `4H` bias: `transition / bearish corrective` below the failed `4H DEMAND 4700.95`; the useful live `4H` floor is now `4685.15` while `4H SUPPLY 4753.54` remains the structural cap
+  - alignment: `no`
+  - bias strength: `weak`
+- Structure and liquidity:
+  - `30m`: the tape broke down from `4715.82` into `4686.07`, then only bounced partially into `4699.52`; that reads as `transition / fade`, not clean continuation
+  - `15m`: setup quality is still mixed and compressed; price reclaimed the immediate sell-side sweep at `4688.12`, but it has not accepted back above `4699.52`
+  - nearest buy-side liquidity: `4699.52`, then `4715.82`, then `4719.33`
+  - nearest sell-side liquidity: `4688.12`, then `PDL 4685.15`
+  - supply / demand behavior: local supply is being respected under `4699.52` while the `4688.12 / 4685.15` demand pocket is only reacting, not trending
+- Asia session framing:
+  - conditions favor `fade / range` first, not blind breakout chase
+  - Asia should wait for a liquidity sweep or a clean reclaim before promoting a fresh `5m` trigger
+  - price is entering Asia in `transition / compression` conditions, not expansion
+  - current structure: `transition`
+  - `PDH / PDL`: `4764.87` / `4685.15`
+  - `RANGE HIGH / RANGE LOW`: `4699.52` / `4686.07`
+- RSI context:
+  - `15m RSI 14 ~= 38.47`
+  - `5m RSI 14 ~= 40.57`
+- Trigger requirements:
+  - valid long during Asia: sweep / defend `4688.12-4685.15`, then reclaim and hold above `4699.52`
+  - valid short during Asia: another failed reclaim / rejection at `4699.52`, or a fresh loss of `4688.12` after a weak bounce
+  - what invalidates the short side: clean `15m` acceptance above `4699.52`, especially if price starts holding above `4707.30 / 4711.14`
+  - what invalidates the long side: clean acceptance below `4685.15` toward `DAILY DEMAND 4654.86`
+  - what not to do right now: do not sell directly into `4688.12 / 4685.15`, do not buy before `4699.52` reclaims, and do not chase the middle
+- 5m execution lifecycle:
+  - remained `ACTIVE`: none
+  - became `STALE`: `5M EXECUTION SHORT 4707.30`
+  - became `INVALIDATED`: `5M EXECUTION LONG 4700.95`
+  - replaced with: `5M EXECUTION SHORT 4699.52`, `5M EXECUTION LONG 4688.12`
+  - current opportunity timing: `SHORT SIDE ARMED / LONG SIDE PRE-TRIGGER`
+  - detector state: `WAIT / NO CLEAR EDGE`
+  - key level under test: `4699.52` from below versus `4688.12 / 4685.15` from above
+  - exact trigger present: `4699.52` already acted as resistance hold and `4688.12` already reclaimed once, but neither side has clean continuation confirmation yet
+  - exact confirmation still missing:
+    - short side needs another failed reclaim or a fresh `15m` loss of `4688.12`
+    - long side needs a sweep-hold of `4688.12 / 4685.15` and then acceptance back above `4699.52`
+  - invalidation:
+    - short weakens if price accepts above `4699.52` and builds above `4707.30`
+    - long weakens if `4685.15` loses cleanly and price starts accepting lower
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to avoid treating the first bounce off `4688.12` as a fresh long and to keep the short honest only on failed reclaim
+- Articuno reinforcement:
+  - `SMC`: nearest buy-side `4699.52` was already tagged and rejected once, so short quality exists but is not fresh in the middle
+  - `Supply/Demand`: `4700.95` lost structural quality as active `4H` demand; `4685.15` is the live defensive floor while `4699.52` is the clearer tactical cap
+  - `Price Action`: `5m` is still `LH/LL` under the failed reclaim, but demand is reacting enough to block blind momentum selling into the floor
+  - `Psychology`: `WAIT / NO CHASE` until Asia confirms one side
+- Chart actions:
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` with `refresh_reason = htf_changed`
+  - replaced `4H DEMAND 4700.95` with `4H DEMAND 4685.15`
+  - replaced `1H SUPPLY 4740.05` with `1H SUPPLY 4699.52`
+  - replaced the stale / invalidated `5m` pair `4707.30 / 4700.95` with `4699.52 / 4688.12`
+  - left `FOREXCOM:US30` desired state untouched because `US30` is not an Asia trade-decision symbol
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `refreshed`
+  - `refresh_reason`: `htf_changed`
+- Labels repositioned:
+  - none
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: `XAUUSD 4H DEMAND 4700.95 -> 4685.15`, `XAUUSD 1H SUPPLY 4740.05 -> 4699.52`, `XAUUSD 5m 4707.30 / 4700.95 -> 4699.52 / 4688.12`
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que oro entra Asia por debajo del viejo `4H DEMAND 4700.95`. El rebote desde `4688.12 / 4685.15` existe, pero la recuperacion ya se freno en `4699.52`, asi que el tape llega mas en transicion que en continuidad.
+  - `Tesis:` eso deja al `Daily` todavia constructivo sobre `4654.86`, pero el `4H` ya perdio el piso previo y queda tacticamente danado mientras `4699.52` no recupere. El mapa util ahora es `fade / range`: short solo si `4699.52` falla otra vez como reclaim; long solo si `4688.12-4685.15` barre y reclama.
+  - `Niveles:` `XAUUSD -> Daily 4857.02 / 4654.86 | 4H 4753.54 / 4685.15 | 1H 4699.52 | 5m 4699.52 / 4688.12 | PDH 4764.87 | PDL 4685.15 | Range 4699.52 / 4686.07`
+  - `Accion:` `WAIT / NO CLEAR EDGE`. No quiero vender directo contra `4688.12 / 4685.15`, no quiero comprar antes de recuperar `4699.52`, y no quiero chase en medio del bracket.
+- 3-line conclusion:
+  - Oro entra Asia con dano tactico en `4H`, no con expansion limpia.
+  - El short bueno sigue siendo reclaim fallido en `4699.52`; el long bueno sigue siendo sweep-hold de `4688.12 / 4685.15`.
+  - Mientras eso no aparezca, la accion correcta es `WAIT`.
+- Spanish thread update: Asia listo. `XAUUSD` queda con sesgo diario todavia constructivo pero `4H` en transicion, se dibuja `4H 4753.54 / 4685.15` y `5m 4699.52 / 4688.12`, y la lectura honesta es `WAIT / NO CLEAR EDGE` hasta que Asia confirme sweep o failed reclaim.
+
+- 2026-05-07 | automation: Asia Session Gold | symbols: PEPPERSTONE:XAUUSD | thesis result: the workflow finished `FULL_DATA / ASIA SESSION GOLD / XAU HTF+5M REFRESHED`; XAUUSD enters Asia below the failed `4H DEMAND 4700.95`, so the old NY pair `4707.30 / 4700.95` no longer defined execution readiness and the map had to move to `4H 4753.54 / 4685.15`, `1H SUPPLY 4699.52`, and `5m 4699.52 / 4688.12` with `refresh_reason = htf_changed` | key drawn levels: XAUUSD `Daily 4857.02 / 4654.86`, `4H 4753.54 / 4685.15`, `1H 4699.52`, `5m 4699.52 / 4688.12`, `PDH 4764.87`, `PDL 4685.15`, `RANGE 4699.52 / 4686.07` | action state: `WAIT / NO CLEAR EDGE / SHORT SIDE ARMED / LONG SIDE PRE-TRIGGER` | main lesson: when the prior `4H` floor is already accepted through, do not preserve it as if it were still the live defense; refresh the tactical HTF shelf, pull the `5m` bracket back to the nearest reclaim-versus-sweep decision, and keep Asia in patience until one side actually confirms.
+
+### Asia Setup Detector - Gold Failed Reclaim Triggered Under 4699.52 On 2026-05-07
+
+- Run time: `2026-05-07T17:34:08.2813237-06:00`
+- Symbol reviewed: `PEPPERSTONE:XAUUSD`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - structured reads visible to this Asia detector:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-07T17:32:06-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` also remained `FULL_DATA`, but it stayed secondary and did not block the gold decision path
+- Workflow result:
+  - this run finished `FULL_DATA / ASIA SETUP DETECTOR / XAU PRESERVED / VALID SHORT SETUP`
+  - `XAUUSD` did not require a redraw because the preserved Asia pair `4699.52 / 4688.12` still brackets live price honestly and remains the nearest reclaim-versus-sweep decision map
+  - the Asia bias is being confirmed on the short side because price tagged `4699.52`, stalled repeatedly under `4697.42`, and kept printing `LH/LL`, but the clean reclaim-fail entry already fired
+- Higher-timeframe thesis:
+  - Daily bias stays constructive above `DAILY DEMAND 4654.86`, but still capped below `DAILY SUPPLY 4857.02`
+  - `4H` still reads `transition / bearish corrective` below the failed old floor; `4H DEMAND 4685.15` remains the live defensive floor and `4H SUPPLY 4753.54` remains the structural cap
+  - alignment: `no`
+  - bias strength: `weak`
+- Structure and liquidity:
+  - `30m`: the bounce from `4681.66` failed to turn into acceptance higher; the latest `30m` bar closed back under the failed reclaim shelf, so the tape still behaves like `fade / range`, not clean continuation
+  - `15m`: the latest bars keep holding below `4697.42 / 4699.52`, which confirms that supply is still being respected even after the reaction off `4688.12 / 4685.15`
+  - nearest buy-side liquidity: `4699.52`, then `4715.82`
+  - nearest sell-side liquidity: `4688.12`, then `PDL 4685.15`
+  - supply / demand behavior: `4699.52` keeps acting as tactical cap while `4688.12 / 4685.15` still reacts enough to block blind momentum selling into the floor
+- 5m execution lifecycle:
+  - remained `ACTIVE`: `5M EXECUTION SHORT 4699.52`, `5M EXECUTION LONG 4688.12`
+  - became `STALE`: none
+  - became `INVALIDATED`: none
+  - replaced with: none
+  - current opportunity timing: `SHORT SIDE TRIGGERED / LONG SIDE PRE-TRIGGER`
+  - detector state: `VALID SHORT SETUP`
+  - key level under test: `4699.52` from below, with `4697.42` now acting as the immediate rejection shelf
+  - exact trigger present: `4699.52` already failed as reclaim and the latest `5m` sequence kept rejecting under `4697.42` while micro-structure stayed `LH/LL`
+  - exact confirmation still missing:
+    - short side needs no extra confirmation to stay valid, but a fresh short entry now needs a new retest failure closer to `4697.42-4699.52` or a cleaner loss / retest of `4688.12`
+    - long side still needs a sweep-hold of `4688.12 / 4685.15` and then clean acceptance back above `4699.52`
+  - invalidation:
+    - short weakens if price accepts above `4699.52` and starts holding above `4707.30 / 4711.14`
+    - long weakens if `4685.15` loses cleanly and price starts accepting lower
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to stop treating the `4699.52` reclaim-fail as still pending once the rejection and rotation had already started
+- Articuno reinforcement:
+  - `SMC`: nearest buy-side `4699.52` was already tagged, so the short trigger is real, but not fresh in the middle
+  - `Supply/Demand`: `4699.52` still has clear tactical cap quality while `4688.12 / 4685.15` remains the live reaction pocket below
+  - `Price Action`: repeated `5m` resistance holds under `4697.42` reinforce the short thesis, but they also say the first clean short entry already triggered
+  - `Psychology`: `manage if already in / do not chase if flat`
+- Chart actions:
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` untouched because the preserved HTF map plus `5m` pair still define current execution readiness honestly
+  - left `FOREXCOM:US30` desired state untouched because `US30` is not an Asia trade-decision symbol
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `preserved`
+  - `refresh_reason`: none; no chart mutation was warranted
+- Labels repositioned:
+  - none
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: none
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que oro ya hizo el failed reclaim de `4699.52` y sigue pesado debajo de `4697.42`. El rebote desde `4688.12 / 4685.15` reacciono, pero no genero acceptance arriba, asi que Asia sigue corriendo mas en `fade / range` que en breakout.
+  - `Tesis:` eso confirma el sesgo corto del mapa Asia sin cambiar el HTF. `4699.52` sigue siendo el techo tactico y mientras no lo recupere, la idea buena sigue siendo vender el failed reclaim. El problema es timing: ese trigger ya corrio, asi que si estas flat no quiero chase en medio del bracket.
+  - `Niveles:` `XAUUSD -> Daily 4857.02 / 4654.86 | 4H 4753.54 / 4685.15 | 1H 4699.52 | 5m 4699.52 / 4688.12 | buy-side 4699.52 | sell-side 4688.12 / PDL 4685.15`
+  - `Accion:` `VALID SHORT SETUP / TRIGGERED / DO NOT CHASE`. Si ya venias en el failed reclaim, toca gestionar. Si estas flat, espero nuevo retest hacia `4697.42-4699.52` o una perdida / retest mas limpia de `4688.12`; no vendo tarde en medio del range.
+- Spanish thread update: Asia detector listo. `XAUUSD` confirma short en el failed reclaim de `4699.52`, pero el timing ya va `TRIGGERED`; si ya estas dentro, gestionar, y si estas flat, `DO NOT CHASE` hasta nuevo retest.
+
+- 2026-05-07 | automation: Asia Setup Detector | symbols: PEPPERSTONE:XAUUSD | thesis result: the workflow finished `FULL_DATA / ASIA SETUP DETECTOR / XAU PRESERVED / VALID SHORT SETUP`; the preserved Asia map `4699.52 / 4688.12` still brackets price correctly, `4699.52` already failed as reclaim, and the live short thesis is now `TRIGGERED` rather than still pending | key drawn levels: XAUUSD `Daily 4857.02 / 4654.86`, `4H 4753.54 / 4685.15`, `1H 4699.52`, `5m 4699.52 / 4688.12`, `buy-side 4699.52`, `sell-side 4688.12 / PDL 4685.15` | action state: `VALID SHORT SETUP / SHORT SIDE TRIGGERED / LONG SIDE PRE-TRIGGER / DO NOT CHASE IF FLAT` | main lesson: when the reclaim-fail already printed and price is rotating away under the shelf, stop calling it pending; preserve the current pair, mark the short as triggered, and keep discipline by waiting for a new retest instead of selling late in the middle.
+
+### NY Open Levels - US30 Holds The Cleaner Bullish Open While XAU Rebuilds Above Reclaimed 4700.95 On 2026-05-08
+
+- Run time: `2026-05-08T05:35:21.5031036-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - fresh structured reads used for this baseline:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-08T05:32:13-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-08T05:31:27-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / NY OPEN BASELINE / DESIRED STATE REFRESHED`
+  - both prior `5m` pairs had become structurally far from current price and no longer described live execution readiness
+  - `XAUUSD` required `htf_changed` because the old Asia floor at `4685.15` is no longer the active tactical `4H` defense after price reclaimed and held back above `4700.95`
+  - `US30` required `htf_changed` because the live structural map is now better described by `4H DEMAND 49477.40` plus the fresh `1H 49794.40 / 49701.85` bracket than by the older `1H SUPPLY 49916.90`
+  - `US30` opens cleaner than `XAUUSD`; gold is constructive again, but it is still more two-way inside nearby supply
+- Macro context:
+  - `XAUUSD`: price remains inside `MONTHLY 5597.91 / 4099.02` and `WEEKLY 4889.44 / 4402.72`; macro still supports the broader constructive read while price stays far from overhead macro supply
+  - `US30`: price remains inside `MONTHLY 50523.30 / 44810.55` and `WEEKLY 50523.30 / 45715.50`; macro still supports continuation, but chase discipline matters with monthly / daily supply still above
+- Higher-timeframe bias:
+  - `XAUUSD`: `Daily` stays constructive above `4654.86`; `4H` has repaired back above `4700.95` and still faces `4H SUPPLY 4753.54`; useful `1H` context is now `4734.67 / 4715.97`; alignment is constructive but only `moderate` because price is still pressing into nearby supply
+  - `US30`: `Daily` stays constructive above `49089.00`; `4H` now carries `50104.45 / 49477.40`; useful `1H` context is `49794.40 / 49701.85`; alignment is constructive and cleaner than gold because the tape is printing `HH/HL`
+- Current structure and liquidity:
+  - `XAUUSD`: `1H` reads tactical reclaim / transition, `30m` is mixed inside `4726.26` supply versus `4721.44` demand, and `15m` is constructive but compressed; nearest buy-side liquidity is `4727.79`, then `4734.67`; nearest sell-side liquidity is `4721.44`, then `4715.97`; a fresh `5m` trade should still wait for a sweep or acceptance event
+  - `US30`: `1H`, `30m`, and `15m` stay cleaner in `HH/HL`; nearest buy-side liquidity is `49761.85`, then `49769.35`; nearest sell-side liquidity is `49734.35`, then `49729.85`; this is still a long-lean structure, but the entry should come from defended retest, not from the middle
+- RSI context:
+  - `XAUUSD`: `15m RSI ~= 56.40` and `5m RSI ~= 55.47`; neutral to mildly constructive
+  - `US30`: `15m RSI ~= 63.47` and `5m RSI ~= 57.37`; constructive, but not a reason to chase
+- 5m execution lifecycle:
+  - `XAUUSD`:
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION SHORT 4699.52`, `5M EXECUTION LONG 4688.12`
+    - became `INVALIDATED`: `4H DEMAND 4685.15` as the active tactical floor
+    - replaced with: `4H DEMAND 4700.95`, `1H SUPPLY 4734.67`, `1H DEMAND 4715.97`, `5M EXECUTION SHORT 4726.26`, `5M EXECUTION LONG 4721.44`
+    - current opportunity timing: `WAIT / NO CLEAR EDGE / PRE-TRIGGER`
+    - exact trigger still missing: long side needs `4721.44` to hold and price to accept above `4726.26`; short side needs a sweep through `4726.26-4727.79` and clean failure back below
+    - invalidation: long weakens if price accepts below `4721.44` toward `4715.97 / 4700.95`; short weakens if `4727.79` clears and price starts accepting toward `4734.67`
+  - `FOREXCOM:US30`:
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION SHORT 49612.40`, `5M EXECUTION LONG 49512.90`
+    - became `INVALIDATED`: `1H SUPPLY 49916.90` as the live tactical shelf
+    - replaced with: `4H DEMAND 49477.40`, `1H SUPPLY 49794.40`, `1H DEMAND 49701.85`, `5M EXECUTION SHORT 49761.85`, `5M EXECUTION LONG 49734.35`
+    - current opportunity timing: `WAIT / LONG-LEAN / PRE-TRIGGER`
+    - exact trigger still missing: long side needs `49734.35` to retest and hold; short side needs `49761.85` to sweep and reject as failed reclaim under `49794.40`
+    - invalidation: long weakens if price accepts below `49734.35` toward `49701.85`; short weakens if `49761.85` clears and price starts accepting higher toward `49794.40`
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to avoid promoting either symbol as a fresh market buy in the middle of the opening range and to keep both `5m` pairs tied to defended retest or sweep-rejection logic
+- Articuno reinforcement:
+  - `XAUUSD`: reinforcement refused to keep the Asia pair because liquidity and structure have already moved on; it also promoted `4700.95` back into the active `4H` floor after the reclaim and blocked breakout chasing under `4734.67`
+  - `US30`: reinforcement kept the constructive bias alive because the tape is still printing `HH/HL`, but it refused late longs into `49761.85` and forced the map down to `49734.35` defense versus `49761.85` sweep
+- Chart actions:
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` with preserved macro / `Daily` context, refreshed `4H 4753.54 / 4700.95`, refreshed `1H 4734.67 / 4715.97`, and refreshed `5m 4726.26 / 4721.44`
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` with preserved macro / `Daily` context, refreshed `4H 50104.45 / 49477.40`, refreshed `1H 49794.40 / 49701.85`, and refreshed `5m 49761.85 / 49734.35`
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `refreshed`
+  - `FOREXCOM:US30`: `refreshed`
+  - `refresh_reason`: `htf_changed`
+- Labels repositioned:
+  - both symbols requested a full desired-state redraw so all embedded text recenters on the active macro / `Daily` / `4H` / `1H` / `5m` lines
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: `XAUUSD 4H DEMAND 4685.15 -> 4700.95`, `XAUUSD 1H 4699.52 -> 4734.67 / 4715.97`, `XAUUSD 5m 4699.52 / 4688.12 -> 4726.26 / 4721.44`, `US30 1H SUPPLY 49916.90 -> 49794.40`, `US30 +1H DEMAND 49701.85`, `US30 +4H DEMAND 49477.40`, `US30 5m 49612.40 / 49512.90 -> 49761.85 / 49734.35`
+- Cleaner symbol:
+  - `FOREXCOM:US30`
+- Symbol to avoid forcing:
+  - `PEPPERSTONE:XAUUSD`
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que `US30` abre mas limpio que oro. `US30` sigue en `HH/HL` sobre la demanda fresca y empuja contra el primer buy-side de NY; oro ya recupero `4700.95`, pero sigue comprimido entre `4721.44` y la oferta de `4726.26-4734.67`.
+  - `Tesis:` eso mantiene sesgo constructivo en ambos, pero el trade limpio todavia no esta. En `US30` favorece longs solo si `49734.35` vuelve a defender; en `XAUUSD` sigo necesitando o defensa clara de `4721.44` con aceptacion arriba de `4726.26`, o una barrida fallida arriba para pensar en short.
+  - `Niveles:` `XAUUSD -> Monthly 5597.91 / 4099.02 | Weekly 4889.44 / 4402.72 | Daily 4857.02 / 4654.86 | 4H 4753.54 / 4700.95 | 1H 4734.67 / 4715.97 | 5m 4726.26 / 4721.44 | PDH 4764.87 | PDL 4685.15 | OR 4724.52 / 4721.88` ; `US30 -> Monthly 50523.30 / 44810.55 | Weekly 50523.30 / 45715.50 | Daily 50523.30 / 49089.00 | 4H 50104.45 / 49477.40 | 1H 49794.40 / 49701.85 | 5m 49761.85 / 49734.35 | PDH 50124.90 | PDL 49477.40 | OR 49754.35 / 49742.85`
+  - `Accion:` `WAIT`. Foco limpio: `US30`, pero solo si `49734.35` retestea y aguanta; short solo si `49761.85` barre y falla. En oro no quiero chase ni compra en medio del rango.
+- 3-line conclusion:
+  - `US30` sigue contando continuidad alcista, pero todavia quiero el retest.
+  - Oro recupero estructura, pero sigue mas mixto debajo de supply cercano.
+  - La accion correcta en el open es `WAIT`, con `US30` como el mejor candidato si da la correccion buena.
+- Spanish thread update: NY open listo. `US30` queda como el simbolo mas limpio con `5m 49761.85 / 49734.35` y sesgo alcista en retest; `XAUUSD` refresca a `5m 4726.26 / 4721.44` y sigue mas mixto arriba de `4700.95`. Accion correcta: `WAIT`, sin chase en ninguno.
+
+- 2026-05-08 | automation: NY Open Levels | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / NY OPEN BASELINE / DESIRED STATE REFRESHED`; both old `5m` pairs were structurally behind price, `XAUUSD` rebuilt around reclaimed `4H DEMAND 4700.95` and a new `4726.26 / 4721.44` opening bracket, and `US30` rebuilt around fresh `1H 49794.40 / 49701.85` with `5m 49761.85 / 49734.35` while keeping the cleaner bullish open | key drawn levels: XAUUSD `Daily 4857.02 / 4654.86`, `4H 4753.54 / 4700.95`, `1H 4734.67 / 4715.97`, `5m 4726.26 / 4721.44`; US30 `Daily 50523.30 / 49089.00`, `4H 50104.45 / 49477.40`, `1H 49794.40 / 49701.85`, `5m 49761.85 / 49734.35` | action state: `WAIT / US30 CLEANER LONG-LEAN ON RETEST / XAUUSD MIXED / NO CHASE` | main lesson: when both old execution pairs are already behind price at the NY open, rebuild the map around the nearest defended retest and sweep shelf, and only mark HTF changed when the active `4H` or useful `1H` structure itself has materially shifted.
+
+### Post Open Validation - US30 First Long Triggered, Gold Stays Mixed Inside Bracket On 2026-05-08
+
+- Run time: `2026-05-08T06:48:46.8826374-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - fresh structured reads used for this validation:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-08T06:47:13-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-08T06:46:27-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / POST OPEN VALIDATION / XAUUSD PRESERVED / US30 5M REFRESHED`
+  - `XAUUSD` did not require a redraw because `4726.26 / 4721.44` still brackets the live tape honestly and remains the nearest clean post-open decision shelf
+  - `US30` validated the bullish open, but the first continuation long already left `49761.85 / 49734.35` structurally behind price after the push into `49855.85`, so the execution map had to refresh with `refresh_reason = 5m_far_from_price`
+- Higher-timeframe bias:
+  - `XAUUSD`: `Daily` stays constructive above `4654.86`; `4H` is still repaired above `4700.95`, but the post-open tape remains mixed under `1H SUPPLY 4734.67`
+  - `US30`: `Daily` stays constructive above `49089.00`; `4H` and `1H` still favor continuation, but the first clean long already fired and price is now validating or rejecting from higher in the opening sequence
+- Structure and execution:
+  - `XAUUSD`: `30m` remains mixed, `15m` recovered sharply after the `4703.15` session-low defense, and `5m` already swept `4726.26 / 4727.79` before rejecting from `4730.99`; then `4721.44` held again. The honest read is `WAIT / NO CLEAR EDGE / SHORT SIDE TRIGGERED / LONG SIDE ARMED`
+  - `FOREXCOM:US30`: `30m` and `15m` still print `HH/HL`; the original long from `49734.35` already triggered, price expanded into `49855.85`, and the tape is now reacting below `1H SUPPLY 49794.40`. The old pair became `STALE`, and the active execution map is now `5M EXECUTION SHORT 49806.35` versus `5M EXECUTION LONG 49755.85` with overall timing back to `WAIT / LONG-LEAN / PRE-TRIGGER`
+- Level interaction and liquidity:
+  - `XAUUSD`: nearest buy-side liquidity was swept into `4725.89` and `4730.99`, but price did not hold above `4726.26`; nearest sell-side `4721.44` was retested and held. That validates demand locally while keeping the upper shelf unresolved
+  - `US30`: the open did confirm the bullish bias through `49734.35` defense and an opening-range breakout, but the first buy-side objective at `49855.85` already got paid. That makes late continuation longs a chase unless `49755.85` retests and holds again
+- 5m execution lifecycle:
+  - `XAUUSD`:
+    - remained `ACTIVE`: `5M EXECUTION SHORT 4726.26`, `5M EXECUTION LONG 4721.44`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+    - replaced with: none
+    - current opportunity timing: `WAIT / NO CLEAR EDGE / SHORT SIDE TRIGGERED / LONG SIDE ARMED`
+    - exact confirmation still missing: long side still needs `4726.26` acceptance after `4721.44` defense; a fresh short now needs a cleaner retest failure instead of selling the middle after the first sweep
+  - `FOREXCOM:US30`:
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION SHORT 49761.85`, `5M EXECUTION LONG 49734.35`
+    - became `INVALIDATED`: none
+    - replaced with: `5M EXECUTION SHORT 49806.35`, `5M EXECUTION LONG 49755.85`
+    - current opportunity timing: `WAIT / LONG-LEAN / PRE-TRIGGER`
+    - exact confirmation still missing: long side needs `49755.85` to retest and hold again; short side needs a retest into `49806.35` that fails back below `49794.40`
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to avoid treating the first `US30` continuation long as still fresh after the liquidity objective already paid, and to keep `XAUUSD` honest after the failed-breakout sweep already printed
+- Articuno reinforcement:
+  - `XAUUSD`: reinforcement kept the same pair because `4721.44` still has demand quality and `4726.26` still caps clean acceptance; it refused to create a new map from noisy mid-bracket candles
+  - `US30`: reinforcement refused to preserve the old pair because both original execution shelves were now behind price, and it promoted the cleaner post-sweep decision to `49806.35 / 49755.85`
+- Chart actions:
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` untouched because the preserved HTF map plus `5m 4726.26 / 4721.44` still define live execution readiness honestly
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` with preserved macro / `Daily` / `4H` / `1H` context and refreshed only the `5m` execution pair to `49806.35 / 49755.85`
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `preserved`
+  - `FOREXCOM:US30`: `refreshed`
+  - `refresh_reason`: `5m_far_from_price` on `US30`
+- Labels repositioned:
+  - `US30` requested a fresh execution-layer rebuild so the active `5m` text recenters on the new `49806.35 / 49755.85` pair
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: `US30 5m 49761.85 / 49734.35 -> 49806.35 / 49755.85`
+- Cleaner symbol:
+  - `FOREXCOM:US30`
+- Symbol to avoid forcing:
+  - `PEPPERSTONE:XAUUSD`
+- Biggest trap right now:
+  - buying `US30` late after the first continuation already hit `49855.85`, or selling `XAUUSD` in the middle after the failed-breakout short already triggered once
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que `US30` si valido el open alcista, pero el primer long ya corrio hasta `49855.85` y ahora esta trabajando debajo de `1H SUPPLY 49794.40`. Oro, en cambio, sigue mas mixto: defendio otra vez `4721.44`, pero no logro aceptar arriba de `4726.26` despues de barrer `4730.99`.
+  - `Tesis:` eso mantiene a `US30` como el simbolo mas limpio, pero ya no en el mismo punto del baseline. El continuation long original ya fue `TRIGGERED`, por eso el mapa baja a `49806.35 / 49755.85` para esperar nuevo retest o failed reclaim. En `XAUUSD` el bracket sigue vivo, pero el short bueno ya corrio una vez y el long todavia necesita acceptacion real arriba de `4726.26`.
+  - `Niveles:` `XAUUSD -> Monthly 5597.91 / 4099.02 | Weekly 4889.44 / 4402.72 | Daily 4857.02 / 4654.86 | 4H 4753.54 / 4700.95 | 1H 4734.67 / 4715.97 | 5m 4726.26 / 4721.44 | PDH 4764.87 | PDL 4685.15` ; `US30 -> Monthly 50523.30 / 44810.55 | Weekly 50523.30 / 45715.50 | Daily 50523.30 / 49089.00 | 4H 50104.45 / 49477.40 | 1H 49794.40 / 49701.85 | 5m 49806.35 / 49755.85 | PDH 50124.90 | PDL 49477.40`
+  - `Accion:` `WAIT`. `US30` sigue siendo el foco, pero solo si `49755.85` vuelve a defender o si `49806.35` retestea y falla abajo de `49794.40`; no quiero perseguir el primer long ya extendido. En `XAUUSD`, si ya tomaste el short del sweep toca gestionar; si estas flat, no quiero chase en medio del bracket.
+- 3-line conclusion:
+  - `US30` si confirmo el sesgo alcista, pero el primer trade limpio ya corrio y ahora toca esperar nuevo retest.
+  - Oro sigue respetando demanda, pero la estructura post-open sigue demasiado mixta para forzar entrada nueva.
+  - La accion correcta despues de validar el open sigue siendo `WAIT`, con `US30` como foco y `XAUUSD` solo para paciencia.
+- Spanish thread update: Post-open listo. `US30` valida el bias alcista pero el primer long ya fue `TRIGGERED`, por eso el mapa `5m` se refresca a `49806.35 / 49755.85`; `XAUUSD` queda preservado en `4726.26 / 4721.44` y sigue mixto. Accion correcta: `WAIT`, sin chase en ninguno.
+
+- 2026-05-08 | automation: Post Open Validation | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / POST OPEN VALIDATION / XAUUSD PRESERVED / US30 5M REFRESHED`; `XAUUSD` kept the live bracket `4726.26 / 4721.44`, while `US30` validated the bullish open but left `49761.85 / 49734.35` behind price after the first continuation into `49855.85`, so the active execution pair moved to `49806.35 / 49755.85` with `refresh_reason = 5m_far_from_price` | key drawn levels: XAUUSD `Daily 4857.02 / 4654.86`, `4H 4753.54 / 4700.95`, `1H 4734.67 / 4715.97`, `5m 4726.26 / 4721.44`; US30 `Daily 50523.30 / 49089.00`, `4H 50104.45 / 49477.40`, `1H 49794.40 / 49701.85`, `5m 49806.35 / 49755.85` | action state: `WAIT / US30 CLEANER BUT FIRST LONG TRIGGERED / XAUUSD MIXED / NO CHASE` | main lesson: after the open validates a bias and the first continuation already pays its nearest liquidity, stop pretending the original 5m bracket is still fresh; preserve the honest symbol, refresh only the execution layer that moved on, and force a new retest instead of chasing.
+
+### Active Setup Detector - US30 Resets Lower While Gold Keeps The Same Bracket On 2026-05-08
+
+- Run time: `2026-05-08T07:06:02.2756880-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - fresh structured reads used for this detector cycle:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-08T07:04:09-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-08T07:04:45-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / ACTIVE SETUP DETECTOR / XAUUSD PRESERVED / US30 5M REFRESHED`
+  - `XAUUSD` still has the honest live bracket; `4721.44` keeps defending, `4726.26` still caps acceptance, and the same pair still classifies execution readiness correctly
+  - `US30` already paid the first continuation long into `49855.85`, then accepted back below `49755.85`; the cleaner current execution decision is now lower at `49761.85 / 49734.35`, so the execution layer needed a fresh `5m` reset with `refresh_reason = 5m_far_from_price`
+- Higher-timeframe bias:
+  - `XAUUSD`: `Daily` stays constructive above `4654.86`; `4H` remains repaired above `4700.95`, but `1H SUPPLY 4734.67` is still capping clean expansion and keeps the tape mixed inside the local bracket
+  - `US30`: `Daily` stays constructive above `49089.00`; `4H` and `1H` still support continuation inside `49794.40 / 49701.85`, while `30m` and `15m` continue to print a constructive `HH/HL` profile despite the post-spike pullback
+- Structure and execution:
+  - `XAUUSD`: key levels tested now are still `4726.26` above and `4721.44` below; `30m` remains mixed, `15m` is constructive but unresolved, nearest buy-side liquidity is `4727.07` and then `4732.10 / 4734.67`, nearest sell-side liquidity is `4721.44` and then `4715.97 / 4703.15`; the short rejection already happened and the long still needs real acceptance back above `4726.26`
+  - `US30`: the key level being tested now is `49734.35` after price already used `49755.85` and fell back through it; `30m` and `15m` still support the bullish thesis, nearest buy-side liquidity is `49761.85` and then `49766.40 / 49794.40`, nearest sell-side liquidity is `49734.35` and then `49722.35 / 49701.85`; the fresh long now needs `49734.35` to hold and price to reclaim `49755.85`, while the short only makes sense on a retest failure into `49761.85`
+- 5m execution lifecycle:
+  - `XAUUSD`:
+    - remained `ACTIVE`: `5M EXECUTION SHORT 4726.26`, `5M EXECUTION LONG 4721.44`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+    - replaced with: none
+    - current opportunity timing: `WAIT / NO CLEAR EDGE / LONG SIDE ARMED / SHORT SIDE TRIGGERED`
+    - exact confirmation still missing: long side needs clean acceptance above `4726.26`; a fresh short now needs a new sweep / failure through `4727.07` instead of selling the middle after the first rejection already worked
+    - action honesty: if you already took the upper rejection, manage it; if flat, `DO NOT CHASE`
+  - `FOREXCOM:US30`:
+    - remained `ACTIVE`: none
+    - became `STALE`: `5M EXECUTION SHORT 49806.35`
+    - became `INVALIDATED`: `5M EXECUTION LONG 49755.85`
+    - replaced with: `5M EXECUTION SHORT 49761.85`, `5M EXECUTION LONG 49734.35`
+    - current opportunity timing: `WAIT / LONG-LEAN / LONG SIDE ARMED / SHORT SIDE PRE-TRIGGER`
+    - exact confirmation still missing: long side needs `49734.35` to hold and price to reclaim `49755.85`; short side needs a retest into `49761.85` that fails back below under `1H SUPPLY 49794.40`
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to refuse chasing both symbols after the first impulse already did its work, and to refresh `US30` only once a cleaner lower correction shelf formed
+- Articuno reinforcement:
+  - `XAUUSD`: reinforcement preserved the pair because liquidity precision is still anchored to `4727.07 / 4721.44` and repeated retests still describe the same mixed bracket honestly
+  - `US30`: reinforcement refused to keep `49755.85` as the active long once price accepted through it, and promoted `49734.35` defense versus `49761.85` sweep as the cleaner current execution read
+- Chart actions:
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` untouched because the preserved HTF map plus `5m 4726.26 / 4721.44` still define live execution readiness honestly
+  - updated `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` with preserved macro / `Daily` / `4H` / `1H` context and refreshed only the `5m` execution pair to `49761.85 / 49734.35`
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `preserved`
+  - `FOREXCOM:US30`: `refreshed`
+  - `refresh_reason`: `5m_far_from_price` on `US30`
+- Labels repositioned:
+  - `US30` requested a fresh execution-layer rebuild so the active `5m` text recenters on `49761.85 / 49734.35`
+  - `XAUUSD`: none
+- Levels recolored / removed / replaced:
+  - recolored: none
+  - removed / replaced: `US30 5m 49806.35 / 49755.85 -> 49761.85 / 49734.35`
+- Cleaner symbol:
+  - `FOREXCOM:US30`
+- Symbol to avoid forcing:
+  - `PEPPERSTONE:XAUUSD`
+- Biggest trap right now:
+  - buying `US30` before `49734.35` proves itself again, or selling `XAUUSD` in the middle after the upper rejection already triggered once
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que `US30` ya hizo el primer long y tambien la primera descarga desde arriba, y ahora esta volviendo a decidirse mas abajo sobre `49734.35`. Oro sigue contando bracket: `4721.44` aguanta, pero cada push arriba de `4726.26 / 4727.07` sigue encontrando venta.
+  - `Tesis:` eso deja a `US30` como el simbolo mas limpio, pero en correccion, no en chase. El long bueno ahora necesita defensa real de `49734.35` y reclaim de `49755.85`; el short solo me interesa si `49761.85` retestea y falla. En `XAUUSD` el short bueno ya corrio y el long sigue incompleto mientras no acepte arriba de `4726.26`.
+  - `Niveles:` `XAUUSD -> Monthly 5597.91 / 4099.02 | Weekly 4889.44 / 4402.72 | Daily 4857.02 / 4654.86 | 4H 4753.54 / 4700.95 | 1H 4734.67 / 4715.97 | 5m 4726.26 / 4721.44 | buy-side 4727.07 | sell-side 4721.44` ; `US30 -> Monthly 50523.30 / 44810.55 | Weekly 50523.30 / 45715.50 | Daily 50523.30 / 49089.00 | 4H 50104.45 / 49477.40 | 1H 49794.40 / 49701.85 | 5m 49761.85 / 49734.35 | buy-side 49761.85 | sell-side 49734.35`
+  - `Accion:` `WAIT`. `US30` queda `ARMED` del lado largo si `49734.35` se sostiene y recupera `49755.85`; si no, no persigo. `XAUUSD` queda `NO CLEAR EDGE`: short lado `TRIGGERED`, long lado `ARMED`, pero si estas flat no compro ni vendo en medio.
+- 3-line conclusion:
+  - `US30` sigue siendo el foco, pero el trade limpio ahora esta mas abajo y todavia necesita confirmacion.
+  - Oro sigue respetando demanda, pero la oferta de corto plazo no deja una entrada limpia todavia.
+  - La accion correcta sigue siendo `WAIT`, con `US30` por delante de `XAUUSD`.
+- Spanish thread update: Active setup detector listo. `US30` refresca el `5m` a `49761.85 / 49734.35` y queda como el foco si `49734.35` defiende y recupera `49755.85`; `XAUUSD` conserva `4726.26 / 4721.44` y sigue mixto. Accion correcta: `WAIT`, sin chase.
+
+- 2026-05-08 | automation: Active Setup Detector | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / ACTIVE SETUP DETECTOR / XAUUSD PRESERVED / US30 5M REFRESHED`; `XAUUSD` kept the live bracket `4726.26 / 4721.44`, while `US30` accepted back below `49755.85` and reset the clean execution decision lower to `49761.85 / 49734.35` with `refresh_reason = 5m_far_from_price` | key drawn levels: XAUUSD `Daily 4857.02 / 4654.86`, `4H 4753.54 / 4700.95`, `1H 4734.67 / 4715.97`, `5m 4726.26 / 4721.44`; US30 `Daily 50523.30 / 49089.00`, `4H 50104.45 / 49477.40`, `1H 49794.40 / 49701.85`, `5m 49761.85 / 49734.35` | action state: `WAIT / US30 LONG SIDE ARMED / XAUUSD MIXED / NO CHASE` | main lesson: when the first trigger already worked and price rotates back through the prior shelf, do not preserve the old 5m line out of inertia; keep the honest symbol, refresh only the execution layer that truly changed, and demand a fresh correction-level confirmation before acting.
+
+### Bias Integrity Check - US30 Bias Intact, Gold Bias Weakened On 2026-05-08
+
+- Run time: `2026-05-08T07:24:23.4713722-06:00`
+- Symbols reviewed: `PEPPERSTONE:XAUUSD`, `FOREXCOM:US30`
+- Live input source: latest TradingView Structured Live State JSON plus market runtime status files only; no screenshots, PNGs, or TradingView MCP reads were used in the analysis path.
+- Runtime status before final decision:
+  - `workflow_stalled = false`
+  - `recovery_pending = false`
+  - `recovery_gate_status = not_needed`
+  - `all_symbols_valid = true`
+  - fresh structured reads used for this integrity pass:
+    - `PEPPERSTONE:XAUUSD` `as_of = 2026-05-08T07:21:14-06:00` | `data_confidence = FULL_DATA`
+    - `FOREXCOM:US30` `as_of = 2026-05-08T07:21:52-06:00` | `data_confidence = FULL_DATA`
+- Workflow result:
+  - this run finished `FULL_DATA / BIAS INTEGRITY CHECK / DESIRED STATE PRESERVED`
+  - neither active `5m` pair became structurally far from price, and no higher-timeframe level failed in a way that required a redraw
+- Desired state result:
+  - `XAUUSD`: preserved `4H 4753.54 / 4700.95`, preserved `1H 4734.67 / 4715.97`, preserved `5m 4726.26 / 4721.44`
+  - `US30`: preserved `4H 50104.45 / 49477.40`, preserved `1H 49794.40 / 49701.85`, preserved `5m 49761.85 / 49734.35`
+- Bias verdict:
+  - `XAUUSD`: `BIAS WEAKENED`; `4700.95` and `4721.44` still hold, but repeated failures to accept above `4726.26 / 4727.07` keep the bullish branch from earning clean conviction
+  - `US30`: `BIAS INTACT`; `49701.85` and the broader `49734.35` defense remain usable, and the pullback into `49698.35` recovered without breaking the higher-timeframe continuation thesis
+- Higher-timeframe bias:
+  - `XAUUSD`: `Daily` stays constructive above `4654.86`; `4H` remains repaired above `4700.95`, but `1H SUPPLY 4734.67` is still capping clean expansion
+  - `US30`: `Daily` stays constructive above `49089.00`; `4H` and `1H` remain usable for continuation while price stays above `49701.85`
+- Structure and liquidity:
+  - `XAUUSD`: session low `4703.15` already got defended and the tape recovered back into `4726.26`, but buy-side acceptance still failed again under `4727.07`; `4732.10` was already swept once and `4734.67` remains the cleaner untapped cap above, while `4715.97` remains the next clean sell-side shelf below
+  - `US30`: the morning buy-side objective at `49855.85` was already paid, then price corrected into `49698.35` and recovered; local buy-side remains `49761.85 / 49766.40`, while the next meaningful sell-side support is still `49743.35` into `49701.85`
+- 5m execution lifecycle:
+  - `XAUUSD`:
+    - remained `ACTIVE`: `5M EXECUTION SHORT 4726.26`, `5M EXECUTION LONG 4721.44`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+    - replaced with: none
+    - current opportunity timing: `WAIT / NO CLEAR EDGE / LONG SIDE ARMED / SHORT SIDE PRE-TRIGGER`
+    - exact confirmation still missing: long side still needs real acceptance above `4726.26`; short side needs a fresh sweep through `4726.26-4727.07` that fails back below
+  - `FOREXCOM:US30`:
+    - remained `ACTIVE`: `5M EXECUTION SHORT 49761.85`, `5M EXECUTION LONG 49734.35`
+    - became `STALE`: none
+    - became `INVALIDATED`: none
+    - replaced with: none
+    - current opportunity timing: `WAIT / LONG-LEAN / LONG SIDE ARMED / SHORT SIDE PRE-TRIGGER`
+    - exact confirmation still missing: long side needs `49734.35` to keep holding and price to accept back through `49755.85-49761.85`; short side needs `49761.85` to sweep and fail back under `49755.85`
+- Transcript-derived refinement usage:
+  - used `indication -> correction -> continuation` to refuse a gold breakout assumption under `4734.67` and to keep `US30` focused on defended retest instead of late continuation
+- Articuno reinforcement:
+  - `XAUUSD`: reinforcement weakened conviction because the same cap keeps rejecting price, so it refused to treat `4721.44` defense alone as enough for a fresh long
+  - `US30`: reinforcement kept the thesis intact because the correction recovered from `49698.35` without breaking `49701.85`, but it still blocked chase entries until `49755.85-49761.85` re-accepts
+- Chart actions:
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\PEPPERSTONE_XAUUSD.json` untouched because the preserved HTF map plus `5m 4726.26 / 4721.44` still classify live execution readiness honestly
+  - left `C:\Users\sebas\Documents\Codex\2026-04-18-corre-la-herramienta-tv-health-check\chart_runtime\desired_states\FOREXCOM_US30.json` untouched because the preserved HTF map plus `5m 49761.85 / 49734.35` still classify live execution readiness honestly
+- Redraw status:
+  - `PEPPERSTONE:XAUUSD`: `preserved`
+  - `FOREXCOM:US30`: `preserved`
+  - `refresh_reason`: none; desired state stayed untouched
+- Labels repositioned:
+  - none
+- Levels recolored / removed / replaced:
+  - none
+- Cleaner symbol:
+  - `FOREXCOM:US30`
+- Symbol to avoid forcing:
+  - `PEPPERSTONE:XAUUSD`
+- What to stop assuming:
+  - stop assuming `XAUUSD` is a clean long just because `4721.44` defended; it still needs acceptance above `4726.26` and room toward `4734.67`
+  - stop assuming `US30` should continue immediately from the middle; the intact thesis still wants defended retest and reclaim, not late pressing
+- Trader-facing report:
+  - `Historia:` la historia ahora mismo es que `US30` corrigio sin romper la base y ya vuelve a trabajar debajo de `49761.85`; oro, en cambio, sigue vivo sobre `4700.95`, pero `4726.26-4727.07` vuelve a frenar y `4734.67` sigue sin ceder.
+  - `Tesis:` eso deja a `US30` con `BIAS INTACT` y como el foco limpio del plan. `XAUUSD` queda `BIAS WEAKENED`, no invalidado: la base HTF sigue util, pero el long no gana conviccion mientras no haya aceptacion real arriba de `4726.26`.
+  - `Niveles:` `XAUUSD -> Monthly 5597.91 / 4099.02 | Weekly 4889.44 / 4402.72 | Daily 4857.02 / 4654.86 | 4H 4753.54 / 4700.95 | 1H 4734.67 / 4715.97 | 5m 4726.26 / 4721.44` ; `US30 -> Monthly 50523.30 / 44810.55 | Weekly 50523.30 / 45715.50 | Daily 50523.30 / 49089.00 | 4H 50104.45 / 49477.40 | 1H 49794.40 / 49701.85 | 5m 49761.85 / 49734.35`
+  - `Accion:` `WAIT`. Mantengo el plan con mas foco en `US30` solo si `49734.35` aguanta y recupera `49755.85-49761.85`. En oro reduzco conviccion: no asumir breakout, no vender el medio, y no chase; solo acceptacion arriba o sweep-failure claro arriba de `4726.26`.
+- 3-line conclusion:
+  - `US30` sigue siendo el foco y la tesis mayor sigue intacta, pero la entrada correcta todavia exige reclaim limpio.
+  - Oro no rompio la base, pero tampoco limpio la oferta cercana; por eso el bias se debilita sin invalidarse.
+  - La accion correcta en este integrity pass sigue siendo `WAIT`, con mas conviccion en `US30` y menos supuestos en `XAUUSD`.
+- Spanish thread update: Bias integrity listo. `US30` sigue `BIAS INTACT` y mantiene el plan alcista si `49734.35` aguanta y recupera `49755.85-49761.85`; `XAUUSD` queda `BIAS WEAKENED`, no invalidado, mientras siga sin aceptar arriba de `4726.26`. Accion correcta: `WAIT`, con foco en `US30` y conviccion reducida en oro.
+
+- 2026-05-08 | automation: Bias Integrity Check | symbols: PEPPERSTONE:XAUUSD, FOREXCOM:US30 | thesis result: the workflow finished `FULL_DATA / BIAS INTEGRITY CHECK / DESIRED STATE PRESERVED`; `US30` kept an intact continuation thesis because the correction into `49698.35` recovered above `49701.85`, while `XAUUSD` weakened without invalidating because `4700.95 / 4721.44` still hold but `4726.26-4727.07` keeps rejecting acceptance | key drawn levels: XAUUSD `Daily 4857.02 / 4654.86`, `4H 4753.54 / 4700.95`, `1H 4734.67 / 4715.97`, `5m 4726.26 / 4721.44`; US30 `Daily 50523.30 / 49089.00`, `4H 50104.45 / 49477.40`, `1H 49794.40 / 49701.85`, `5m 49761.85 / 49734.35` | action state: `WAIT / US30 BIAS INTACT AND CLEANER / XAUUSD BIAS WEAKENED / NO CHASE` | main lesson: when the higher-timeframe floor still holds but the trigger shelf keeps failing, preserve the map, reduce conviction, and stop pretending defense alone is the same thing as fresh acceptance.
+- Dispatch completed at `2026-05-08T07:26:13-06:00` with event id `3d8891dc4d1c46d386738b079025bd62`.
 

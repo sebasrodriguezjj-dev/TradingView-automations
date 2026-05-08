@@ -1,12 +1,13 @@
-$pythonPath = "C:\Users\sebas\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
-$watchdogPath = Join-Path $PSScriptRoot "market_watchdog.py"
+$workspaceRoot = $PSScriptRoot
+. (Join-Path $workspaceRoot "watcher_process_control.ps1")
 
-if (-not (Test-Path $pythonPath)) {
-    throw "Python runtime not found at $pythonPath"
+$watcher = @{
+    Name = "market"
+    Owner = "SMART MONEY - GOOD MONEY Market Watchdog"
+    WorkspaceRoot = $workspaceRoot
+    ScriptPath = Join-Path $workspaceRoot "market_watchdog.py"
+    LauncherPath = $MyInvocation.MyCommand.Path
+    PidPath = Join-Path $workspaceRoot "market_runtime\market_watchdog.pid.json"
 }
 
-if (-not (Test-Path $watchdogPath)) {
-    throw "Market watchdog script not found at $watchdogPath"
-}
-
-Start-Process -FilePath $pythonPath -ArgumentList @($watchdogPath) -WorkingDirectory $PSScriptRoot -WindowStyle Hidden
+Start-ManagedWatcherProcess -Watcher $watcher | Out-Null

@@ -32,7 +32,7 @@ That means:
 
 Communication must never alter:
 
-- strategy hierarchy: `Daily / 4H -> 30m -> 15m -> 5m`
+- strategy hierarchy: `Monthly / Weekly -> Daily / 4H -> 1H -> 30m -> 15m -> 5m`
 - timing states: `PRE-TRIGGER`, `ARMED`, `TRIGGERED`, `EXPIRED`
 - action states: `LONGS`, `SHORTS`, `WAIT`, `NO CLEAR EDGE`, `DO NOT CHASE`, `WAIT FOR NEW RETEST`, `MANAGE IF ALREADY IN`
 - risk model
@@ -82,6 +82,8 @@ Preferred phrases:
 - show only the levels that matter to the current read
 - do not dump every known level
 - levels must support the story being told
+- if the preserved `Daily` pair is part of the active HTF map, it may appear here as context
+- `Daily` levels stay contextual; execution language still belongs to `5m`
 
 ### Accion
 
@@ -253,7 +255,7 @@ Allowed compact format:
 `Articuno Reinforcement:`
 
 - `SMC: liquidity already paid; no chase.`
-- `Supply/Demand: 4H resistance remains structurally valid.`
+- `Supply/Demand: 4H supply remains structurally valid.`
 - `VPA: participation supports rejection, but not standalone.`
 - `Price Action: 5m trigger already fired.`
 - `Opening Range: first NY impulse already expanded.`

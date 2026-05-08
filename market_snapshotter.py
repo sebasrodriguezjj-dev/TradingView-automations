@@ -29,6 +29,7 @@ RUNTIME_DIR = WORKSPACE_DIR / "market_runtime"
 LIVE_STATE_DIR = RUNTIME_DIR / "live_state"
 SNAPSHOTS_DIR = RUNTIME_DIR / "snapshots"
 SCREENSHOTS_DIR = RUNTIME_DIR / "screenshots"
+DESIRED_STATES_DIR = WORKSPACE_DIR / "chart_runtime" / "desired_states"
 STATE_PATH = RUNTIME_DIR / "market_runtime_state.json"
 LOG_PATH = RUNTIME_DIR / "market_snapshotter.log"
 
@@ -37,6 +38,30 @@ LIVE_STATE_OWNER = "smart-money-good-money-tradingview-live-state"
 LIVE_STATE_READER = "tradingview_live_state_reader"
 DEFAULT_FRESHNESS_SECONDS = 30
 DEFAULT_OHLCV_COUNT = 120
+STALL_THRESHOLD_SECONDS = 15 * 60
+SYMBOL_CAPTURE_RECOVERY_STEPS = (
+    "normal_capture",
+    "immediate_retry",
+    "reselect_symbol",
+    "gateway_recovery",
+    "retry_missing_symbol",
+)
+RECOVERY_METADATA_FIELDS = (
+    "recovery_phase",
+    "recovery_attempt_id",
+    "recovery_started_at",
+    "last_successful_full_recovery_at",
+    "last_recovery_failure_reason",
+    "recovery_owner",
+    "last_recovery_reassess_at",
+    "chart_sync_verified_at",
+    "recovery_bridge_status",
+    "recovery_bridge_started_at",
+    "recovery_bridge_finished_at",
+    "recovery_bridge_last_message_path",
+    "recovery_bridge_result_path",
+    "last_notified_recovery_attempt_id",
+)
 def load_new_york_tz() -> timezone | ZoneInfo:
     try:
         return ZoneInfo("America/New_York")
@@ -50,7 +75,7 @@ def load_new_york_tz() -> timezone | ZoneInfo:
 
 
 NY_TZ = load_new_york_tz()
-REQUIRED_TIMEFRAMES = {"D", "4H", "30m", "15m", "5m"}
+REQUIRED_TIMEFRAMES = {"M", "W", "D", "4H", "1H", "30m", "15m", "5m"}
 PIVOT_LEFT = 2
 PIVOT_RIGHT = 2
 EQUAL_LEVEL_TOLERANCE_RATIO = 0.0002
@@ -61,8 +86,11 @@ SYMBOLS = [
 ]
 
 TIMEFRAMES = [
+    ("M", "M"),
+    ("W", "W"),
     ("D", "D"),
     ("240", "4H"),
+    ("60", "1H"),
     ("30", "30m"),
     ("15", "15m"),
     ("5", "5m"),
@@ -99,6 +127,15 @@ def snapshot_path(symbol: str) -> Path:
 
 def now_local() -> datetime:
     return datetime.now().astimezone()
+
+
+def parse_iso_datetime(value: Any) -> datetime | None:
+    if value in (None, ""):
+        return None
+    try:
+        return datetime.fromisoformat(str(value))
+    except Exception:
+        return None
 
 
 def iso_after(seconds: int) -> str:
@@ -158,6 +195,39 @@ def price_tolerance(last_price: float | None) -> float:
 def timeframe_payload(timeframes: dict[str, Any], label: str) -> dict[str, Any]:
     payload = timeframes.get(label)
     return payload if isinstance(payload, dict) else {}
+
+
+def desired_states_refreshed_since(requested_at_raw: Any, symbols: list[str] | None = None) -> bool:
+    requested_at = parse_iso_datetime(requested_at_raw)
+    if requested_at is None:
+        return False
+
+    required_symbols = symbols or SYMBOLS
+    for symbol in required_symbols:
+        path = DESIRED_STATES_DIR / f"{symbol_slug(symbol)}.json"
+        payload = load_json(path, default={}) or {}
+        updated_at = parse_iso_datetime(payload.get("updated_at"))
+        if updated_at is None or updated_at < requested_at:
+            return False
+    return True
+
+
+def runtime_state_path() -> Path:
+    return STATE_PATH
+
+
+def read_runtime_state(default: Any | None = None) -> Any:
+    return load_json(STATE_PATH, default=default)
+
+
+def structured_summary_ready(summary: dict[str, Any]) -> bool:
+    if not isinstance(summary, dict):
+        return False
+    return (
+        summary.get("status") == "fresh"
+        and summary.get("decision_allowed") is True
+        and summary.get("data_confidence") in {"FULL_DATA", "PARTIAL_DATA"}
+    )
 
 
 def bars_for_timeframe(timeframes: dict[str, Any], label: str) -> list[dict[str, Any]]:
@@ -962,6 +1032,7 @@ def build_live_state_payload(
     timeframes: dict[str, Any],
     derived_features: dict[str, Any],
     data_confidence: dict[str, Any],
+    recovery_meta: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     state_version = int(previous.get("state_version", 0)) + 1 if previous else 1
     as_of = now_iso()
@@ -989,6 +1060,8 @@ def build_live_state_payload(
         "timeframes": timeframes,
         "derived_features": derived_features,
         "data_confidence": data_confidence,
+        "last_valid_structured_at": as_of,
+        "runtime_recovery": recovery_meta or {},
         "visual_audit": {
             "enabled": False,
             "required_for_analysis": False,
@@ -997,7 +1070,12 @@ def build_live_state_payload(
     }
 
 
-def build_degraded_payload(symbol: str, previous: dict[str, Any] | None, error: Exception) -> dict[str, Any]:
+def build_degraded_payload(
+    symbol: str,
+    previous: dict[str, Any] | None,
+    error: Exception,
+    recovery_meta: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     payload = dict(previous or {})
     payload["version"] = 2
     payload["owned_by"] = LIVE_STATE_OWNER
@@ -1016,6 +1094,8 @@ def build_degraded_payload(symbol: str, previous: dict[str, Any] | None, error: 
     payload.setdefault("market", {"info": {}, "quote": {}})
     payload.setdefault("timeframes", {})
     payload.setdefault("derived_features", build_empty_derived_features())
+    payload["last_valid_structured_at"] = payload.get("last_valid_structured_at") or payload.get("as_of")
+    payload["runtime_recovery"] = recovery_meta or {}
     payload["data_confidence"] = {
         "status": "DATA_DEGRADED",
         "decision_allowed": False,
@@ -1050,13 +1130,18 @@ def write_symbol_payloads(symbol: str, payload: dict[str, Any], dry_run: bool = 
 
 def summarize_payload(payload: dict[str, Any]) -> dict[str, Any]:
     confidence = payload.get("data_confidence", {}) if isinstance(payload, dict) else {}
+    recovery = payload.get("runtime_recovery", {}) if isinstance(payload, dict) else {}
     return {
         "symbol": payload.get("symbol"),
         "status": payload.get("status"),
         "data_confidence": confidence.get("status"),
         "decision_allowed": confidence.get("decision_allowed"),
+        "missing_fields": confidence.get("missing_fields", []),
         "as_of": payload.get("as_of"),
         "fresh_until": payload.get("fresh_until"),
+        "last_valid_structured_at": payload.get("last_valid_structured_at"),
+        "capture_attempts": recovery.get("capture_attempts"),
+        "recovery_step_used": recovery.get("recovery_step_used"),
         "last_error": payload.get("last_error"),
     }
 
@@ -1098,6 +1183,57 @@ def refresh_snapshot_statuses() -> list[dict[str, Any]]:
     return refresh_live_state_statuses()
 
 
+def capture_symbol_data(symbol: str) -> tuple[dict[str, Any] | None, dict[str, Any] | None, dict[str, Any], dict[str, Any], dict[str, Any]]:
+    info_payload: dict[str, Any] | None = None
+    quote_payload: dict[str, Any] | None = None
+    timeframes: dict[str, Any] = {}
+
+    for timeframe_value, timeframe_label in TIMEFRAMES:
+        GATEWAY.ensure_symbol_and_timeframe(symbol, timeframe_value)
+        state_payload = GATEWAY.run_tv(["state"], timeout=10)
+        ohlcv_payload = GATEWAY.run_tv(
+            ["ohlcv", "--count", str(DEFAULT_OHLCV_COUNT)],
+            timeout=20,
+        )
+        bars = ohlcv_payload.get("bars") or []
+        quote_payload = quote_payload or GATEWAY.try_tv(["quote"], timeout=10)
+        info_payload = info_payload or GATEWAY.try_tv(["info"], timeout=10)
+
+        timeframes[timeframe_label] = {
+            "timeframe": timeframe_value,
+            "captured_at": now_iso(),
+            "state": state_payload,
+            "bars": bars,
+            "bar_count": len(bars),
+            "latest_bar_time": bars[-1]["time"] if bars else None,
+        }
+
+    derived_features, derived_warnings = build_derived_features(symbol, timeframes, quote_payload)
+    data_confidence = derive_data_confidence(quote_payload, timeframes, derived_warnings)
+    return info_payload, quote_payload, timeframes, derived_features, data_confidence
+
+
+def prepare_capture_retry(symbol: str, step_name: str) -> None:
+    if step_name == "normal_capture":
+        return
+    if step_name == "immediate_retry":
+        GATEWAY.dismiss_modals()
+        return
+    if step_name == "reselect_symbol":
+        GATEWAY.ensure_symbol_and_timeframe(symbol, TIMEFRAMES[0][0])
+        GATEWAY.dismiss_modals()
+        return
+    if step_name == "gateway_recovery":
+        GATEWAY.ensure_connection()
+        GATEWAY.dismiss_modals()
+        return
+    if step_name == "retry_missing_symbol":
+        GATEWAY.ensure_connection()
+        GATEWAY.ensure_symbol_and_timeframe(symbol, TIMEFRAMES[-1][0])
+        GATEWAY.dismiss_modals()
+        return
+
+
 def capture_symbol(symbol: str, dry_run: bool = False) -> dict[str, Any]:
     primary_path = live_state_path(symbol)
     previous = load_json(primary_path, default=None)
@@ -1105,47 +1241,67 @@ def capture_symbol(symbol: str, dry_run: bool = False) -> dict[str, Any]:
         previous = load_json(snapshot_path(symbol), default={}) or {}
 
     original_status: dict[str, Any] | None = None
+    capture_errors: list[str] = []
+    attempts = 0
+    step_used = "failed"
+    payload: dict[str, Any]
+
     try:
         with GATEWAY.locked_session(timeout_seconds=240):
             GATEWAY.ensure_connection()
             original_status = GATEWAY.run_tv(["status"], timeout=10)
-            info_payload: dict[str, Any] | None = None
-            quote_payload: dict[str, Any] | None = None
-            timeframes: dict[str, Any] = {}
 
-            for timeframe_value, timeframe_label in TIMEFRAMES:
-                GATEWAY.ensure_symbol_and_timeframe(symbol, timeframe_value)
-                state_payload = GATEWAY.run_tv(["state"], timeout=10)
-                ohlcv_payload = GATEWAY.run_tv(
-                    ["ohlcv", "--count", str(DEFAULT_OHLCV_COUNT)],
-                    timeout=20,
+            for step_name in SYMBOL_CAPTURE_RECOVERY_STEPS:
+                attempts += 1
+                try:
+                    prepare_capture_retry(symbol, step_name)
+                    info_payload, quote_payload, timeframes, derived_features, data_confidence = capture_symbol_data(symbol)
+                    step_used = step_name
+                    payload = build_live_state_payload(
+                        symbol=symbol,
+                        previous=previous,
+                        info_payload=info_payload,
+                        quote_payload=quote_payload,
+                        timeframes=timeframes,
+                        derived_features=derived_features,
+                        data_confidence=data_confidence,
+                        recovery_meta={
+                            "capture_attempts": attempts,
+                            "recovery_step_used": step_used,
+                            "capture_errors": capture_errors,
+                        },
+                    )
+                    if attempts > 1:
+                        append_log(f"{symbol} recovered via {step_used} on attempt {attempts}")
+                    break
+                except Exception as exc:
+                    error_text = f"{step_name}: {type(exc).__name__}: {exc}"
+                    capture_errors.append(error_text)
+                    append_log(f"{symbol} capture attempt failed: {error_text}")
+            else:
+                failure = RuntimeError(capture_errors[-1] if capture_errors else "symbol capture failed")
+                payload = build_degraded_payload(
+                    symbol=symbol,
+                    previous=previous,
+                    error=failure,
+                    recovery_meta={
+                        "capture_attempts": attempts,
+                        "recovery_step_used": step_used,
+                        "capture_errors": capture_errors,
+                    },
                 )
-                bars = ohlcv_payload.get("bars") or []
-                quote_payload = quote_payload or GATEWAY.try_tv(["quote"], timeout=10)
-                info_payload = info_payload or GATEWAY.try_tv(["info"], timeout=10)
-
-                timeframes[timeframe_label] = {
-                    "timeframe": timeframe_value,
-                    "captured_at": now_iso(),
-                    "state": state_payload,
-                    "bars": bars,
-                    "bar_count": len(bars),
-                    "latest_bar_time": bars[-1]["time"] if bars else None,
-                }
-
-            derived_features, derived_warnings = build_derived_features(symbol, timeframes, quote_payload)
-            data_confidence = derive_data_confidence(quote_payload, timeframes, derived_warnings)
-            payload = build_live_state_payload(
-                symbol=symbol,
-                previous=previous,
-                info_payload=info_payload,
-                quote_payload=quote_payload,
-                timeframes=timeframes,
-                derived_features=derived_features,
-                data_confidence=data_confidence,
-            )
+                append_log(f"{symbol} live-state capture failed after recovery ladder")
     except Exception as exc:
-        payload = build_degraded_payload(symbol=symbol, previous=previous, error=exc)
+        payload = build_degraded_payload(
+            symbol=symbol,
+            previous=previous,
+            error=exc,
+            recovery_meta={
+                "capture_attempts": attempts,
+                "recovery_step_used": step_used,
+                "capture_errors": capture_errors,
+            },
+        )
         append_log(f"{symbol} live-state capture failed: {type(exc).__name__}: {exc}")
     finally:
         if original_status:
@@ -1166,18 +1322,114 @@ def capture_symbol(symbol: str, dry_run: bool = False) -> dict[str, Any]:
     return payload
 
 
-def update_runtime_state(cycle_status: str, symbol_results: list[dict[str, Any]], last_error: str | None = None) -> None:
+def update_runtime_state(
+    cycle_status: str,
+    symbol_results: list[dict[str, Any]],
+    last_error: str | None = None,
+    expected_symbols: int | None = None,
+    state_overrides: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    previous = load_json(STATE_PATH, default={}) or {}
+    updated_at = now_iso()
+    updated_at_dt = parse_iso_datetime(updated_at) or now_local()
+    expected_symbol_count = expected_symbols or len(symbol_results)
+    valid_symbols = [
+        str(result.get("symbol"))
+        for result in symbol_results
+        if structured_summary_ready(result)
+    ]
+    invalid_symbols = [
+        str(result.get("symbol"))
+        for result in symbol_results
+        if str(result.get("symbol")) not in valid_symbols
+    ]
+    all_symbols_valid = (
+        len(symbol_results) == expected_symbol_count
+        and len(valid_symbols) == expected_symbol_count
+    )
+
+    previous_last_full_valid_raw = previous.get("last_full_valid_cycle_at")
+    previous_last_full_valid_dt = parse_iso_datetime(previous_last_full_valid_raw)
+    previous_recovery_requested_at = previous.get("recovery_requested_at")
+    recovery_acknowledged = desired_states_refreshed_since(previous_recovery_requested_at)
+
+    gap_exceeded = False
+    if previous_last_full_valid_dt is not None:
+        gap_exceeded = (
+            updated_at_dt - previous_last_full_valid_dt
+        ).total_seconds() >= STALL_THRESHOLD_SECONDS
+
+    workflow_stalled = False
+    recovery_pending = False
+    recovery_gate_status = "not_needed"
+    stall_started_at = previous.get("stall_started_at")
+    recovery_requested_at = previous_recovery_requested_at
+    last_full_valid_cycle_at = previous_last_full_valid_raw
+    last_recovery_reassess_at = previous.get("last_recovery_reassess_at")
+
+    if recovery_acknowledged:
+        stall_started_at = None
+        recovery_requested_at = None
+        if previous_recovery_requested_at is not None:
+            requested_at_dt = parse_iso_datetime(previous_recovery_requested_at)
+            previous_reassess_dt = parse_iso_datetime(last_recovery_reassess_at)
+            if requested_at_dt and (previous_reassess_dt is None or previous_reassess_dt < requested_at_dt):
+                last_recovery_reassess_at = updated_at
+
+    if all_symbols_valid:
+        if not recovery_acknowledged and (gap_exceeded or bool(previous.get("recovery_pending"))):
+            workflow_stalled = True
+            recovery_pending = True
+            recovery_gate_status = "ready"
+            if recovery_requested_at is None:
+                recovery_requested_at = updated_at
+            if stall_started_at is None:
+                stall_started_at = previous_last_full_valid_raw or updated_at
+        last_full_valid_cycle_at = updated_at
+    else:
+        if not recovery_acknowledged and (gap_exceeded or bool(previous.get("recovery_pending"))):
+            workflow_stalled = True
+            recovery_pending = True
+            recovery_gate_status = "waiting_for_valid_symbols"
+            if stall_started_at is None:
+                stall_started_at = updated_at
+
     payload = {
         "owner": OWNER_NAME,
-        "updated_at": now_iso(),
+        "updated_at": updated_at,
         "status": cycle_status,
         "data_mode": "structured_only",
         "freshness_seconds": DEFAULT_FRESHNESS_SECONDS,
+        "expected_symbol_count": expected_symbol_count,
+        "valid_symbol_count": len(valid_symbols),
+        "valid_symbols": valid_symbols,
+        "invalid_symbols": invalid_symbols,
+        "all_symbols_valid": all_symbols_valid,
+        "stall_threshold_seconds": STALL_THRESHOLD_SECONDS,
+        "last_full_valid_cycle_at": last_full_valid_cycle_at,
+        "workflow_stalled": workflow_stalled,
+        "stall_started_at": stall_started_at,
+        "recovery_pending": recovery_pending,
+        "recovery_requested_at": recovery_requested_at,
+        "recovery_gate_status": recovery_gate_status,
+        "last_recovery_reassess_at": last_recovery_reassess_at,
         "symbols": symbol_results,
     }
     if last_error:
         payload["last_error"] = last_error
+    for field in RECOVERY_METADATA_FIELDS:
+        if field in payload:
+            continue
+        if field in previous:
+            payload[field] = previous.get(field)
+    if state_overrides:
+        for key, value in state_overrides.items():
+            if value is None:
+                payload.pop(key, None)
+            else:
+                payload[key] = value
     save_json(STATE_PATH, payload)
+    return payload
 
 
 def capture_all(symbol_filter: str | None = None, dry_run: bool = False) -> list[dict[str, Any]]:
@@ -1209,6 +1461,7 @@ def main() -> int:
         update_runtime_state(
             cycle_status="dry-run" if args.dry_run else "healthy",
             symbol_results=results,
+            expected_symbols=1 if args.symbol else len(SYMBOLS),
         )
 
     if args.watch:
@@ -1221,6 +1474,7 @@ def main() -> int:
                     cycle_status="degraded",
                     symbol_results=stale_results,
                     last_error=f"{type(exc).__name__}: {exc}",
+                    expected_symbols=1 if args.symbol else len(SYMBOLS),
                 )
                 append_log(f"watch cycle failed: {type(exc).__name__}: {exc}")
 

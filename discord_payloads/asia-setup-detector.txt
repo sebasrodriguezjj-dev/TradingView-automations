@@ -1,0 +1,20 @@
+[🌙 ASIA SETUP DETECTOR]
+
+**Historia**
+Oro ya hizo el failed reclaim de `4699.52` y sigue pesado debajo de `4697.42`.
+El rebote desde `4688.12 / 4685.15` reacciono, pero no genero acceptance arriba, asi que Asia sigue corriendo mas en `fade / range` que en breakout.
+
+**Tesis**
+Eso confirma el sesgo corto del mapa Asia sin cambiar el HTF.
+`4699.52` sigue siendo el techo tactico y mientras no lo recupere, la idea buena sigue siendo vender el failed reclaim.
+El problema es timing: ese trigger ya corrio, asi que si estas flat no quiero chase en medio del bracket.
+
+**Niveles**
+`XAUUSD` -> Daily `4857.02 / 4654.86` | 4H `4753.54 / 4685.15` | 1H `4699.52` | 5m `4699.52 / 4688.12`
+Liquidez: buy-side `4699.52` | sell-side `4688.12`, `PDL 4685.15`
+
+**Accion**
+`VALID SHORT SETUP` | timing `TRIGGERED`
+Si ya venias en el failed reclaim, toca gestionar.
+Si estas flat: `DO NOT CHASE`; espera nuevo retest hacia `4697.42-4699.52` o una perdida / retest mas limpia de `4688.12`.
+Invalida si `15m` acepta arriba de `4699.52` y empieza a sostener `4707.30 / 4711.14`.

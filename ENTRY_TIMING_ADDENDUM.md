@@ -4,7 +4,9 @@ Use this addendum to refine entries and timing without changing the core strateg
 
 This file is subordinate to the main strategy hierarchy:
 
-- `Daily / 4H` define context
+- `Monthly / Weekly` define macro supply/demand context
+- `Daily / 4H` define operational context and structural HTF
+- `1H` validates tactical acceptance, rejection, and transition
 - `30m` organizes session structure
 - `15m` validates setup quality
 - `5m` executes
@@ -122,6 +124,20 @@ Correct action:
 - wait for a new map or a new retest
 
 ## Minimum Evidence For Entry Quality
+
+### 1H
+
+Use `1H` to decide whether the HTF thesis is accepting, rejecting, or
+transitioning before the setup matures.
+
+Helpful 1H evidence:
+
+- repeated wick rejection or acceptance around HTF supply / demand
+- a clean flip of a meaningful 1H shelf
+- compression, transition, or failed continuation that warns against a 5m chase
+
+Do not promote a setup from 1H alone. It must still mature through `30m`,
+`15m`, and `5m`.
 
 ### 15m
 

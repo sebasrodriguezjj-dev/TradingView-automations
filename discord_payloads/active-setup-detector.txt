@@ -1,6 +1,12 @@
-[ACTIVE SETUP DETECTOR]
-XAUUSD: WAIT
-US30: WAIT
-Mas limpio: US30
-Trigger: 49264.15
-Evitar: XAUUSD
+Historia:
+US30 ya hizo el primer long hasta 49855.85, solto de nuevo bajo 49755.85 y ahora el tape vuelve a decidirse mas abajo sobre 49734.35. Oro sigue en bracket: 4721.44 aguanta, pero cada push arriba de 4726.26 / 4727.07 sigue encontrando venta.
+
+Tesis:
+US30 sigue siendo el simbolo mas limpio, pero en correccion, no en chase. El long nuevo solo me interesa si 49734.35 defiende y recupera 49755.85; el short solo si 49761.85 retestea y falla. En XAUUSD el short bueno ya corrio y el long todavia necesita aceptacion real arriba de 4726.26.
+
+Niveles:
+US30 -> 1H 49794.40 / 49701.85 | 5m 49761.85 / 49734.35
+XAUUSD -> 1H 4734.67 / 4715.97 | 5m 4726.26 / 4721.44
+
+Accion:
+WAIT. US30 queda ARMED del lado largo si 49734.35 se sostiene y recupera 49755.85; si no, no persigo. XAUUSD sigue NO CLEAR EDGE: short lado TRIGGERED, long lado ARMED, pero si estas flat no compro ni vendo en medio.
